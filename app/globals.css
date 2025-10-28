@@ -2,7 +2,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
 }
 
 @theme inline {
@@ -23,4 +23,55 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Override gray text colors with black variants for better visibility */
+.text-gray-400,
+[class*="text-gray-400"] { 
+  color: rgba(0, 0, 0, 0.5) !important; 
+}
+
+.text-gray-500,
+[class*="text-gray-500"] { 
+  color: rgba(0, 0, 0, 0.7) !important; 
+}
+
+.text-gray-600,
+[class*="text-gray-600"] { 
+  color: rgba(0, 0, 0, 0.85) !important; 
+}
+
+.text-gray-700,
+[class*="text-gray-700"] { 
+  color: rgba(0, 0, 0, 0.95) !important; 
+}
+
+.text-gray-800,
+[class*="text-gray-800"] { 
+  color: rgba(0, 0, 0, 0.98) !important; 
+}
+
+.text-gray-900,
+[class*="text-gray-900"] { 
+  color: rgba(0, 0, 0, 1) !important; 
+}
+
+.hover\:text-gray-900:hover { 
+  color: rgba(0, 0, 0, 1) !important; 
+}
+
+/* Make placeholder text more visible */
+::placeholder {
+  color: rgba(0, 0, 0, 0.5) !important;
+  opacity: 1;
+}
+
+/* Make input text black */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="url"],
+textarea,
+select {
+  color: rgba(0, 0, 0, 0.95) !important;
 }

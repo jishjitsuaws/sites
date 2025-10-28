@@ -1,0 +1,279 @@
+const Asset = require('../models/Asset');
+const User = require('../models/User');
+const { asyncHandler, ApiError, paginatedResponse, formatFileSize } = require('../utils/helpers');
+const { uploadToLocalStorage, deleteFromLocalStorage } = require('../config/cloudinary');
+
+/**
+ * @desc    Upload asset
+ * @route   POST /api/assets/upload
+ * @access  Private
+ */
+exports.uploadAsset = asyncHandler(async (req, res, next) => {
+  if (!req.file) {
+    throw new ApiError('Please upload a file', 400);
+  }
+
+  const { siteId, alt, tags, folder } = req.body;
+
+  // Check user storage limit
+  const user = await User.findById(req.user._id);
+  const currentStorage = await Asset.calculateUserStorage(req.user._id);
+
+  if (currentStorage + req.file.size > user.storageLimit) {
+    throw new ApiError('Storage limit exceeded. Please upgrade your plan or delete some files.', 400);
+  }
+
+  // Determine asset type
+  const assetType = req.file.mimetype.startsWith('image/') ? 'image' :
+                   req.file.mimetype.startsWith('video/') ? 'video' :
+                   req.file.mimetype.includes('pdf') || req.file.mimetype.includes('document') ? 'document' :
+                   'other';
+
+  try {
+    // Upload to local storage
+    const result = await uploadToLocalStorage(req.file, {
+      folder: folder || 'cms-uploads'
+    });
+
+    // Create asset record
+    const asset = await Asset.create({
+      userId: req.user._id,
+      siteId: siteId || null,
+      filename: result.public_id,
+      originalName: req.file.originalname,
+      url: result.secure_url,
+      publicId: result.public_id,
+      type: assetType,
+      mimeType: req.file.mimetype,
+      size: req.file.size,
+      dimensions: result.width && result.height ? {
+        width: result.width,
+        height: result.height
+      } : undefined,
+      alt: alt || '',
+      tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+      folder: folder || 'uploads'
+    });
+
+    // Update user storage
+    user.storageUsed = currentStorage + req.file.size;
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'File uploaded successfully',
+      data: asset
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    throw new ApiError('Failed to upload file. Please try again.', 500);
+  }
+});
+
+/**
+ * @desc    Get all assets for user
+ * @route   GET /api/assets
+ * @access  Private
+ */
+exports.getAssets = asyncHandler(async (req, res, next) => {
+  const { page = 1, limit = 20, type, siteId, search } = req.query;
+
+  const query = { userId: req.user._id };
+
+  if (type) {
+    query.type = type;
+  }
+
+  if (siteId) {
+    query.siteId = siteId;
+  }
+
+  if (search) {
+    query.$or = [
+      { originalName: { $regex: search, $options: 'i' } },
+      { tags: { $in: [new RegExp(search, 'i')] } }
+    ];
+  }
+
+  const skip = (page - 1) * limit;
+
+  const [assets, total] = await Promise.all([
+    Asset.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit)),
+    Asset.countDocuments(query)
+  ]);
+
+  paginatedResponse(res, assets, parseInt(page), parseInt(limit), total, 'Assets retrieved successfully');
+});
+
+/**
+ * @desc    Get single asset
+ * @route   GET /api/assets/:id
+ * @access  Private
+ */
+exports.getAsset = asyncHandler(async (req, res, next) => {
+  const asset = await Asset.findById(req.params.id);
+
+  if (!asset) {
+    throw new ApiError('Asset not found', 404);
+  }
+
+  // Check ownership
+  if (asset.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError('Not authorized to access this asset', 403);
+  }
+
+  res.status(200).json({
+    success: true,
+    data: asset
+  });
+});
+
+/**
+ * @desc    Update asset
+ * @route   PUT /api/assets/:id
+ * @access  Private
+ */
+exports.updateAsset = asyncHandler(async (req, res, next) => {
+  let asset = await Asset.findById(req.params.id);
+
+  if (!asset) {
+    throw new ApiError('Asset not found', 404);
+  }
+
+  // Check ownership
+  if (asset.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError('Not authorized to update this asset', 403);
+  }
+
+  // Update allowed fields
+  const { alt, tags, isPublic } = req.body;
+  
+  if (alt !== undefined) asset.alt = alt;
+  if (tags !== undefined) asset.tags = tags;
+  if (isPublic !== undefined) asset.isPublic = isPublic;
+
+  await asset.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Asset updated successfully',
+    data: asset
+  });
+});
+
+/**
+ * @desc    Delete asset
+ * @route   DELETE /api/assets/:id
+ * @access  Private
+ */
+exports.deleteAsset = asyncHandler(async (req, res, next) => {
+  const asset = await Asset.findById(req.params.id);
+
+  if (!asset) {
+    throw new ApiError('Asset not found', 404);
+  }
+
+  // Check ownership
+  if (asset.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError('Not authorized to delete this asset', 403);
+  }
+
+  try {
+    // Delete from local storage
+    if (asset.publicId) {
+      await deleteFromLocalStorage(asset.publicId);
+    }
+
+    // Delete from database
+    await asset.deleteOne();
+
+    // Update user storage
+    const user = await User.findById(req.user._id);
+    user.storageUsed = Math.max(0, user.storageUsed - asset.size);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Asset deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete error:', error);
+    throw new ApiError('Failed to delete asset. Please try again.', 500);
+  }
+});
+
+/**
+ * @desc    Get user storage info
+ * @route   GET /api/assets/storage/info
+ * @access  Private
+ */
+exports.getStorageInfo = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user._id);
+  const currentStorage = await Asset.calculateUserStorage(req.user._id);
+
+  const storageInfo = {
+    used: currentStorage,
+    limit: user.storageLimit,
+    available: user.storageLimit - currentStorage,
+    percentage: (currentStorage / user.storageLimit) * 100,
+    usedFormatted: formatFileSize(currentStorage),
+    limitFormatted: formatFileSize(user.storageLimit),
+    availableFormatted: formatFileSize(user.storageLimit - currentStorage)
+  };
+
+  res.status(200).json({
+    success: true,
+    data: storageInfo
+  });
+});
+
+/**
+ * @desc    Bulk delete assets
+ * @route   DELETE /api/assets/bulk-delete
+ * @access  Private
+ */
+exports.bulkDeleteAssets = asyncHandler(async (req, res, next) => {
+  const { assetIds } = req.body;
+
+  if (!assetIds || !Array.isArray(assetIds) || assetIds.length === 0) {
+    throw new ApiError('Please provide asset IDs to delete', 400);
+  }
+
+  // Get assets and verify ownership
+  const assets = await Asset.find({
+    _id: { $in: assetIds },
+    userId: req.user._id
+  });
+
+  if (assets.length === 0) {
+    throw new ApiError('No assets found to delete', 404);
+  }
+
+  let totalSize = 0;
+  const deletePromises = assets.map(async (asset) => {
+    totalSize += asset.size;
+    
+    // Delete from local storage
+    if (asset.publicId) {
+      await deleteFromLocalStorage(asset.publicId);
+    }
+    
+    return asset.deleteOne();
+  });
+
+  await Promise.all(deletePromises);
+
+  // Update user storage
+  const user = await User.findById(req.user._id);
+  user.storageUsed = Math.max(0, user.storageUsed - totalSize);
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: `${assets.length} asset(s) deleted successfully`,
+    deletedCount: assets.length
+  });
+});
