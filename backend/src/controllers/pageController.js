@@ -80,12 +80,20 @@ exports.createPage = asyncHandler(async (req, res, next) => {
   }
 
   // Generate unique slug if not provided
-  let finalSlug = slug || slugify(pageName);
-  
-  // Check if slug already exists
-  const existingPage = await Page.findOne({ siteId, slug: finalSlug });
-  if (existingPage) {
-    finalSlug = await Page.generateUniqueSlug(siteId, finalSlug);
+  let finalSlug;
+  if (isHome) {
+    // Home page gets empty slug
+    finalSlug = '';
+  } else {
+    finalSlug = slug || slugify(pageName);
+    
+    // Check if slug already exists (only for non-empty slugs)
+    if (finalSlug) {
+      const existingPage = await Page.findOne({ siteId, slug: finalSlug });
+      if (existingPage) {
+        finalSlug = await Page.generateUniqueSlug(siteId, finalSlug);
+      }
+    }
   }
 
   // Get the highest order number

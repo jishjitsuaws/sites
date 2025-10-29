@@ -5,7 +5,31 @@ const componentSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['heading', 'text', 'image', 'button', 'embed', 'layout', 'form', 'divider', 'spacer', 'youtube', 'map', 'social', 'gallery', 'code', 'video']
+    enum: [
+      'heading',
+      'text',
+      'image',
+      'button',
+      'embed',
+      'layout',
+      'form',
+      'divider',
+      'spacer',
+      'youtube',
+      'map',
+      'social',
+      'gallery',
+      'code',
+      'video',
+      'banner',
+      'card',
+      'footer',
+      'timer',
+      // Newly supported editor components
+      'carousel',
+      'bullet-list',
+      'collapsible-list'
+    ]
   },
   content: mongoose.Schema.Types.Mixed,
   props: mongoose.Schema.Types.Mixed,
@@ -26,6 +50,22 @@ const componentSchema = new mongoose.Schema({
   order: { type: Number, default: 0 }
 }, { _id: false });
 
+const sectionSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  sectionName: { type: String, default: '' },
+  showInNavbar: { type: Boolean, default: true },
+  components: [componentSchema],
+  layout: {
+    direction: { type: String, enum: ['row', 'column'], default: 'column' },
+    justifyContent: { type: String, default: 'flex-start' },
+    alignItems: { type: String, default: 'center' },
+    gap: { type: Number, default: 16 },
+    padding: { type: Number, default: 24 },
+    backgroundColor: { type: String, default: 'transparent' }
+  },
+  order: { type: Number, default: 0 }
+}, { _id: false });
+
 const pageSchema = new mongoose.Schema({
   siteId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -41,12 +81,24 @@ const pageSchema = new mongoose.Schema({
   },
   slug: {
     type: String,
-    required: [true, 'Slug is required'],
+    required: false,
     trim: true,
     lowercase: true,
-    match: [/^[a-z0-9-/]+$/, 'Slug can only contain lowercase letters, numbers, hyphens, and slashes']
+    default: '',
+    validate: {
+      validator: function(value) {
+        // Allow empty slug for home pages
+        if (this.isHome && (!value || value === '')) {
+          return true;
+        }
+        // For non-home pages, slug must match the pattern
+        return /^[a-z0-9-/]+$/.test(value);
+      },
+      message: 'Slug can only contain lowercase letters, numbers, hyphens, and slashes'
+    }
   },
   content: [componentSchema],
+  sections: [sectionSchema],
   isHome: {
     type: Boolean,
     default: false
@@ -76,8 +128,11 @@ const pageSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Compound index for unique slug per site
-pageSchema.index({ siteId: 1, slug: 1 }, { unique: true });
+// Compound index for unique slug per site (excluding empty slugs for home pages)
+pageSchema.index({ siteId: 1, slug: 1 }, { 
+  unique: true,
+  partialFilterExpression: { slug: { $ne: '' } }
+});
 pageSchema.index({ siteId: 1, order: 1 });
 pageSchema.index({ siteId: 1, isHome: 1 });
 

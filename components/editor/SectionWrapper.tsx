@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GripVertical, Trash2, Settings, Plus } from 'lucide-react';
 import ComponentRenderer from './ComponentRenderer';
 
@@ -13,6 +13,7 @@ interface Component {
 
 interface Section {
   id: string;
+  sectionName?: string;
   components: Component[];
   layout: {
     direction: 'row' | 'column';
@@ -27,6 +28,7 @@ interface Section {
 
 interface SectionWrapperProps {
   section: Section;
+  isFirstSection?: boolean;
   isSelected: boolean;
   onSelect: () => void;
   onUpdate: (updates: Partial<Section>) => void;
@@ -47,10 +49,17 @@ interface SectionWrapperProps {
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
   isDragging: boolean;
+  onComponentDragStart?: (componentId: string, sectionId: string) => void;
+  onComponentDragEnd?: () => void;
+  onComponentDragOver?: (componentId: string) => void;
+  onComponentDrop?: (targetComponentId: string, sectionId: string) => void;
+  draggedComponentId?: string | null;
+  onOpenCardGridModal?: (sectionId: string) => void;
 }
 
 export default function SectionWrapper({
   section,
+  isFirstSection,
   isSelected,
   onSelect,
   onUpdate,
@@ -71,8 +80,49 @@ export default function SectionWrapper({
   onDragOver,
   onDrop,
   isDragging,
+  onComponentDragStart,
+  onComponentDragEnd,
+  onComponentDragOver,
+  onComponentDrop,
+  draggedComponentId,
+  onOpenCardGridModal,
 }: SectionWrapperProps) {
   const [showSettings, setShowSettings] = useState(false);
+  
+  // Auto-fix section layout when it has multiple cards
+  useEffect(() => {
+    const cardCount = section.components.filter(c => c.type === 'card').length;
+    if (cardCount >= 2 && section.layout.direction !== 'row') {
+      console.log(`[SectionWrapper] Auto-fixing section ${section.id} to row layout (${cardCount} cards)`);
+      onUpdate({
+        layout: {
+          ...section.layout,
+          direction: 'row',
+        },
+      });
+    }
+  }, [section.components, section.layout.direction, section.id, onUpdate]);
+  const settingsRef = useRef<HTMLDivElement>(null);
+
+  // Check if this section contains a footer or banner component
+  const hasFooterOrBanner = section.components.some(c => c.type === 'footer' || c.type === 'banner');
+
+  // Close settings when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+        setShowSettings(false);
+      }
+    };
+
+    if (showSettings) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSettings]);
 
   return (
     <div
@@ -93,6 +143,12 @@ export default function SectionWrapper({
       style={{
         backgroundColor: section.layout.backgroundColor || 'transparent',
         padding: `${section.layout.padding}px`,
+        // For banners/footers (padding: 0), extend to full width by negating parent's p-8 (32px)
+        marginLeft: section.layout.padding === 0 ? '-32px' : '0',
+        marginRight: section.layout.padding === 0 ? '-32px' : '0',
+        marginTop: section.layout.padding === 0 && isFirstSection ? '-8px' : '0', // Reduced to not encroach toolbar area
+        width: section.layout.padding === 0 ? 'calc(100% + 64px)' : 'auto',
+        overflow: 'visible', // Allow toolbars to show above section
       }}
     >
       {/* Section Toolbar */}
@@ -137,11 +193,26 @@ export default function SectionWrapper({
 
       {/* Section Settings Panel */}
       {isSelected && showSettings && (
-        <div className="absolute -top-12 left-0 right-0 flex justify-center z-50">
+        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-10000">
           <div className="bg-white rounded-lg shadow-xl border-2 border-blue-500 p-4 mt-12 w-96">
-            <h3 className="font-semibold text-sm mb-3 text-gray-900">Section Layout</h3>
+            <h3 className="font-semibold text-sm mb-3 text-gray-900">Section Settings</h3>
             
             <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Section Name (for navigation)</label>
+                <input
+                  type="text"
+                  value={section.sectionName || ''}
+                  onChange={(e) =>
+                    onUpdate({
+                      sectionName: e.target.value,
+                    })
+                  }
+                  placeholder="e.g., Home, About, Features"
+                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-gray-900"
+                />
+              </div>
+              
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Direction</label>
                 <select
@@ -229,7 +300,7 @@ export default function SectionWrapper({
                 <input
                   type="range"
                   min="0"
-                  max="100"
+                  max="150"
                   value={section.layout.padding}
                   onChange={(e) =>
                     onUpdate({
@@ -271,34 +342,79 @@ export default function SectionWrapper({
           flexDirection: section.layout.direction,
           justifyContent: section.layout.justifyContent,
           alignItems: section.layout.alignItems,
+          flexWrap: section.layout.direction === 'row' ? 'wrap' as const : 'nowrap' as const,
           gap: `${section.layout.gap}px`,
         }}
       >
-        {section.components.map((component) => (
-          <div
-            key={component.id}
-            className="shrink-0"
-            style={{
-              width: component.props.width || 'auto',
-              maxWidth: '100%',
-            }}
-          >
-            <ComponentRenderer
-              component={component}
-              isSelected={selectedComponentId === component.id}
-              themeColors={themeColors}
-              themeFonts={themeFonts}
-              onComponentClick={(comp, e) => onComponentClick(comp, e)}
-              onUpdateComponent={(id, updates) => onUpdateComponent(id, updates)}
-              onCopyComponent={() => onCopyComponent(component.id)}
-              onDeleteComponent={() => onDeleteComponent(component.id)}
-              onShowImageModal={() => onShowImageModal(component.id)}
-              onShowButtonModal={() => onShowButtonModal(component.id)}
-              onShowTextToolbar={(rect) => onShowTextToolbar(component.id, rect)}
-              setSelectedComponent={setSelectedComponent}
-            />
-          </div>
-        ))}
+        {section.components.map((component) => {
+          // Check if component has its own alignment (text, heading, button)
+          const hasOwnAlignment = (component.type === 'text' || component.type === 'heading' || component.type === 'button') && component.props.align;
+          
+          // Calculate alignment override based on component's align property
+          let alignSelf = 'auto';
+          if (hasOwnAlignment) {
+            if (component.props.align === 'left') {
+              alignSelf = 'flex-start';
+            } else if (component.props.align === 'center') {
+              alignSelf = 'center';
+            } else if (component.props.align === 'right') {
+              alignSelf = 'flex-end';
+            }
+          }
+          
+          return (
+            <div
+              key={component.id}
+              draggable
+              onDragStart={(e) => {
+                e.stopPropagation();
+                onComponentDragStart?.(component.id, section.id);
+              }}
+              onDragEnd={(e) => {
+                e.stopPropagation();
+                onComponentDragEnd?.();
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onComponentDragOver?.(component.id);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onComponentDrop?.(component.id, section.id);
+              }}
+              className={`shrink-0 transition-all ${
+                draggedComponentId === component.id ? 'opacity-50' : 'opacity-100'
+              }`}
+              style={{
+                width: hasOwnAlignment
+                  ? '100%'
+                  : (component.type === 'card'
+                      ? (component.props.width || 'auto')
+                      : (component.type === 'carousel' ? '100%' : (component.props.width || 'auto'))),
+                maxWidth: '100%',
+                alignSelf: alignSelf,
+              }}
+            >
+              <ComponentRenderer
+                component={component}
+                isSelected={selectedComponentId === component.id}
+                themeColors={themeColors}
+                themeFonts={themeFonts}
+                onComponentClick={(comp, e) => onComponentClick(comp, e)}
+                onUpdateComponent={(id, updates) => onUpdateComponent(id, updates)}
+                onCopyComponent={() => onCopyComponent(component.id)}
+                onDeleteComponent={() => onDeleteComponent(component.id)}
+                onShowImageModal={() => onShowImageModal(component.id)}
+                onShowButtonModal={() => onShowButtonModal(component.id)}
+                onShowTextToolbar={(rect) => onShowTextToolbar(component.id, rect)}
+                setSelectedComponent={setSelectedComponent}
+                onOpenCardGridModal={onOpenCardGridModal ? () => onOpenCardGridModal(section.id) : undefined}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* Empty section placeholder */}

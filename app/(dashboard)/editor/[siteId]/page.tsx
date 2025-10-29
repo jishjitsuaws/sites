@@ -9,12 +9,12 @@ import ImageModal from '@/components/modals/ImageModal';
 import ButtonModal from '@/components/modals/ButtonModal';
 import TextEditorToolbar from '@/components/modals/TextEditor';
 import BlockModal from '@/components/modals/BlockModal';
-import LogoModal from '@/components/modals/LogoModal';
 import ComponentRenderer from '@/components/editor/ComponentRenderer';
 import SectionWrapper from '@/components/editor/SectionWrapper';
 import ComponentsPanel from '@/components/editor/ComponentsPanel';
 import ThemesPanel from '@/components/editor/ThemesPanel';
 import PagesPanel from '@/components/editor/PagesPanel';
+import LogoHandler from '@/components/editor/LogoHandler';
 import {
   Save,
   Eye,
@@ -33,6 +33,7 @@ import {
   Layers,
   Minus,
 } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Site {
@@ -88,20 +89,33 @@ export default function EditorPage() {
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [draggedSection, setDraggedSection] = useState<string | null>(null);
   const [dragOverSection, setDragOverSection] = useState<string | null>(null);
+  const [draggedComponent, setDraggedComponent] = useState<{componentId: string, sectionId: string} | null>(null);
+  const [dragOverComponent, setDragOverComponent] = useState<string | null>(null);
   const [themes, setThemes] = useState<any[]>([]);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishName, setPublishName] = useState('');
   const [publishSubdomain, setPublishSubdomain] = useState('');
   const [showAddPageForm, setShowAddPageForm] = useState(false);
   const [newPageName, setNewPageName] = useState('');
-  const [showLogoModal, setShowLogoModal] = useState(false);
   
   // Modal states
   const [showImageModal, setShowImageModal] = useState(false);
   const [showButtonModal, setShowButtonModal] = useState(false);
   const [showTextToolbar, setShowTextToolbar] = useState(false);
   const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showCardGridModal, setShowCardGridModal] = useState(false);
+  const [cardGridMode, setCardGridMode] = useState<'create' | 'edit'>('create');
+  const [cardGridTargetSectionId, setCardGridTargetSectionId] = useState<string | null>(null);
+  const [cardGridForm, setCardGridForm] = useState({
+    count: 3,
+    cardType: 'text' as 'text' | 'icon' | 'image',
+    template: 'outlined' as 'simple' | 'outlined' | 'elevated',
+    imageFrameHeight: 180,
+    icon: '⭐',
+  });
   const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showNavbarSettings, setShowNavbarSettings] = useState(false);
 
   const { 
     components, 
@@ -114,6 +128,7 @@ export default function EditorPage() {
     deleteSection, 
     setComponents,
     setSections,
+    reorderComponentsInSection,
     setSelectedComponent: setStoreSelectedComponent,
   } = useEditorStore();
 
@@ -165,33 +180,26 @@ export default function EditorPage() {
         
         if (firstPage) {
           setCurrentPage(firstPage);
-          // Use sections if available, otherwise convert components to sections
+          console.log('Page data:', { 
+            sections: firstPage.sections?.length || 0, 
+            content: firstPage.content?.length || 0 
+          });
+          
+          // ALWAYS prioritize sections if they exist
           if (firstPage.sections && firstPage.sections.length > 0) {
+            console.log('Loading from sections - keeping structure intact');
             setSections(firstPage.sections);
-          } else if (firstPage.content && firstPage.content.length > 0) {
-            // Convert legacy flat components to sections
-            const convertedSections = firstPage.content.map((component: any, index: number) => ({
-              id: `section-${component.id}`,
-              components: [component],
-              layout: {
-                direction: 'column' as const,
-                justifyContent: 'flex-start' as const,
-                alignItems: 'center' as const,
-                gap: 16,
-                padding: 24,
-              },
-              order: index,
-            }));
-            setSections(convertedSections);
+            setComponents([]); // Don't use content when sections exist
           } else {
+            console.log('No sections found, initializing empty');
             setSections([]);
+            setComponents([]);
           }
-          setComponents(firstPage.content || []);
         } else {
           // No pages yet - create a default home page
           const defaultPage = await api.post(`/sites/${siteId}/pages`, {
             pageName: 'Home',
-            slug: 'home',
+            slug: '',
             isHome: true,
           });
           const newPage = defaultPage.data.data;
@@ -244,27 +252,45 @@ export default function EditorPage() {
     setSaving(true);
     try {
       console.log('Saving page:', currentPage._id);
-      console.log('Sections to save:', sections);
+      console.log('Current sections:', sections);
       
-      // Flatten sections back to components for backward compatibility with backend
-      const flatComponents = sections.flatMap(section => section.components);
+      // Clean up and format sections for saving
+      const cleanedSections = sections.map(section => ({
+        ...section,
+        layout: {
+          ...section.layout,
+          // Force row layout for sections with multiple cards
+          direction: section.components.length >= 2 && section.components.every((c: any) => c.type === 'card') 
+            ? 'row' 
+            : section.layout.direction,
+          justifyContent: section.components.length >= 2 && section.components.every((c: any) => c.type === 'card')
+            ? 'space-between'
+            : section.layout.justifyContent,
+          alignItems: section.components.length >= 2 && section.components.every((c: any) => c.type === 'card')
+            ? 'stretch'
+            : section.layout.alignItems,
+        }
+      }));
+      
+      // Flatten sections to components for legacy backend compatibility
+      const flatComponents = cleanedSections.flatMap(section => section.components);
       
       const response = await api.put(`/pages/${currentPage._id}`, {
         content: flatComponents,
-        sections: sections, // Save sections structure too
+        sections: cleanedSections,
       });
       
       console.log('Save response:', response.data);
       
-      // Update the pages array with the new content
+      // Update local state
       setPages(pages.map(p => 
         p._id === currentPage._id 
-          ? { ...p, content: flatComponents, sections: sections } 
+          ? { ...p, content: flatComponents, sections: cleanedSections } 
           : p
       ));
       
-      // Update current page state
-      setCurrentPage({ ...currentPage, content: flatComponents });
+      setCurrentPage({ ...currentPage, content: flatComponents, sections: cleanedSections });
+      setSections(cleanedSections);
       
       toast.success('Changes saved successfully');
     } catch (err: any) {
@@ -330,16 +356,9 @@ export default function EditorPage() {
     }
   };
 
-  const handleSaveLogo = async (logoData: { logo: string; logoWidth: string }) => {
-    try {
-      await api.put(`/sites/${siteId}`, logoData);
-      toast.success('Logo updated successfully!');
-      if (site) {
-        setSite({ ...site, ...logoData });
-      }
-      setShowLogoModal(false);
-    } catch (err: any) {
-      toast.error('Failed to update logo');
+  const handleSaveLogo = (logoData: { logo: string; logoWidth: string }) => {
+    if (site) {
+      setSite({ ...site, ...logoData });
     }
   };
 
@@ -357,6 +376,8 @@ export default function EditorPage() {
       const newPage = response.data.data;
       setPages([...pages, newPage]);
       setCurrentPage(newPage);
+      // Initialize empty state for new page
+      setSections([]);
       setComponents([]);
       setNewPageName('');
       setShowAddPageForm(false);
@@ -371,111 +392,47 @@ export default function EditorPage() {
     console.log('=== Switching page ===');
     console.log('Current page:', currentPage?.pageName, currentPage?._id);
     console.log('Target page:', page.pageName, page._id);
-    console.log('Current components to save:', components.length);
     
-    // Save current page's components before switching
-    if (currentPage && components.length > 0) {
+    // Auto-save current page if it has sections
+    if (currentPage && sections.length > 0) {
       try {
-        console.log('Auto-saving before switch...');
-        await api.put(`/pages/${currentPage._id}`, {
-          content: components,
-        });
-        
-        // Update the pages array with the saved content
-        const updatedPages = pages.map(p => 
-          p._id === currentPage._id 
-            ? { ...p, content: components } 
-            : p
-        );
-        setPages(updatedPages);
-        console.log('Auto-save successful, updated pages array');
-        
-        // Find the updated target page from the updated array
-        const targetPage = updatedPages.find(p => p._id === page._id);
-        if (targetPage) {
-          console.log('Loading updated page content:', targetPage.content?.length || 0, 'components');
-          setCurrentPage(targetPage);
-          setComponents(targetPage.content || []);
-        } else {
-          // Fallback to passed page
-          console.log('Loading passed page content:', page.content?.length || 0, 'components');
-          setCurrentPage(page);
-          // Load sections if available, otherwise convert components
-          if (page.sections && page.sections.length > 0) {
-            setSections(page.sections);
-          } else if (page.content && page.content.length > 0) {
-            const convertedSections = page.content.map((component: any, index: number) => ({
-              id: `section-${component.id}`,
-              components: [component],
-              layout: {
-                direction: 'column' as const,
-                justifyContent: 'flex-start' as const,
-                alignItems: 'center' as const,
-                gap: 16,
-                padding: 24,
-              },
-              order: index,
-            }));
-            setSections(convertedSections);
-          } else {
-            setSections([]);
-          }
-          setComponents(page.content || []);
-        }
+        console.log('Auto-saving current page...');
+        await handleSave();
       } catch (err) {
-        console.error('Failed to auto-save page:', err);
-        // Still switch even if save failed
-        setCurrentPage(page);
-        // Load sections if available
-        if (page.sections && page.sections.length > 0) {
-          setSections(page.sections);
-        } else if (page.content && page.content.length > 0) {
-          const convertedSections = page.content.map((component: any, index: number) => ({
-            id: `section-${component.id}`,
-            components: [component],
-            layout: {
-              direction: 'column' as const,
-              justifyContent: 'flex-start' as const,
-              alignItems: 'center' as const,
-              gap: 16,
-              padding: 24,
-            },
-            order: index,
-          }));
-          setSections(convertedSections);
-        } else {
-          setSections([]);
-        }
-        setComponents(page.content || []);
+        console.error('Failed to auto-save:', err);
       }
+    }
+    
+    // Load target page
+    setCurrentPage(page);
+    if (page.sections && page.sections.length > 0) {
+      console.log('Loading sections from page:', page.sections.length);
+      setSections(page.sections);
+      setComponents([]);
+    } else if (page.content && page.content.length > 0) {
+      console.log('Converting content to sections:', page.content.length);
+      const convertedSections = page.content.map((component: any, index: number) => ({
+        id: `section-${component.id}`,
+        components: [component],
+        layout: {
+          direction: 'column' as const,
+          justifyContent: 'flex-start' as const,
+          alignItems: 'center' as const,
+          gap: 16,
+          padding: 24,
+        },
+        order: index,
+      }));
+      setSections(convertedSections);
+      setComponents(page.content);
     } else {
-      // No save needed, just switch
-      console.log('No save needed, loading page content:', page.content?.length || 0, 'components');
-      setCurrentPage(page);
-      // Load sections if available
-      if (page.sections && page.sections.length > 0) {
-        setSections(page.sections);
-      } else if (page.content && page.content.length > 0) {
-        const convertedSections = page.content.map((component: any, index: number) => ({
-          id: `section-${component.id}`,
-          components: [component],
-          layout: {
-            direction: 'column' as const,
-            justifyContent: 'flex-start' as const,
-            alignItems: 'center' as const,
-            gap: 16,
-            padding: 24,
-            },
-          order: index,
-        }));
-        setSections(convertedSections);
-      } else {
-        setSections([]);
-      }
-      setComponents(page.content || []);
+      console.log('Empty page, clearing state');
+      setSections([]);
+      setComponents([]);
     }
     
     setSelectedComponent(null);
+    setSelectedSection(null);
   };
 
   const handleDeletePage = async (pageId: string, pageName: string) => {
@@ -500,9 +457,10 @@ export default function EditorPage() {
       if (currentPage?._id === pageId) {
         const nextPage = updatedPages[0];
         setCurrentPage(nextPage);
-        // Load sections if available
+        // Prioritize sections over content
         if (nextPage.sections && nextPage.sections.length > 0) {
           setSections(nextPage.sections);
+          setComponents([]); // Clear components when using sections
         } else if (nextPage.content && nextPage.content.length > 0) {
           const convertedSections = nextPage.content.map((component: any, index: number) => ({
             id: `section-${component.id}`,
@@ -517,10 +475,11 @@ export default function EditorPage() {
             order: index,
           }));
           setSections(convertedSections);
+          setComponents(nextPage.content);
         } else {
           setSections([]);
+          setComponents([]);
         }
-        setComponents(nextPage.content || []);
       }
       
       toast.success('Page deleted successfully');
@@ -530,24 +489,41 @@ export default function EditorPage() {
   };
 
   const insertComponentTypes = [
-    { id: 'banner', name: 'Banner', icon: Layout, description: 'Full-width banner section' },
+    { id: 'banner-full', name: 'Banner (Full)', icon: Layout, description: 'Banner with text & button' },
+    { id: 'banner-minimal', name: 'Banner (Minimal)', icon: Layout, description: 'Banner - image only' },
     { id: 'heading', name: 'Heading', icon: Type, description: 'Add a title or heading' },
     { id: 'text', name: 'Text', icon: FileText, description: 'Add a paragraph of text' },
     { id: 'image', name: 'Image', icon: ImageIcon, description: 'Insert an image' },
     { id: 'button', name: 'Button', icon: LinkIcon, description: 'Add a clickable button' },
     { id: 'video', name: 'Video', icon: Video, description: 'Embed a video' },
     { id: 'divider', name: 'Divider', icon: Minus, description: 'Add a horizontal line' },
+    { id: 'social', name: 'Social Links', icon: LinkIcon, description: 'Instagram, Facebook, Twitter icons' },
+    { id: 'footer', name: 'Footer', icon: Layout, description: 'Site footer with links and info' },
+    { id: 'timer', name: 'Countdown Timer', icon: Layout, description: 'Countdown to a specific date' },
+    { id: 'card-grid', name: 'Card Grid', icon: Layout, description: 'Add 1-5 cards in a row' },
+    { id: 'carousel', name: 'Carousel', icon: ImageIcon, description: 'Image carousel (1–5, 16:9)' },
+    { id: 'bullet-list', name: 'Bullet List', icon: FileText, description: 'Bulleted or numbered list' },
+    { id: 'collapsible-list', name: 'Collapsible List', icon: FileText, description: 'Expandable items with > or bullets' },
   ];
 
   const handleInsertComponent = (type: string) => {
+    // Handle card grid specially - show modal to choose number of cards
+    if (type === 'card-grid') {
+      setCardGridMode('create');
+      setCardGridTargetSectionId(null);
+      setCardGridForm({ count: 3, cardType: 'text', template: 'outlined', imageFrameHeight: 180, icon: '⭐' });
+      setShowCardGridModal(true);
+      return;
+    }
+
     const newComponent: any = {
       id: `${type}-${Date.now()}`,
-      type,
+      type: type === 'banner-full' || type === 'banner-minimal' ? 'banner' : type,
       props: getDefaultProps(type),
     };
 
     // Banner gets a full-width section
-    if (type === 'banner') {
+    if (type === 'banner-full' || type === 'banner-minimal') {
       const newSection = {
         id: `section-${Date.now()}`,
         components: [newComponent],
@@ -567,13 +543,34 @@ export default function EditorPage() {
       return;
     }
 
+    // Footer gets a full-width section like banners
+    if (type === 'footer') {
+      const newSection = {
+        id: `section-${Date.now()}`,
+        components: [newComponent],
+        layout: {
+          direction: 'column' as const,
+          justifyContent: 'center' as const,
+          alignItems: 'center' as const,
+          gap: 16,
+          padding: 0, // No padding for full-width footer
+          backgroundColor: newComponent.props.backgroundColor,
+        },
+        order: sections.length,
+      };
+      addSection(newSection);
+      setSelectedSection(newSection.id);
+      toast.success('Footer added');
+      return;
+    }
+
     // Create a new section for this component
     const newSection = {
       id: `section-${Date.now()}`,
       components: [newComponent],
       layout: {
         direction: 'column' as const,
-        justifyContent: 'flex-start' as const,
+        justifyContent: 'center' as const,
         alignItems: 'center' as const,
         gap: 16,
         padding: 24,
@@ -599,16 +596,140 @@ export default function EditorPage() {
     }
   };
 
+  const createCardGrid = (numberOfCards: number, config?: { cardType?: 'text'|'icon'|'image'; template?: 'simple'|'outlined'|'elevated'; imageFrameHeight?: number; icon?: string; }) => {
+    const timestamp = Date.now();
+    const cardComponents = [];
+    
+    for (let i = 1; i <= numberOfCards; i++) {
+      cardComponents.push({
+        id: `card-${timestamp}-${i}`,
+        type: 'card',
+        props: {
+          cardType: config?.cardType || 'text',
+          icon: config?.icon || '⭐',
+          image: '',
+          title: `Card ${i}`,
+          description: `Description for card ${i}`,
+          backgroundColor: '#ffffff',
+          borderColor: '#e5e7eb',
+          padding: 24,
+          template: config?.template || 'outlined',
+          imageFrameHeight: config?.imageFrameHeight || 180,
+        }
+      });
+    }
+
+    const cardSection = {
+      id: `section-${timestamp}`,
+      components: cardComponents,
+      layout: {
+        direction: 'row' as const,
+        justifyContent: 'space-between' as const,
+        alignItems: 'stretch' as const,
+        gap: 24,
+        padding: 40,
+      },
+      order: sections.length,
+    };
+
+    addSection(cardSection);
+    setSelectedSection(cardSection.id);
+    setShowCardGridModal(false);
+    toast.success(`${numberOfCards}-card grid added!`);
+  };
+
+  const openCardGridEditorForSection = (sectionId: string) => {
+    const section = sections.find(s => s.id === sectionId);
+    if (!section) return;
+    const cards = section.components.filter((c: any) => c.type === 'card');
+    const first = cards[0]?.props || {};
+    setCardGridMode('edit');
+    setCardGridTargetSectionId(sectionId);
+    setCardGridForm({
+      count: cards.length || 3,
+      cardType: (first.cardType as any) || 'text',
+      template: (first.template as any) || 'outlined',
+      imageFrameHeight: typeof first.imageFrameHeight === 'number' ? first.imageFrameHeight : 180,
+      icon: first.icon || '⭐',
+    });
+    setShowCardGridModal(true);
+  };
+
+  const applyCardGridToSection = (sectionId: string, form: typeof cardGridForm) => {
+    const section = sections.find(s => s.id === sectionId);
+    if (!section) return;
+
+    // Ensure components are cards only
+    let cards = section.components.filter((c: any) => c.type === 'card');
+    const currentCount = cards.length;
+    const desired = Math.max(1, form.count);
+    const timestamp = Date.now();
+
+    if (desired > currentCount) {
+      const toAdd = desired - currentCount;
+      for (let i = 1; i <= toAdd; i++) {
+        cards.push({
+          id: `card-${timestamp}-${i}`,
+          type: 'card',
+          props: {
+            cardType: form.cardType,
+            icon: form.icon,
+            image: '',
+            title: `Card ${currentCount + i}`,
+            description: `Description for card ${currentCount + i}`,
+            backgroundColor: '#ffffff',
+            borderColor: '#e5e7eb',
+            padding: 24,
+            template: form.template,
+            imageFrameHeight: form.imageFrameHeight,
+          }
+        });
+      }
+    } else if (desired < currentCount) {
+      cards = cards.slice(0, desired);
+    }
+
+    // Update props for all cards
+    cards = cards.map((c: any, idx: number) => ({
+      ...c,
+      props: {
+        ...c.props,
+        cardType: form.cardType,
+        icon: form.icon,
+        template: form.template,
+        imageFrameHeight: form.imageFrameHeight,
+      },
+    }));
+
+    const updatedSection = {
+      ...section,
+      components: cards,
+      layout: {
+        ...section.layout,
+        direction: 'row' as const,
+        justifyContent: 'space-between' as const,
+        alignItems: 'stretch' as const,
+        gap: section.layout.gap ?? 24,
+        padding: section.layout.padding ?? 40,
+      }
+    };
+
+    updateSection(section.id, updatedSection);
+    setSelectedSection(section.id);
+    setShowCardGridModal(false);
+    toast.success(`Updated grid: ${desired} ${form.cardType} card(s)`);
+  };
+
   const handleAddEmptySection = () => {
     const newSection = {
       id: `section-${Date.now()}`,
       components: [],
       layout: {
         direction: 'column' as const,
-        justifyContent: 'flex-start' as const,
+        justifyContent: 'center' as const,
         alignItems: 'center' as const,
         gap: 16,
-        padding: 40,
+        padding: 60,
         backgroundColor: '#f9fafb',
       },
       order: sections.length,
@@ -625,6 +746,9 @@ export default function EditorPage() {
     const newComponents: any[] = [];
     const layout = template.layout;
     const data = template.structure;
+    
+    // Force all new sections to maintain their structure
+    const preserveSection = true;
 
     if (layout === 'hero-center') {
       newComponents.push({
@@ -689,8 +813,9 @@ export default function EditorPage() {
             src: data.image || '',
             alt: data.imageAlt || 'Image',
             width: '400px',
+            height: '300px',
+            objectFit: 'cover',
             float: 'right',
-            align: 'center',
           }
         });
         // Then add text content that will wrap to the left
@@ -737,8 +862,9 @@ export default function EditorPage() {
             src: data.image || '',
             alt: data.imageAlt || 'Image',
             width: '400px',
+            height: '300px',
+            objectFit: 'cover',
             float: 'left',
-            align: 'center',
           }
         });
         newComponents.push({
@@ -825,7 +951,10 @@ export default function EditorPage() {
           id: `feature-card-${timestamp + idx}`,
           type: 'card',
           props: {
-            title: `${feature.icon} ${feature.title}`,
+            cardType: 'icon',
+            icon: feature.icon || '⭐',
+            image: '',
+            title: feature.title,
             description: feature.description,
             backgroundColor: '#ffffff',
             borderColor: '#e5e7eb',
@@ -891,6 +1020,9 @@ export default function EditorPage() {
           id: `card-${timestamp + idx}`,
           type: 'card',
           props: {
+            cardType: 'text',
+            icon: '⭐',
+            image: '',
             title: card.title,
             description: card.description,
             backgroundColor: '#ffffff',
@@ -1041,8 +1173,10 @@ export default function EditorPage() {
         props: {
           src: data.image || '',
           alt: data.imageAlt || 'Image',
-          width: '450px',
-          align: 'center',
+          width: '400px',
+          height: '300px',
+          objectFit: 'cover',
+          float: 'left',
         }
       });
       newComponents.push({
@@ -1067,6 +1201,15 @@ export default function EditorPage() {
           color: getThemeColors().textSecondary,
         }
       });
+      // Add divider to clear float
+      newComponents.push({
+        id: `divider-${timestamp + 3}`,
+        type: 'divider',
+        props: {
+          style: 'none',
+          color: 'transparent',
+        }
+      });
     }
 
     // Create a new section with all template components
@@ -1074,11 +1217,9 @@ export default function EditorPage() {
       id: `section-${timestamp}`,
       components: newComponents,
       layout: {
-        // Determine layout based on template type
-        direction: (layout === 'hero-image-right' || layout === 'hero-image-left' || layout === 'image-text-2col') 
-          ? 'row' as const 
-          : 'column' as const,
-        justifyContent: 'flex-start' as const,
+        // Determine layout based on template type - all use column now
+        direction: 'column' as const,
+        justifyContent: 'center' as const,
         alignItems: layout.includes('hero-center') || layout.includes('cta') || layout.includes('grid') 
           ? 'center' as const 
           : 'flex-start' as const,
@@ -1096,13 +1237,35 @@ export default function EditorPage() {
 
   const getDefaultProps = (type: string) => {
     switch (type) {
+      case 'banner-full':
+        return {
+          heading: 'Welcome to our site',
+          subheading: 'Discover amazing features',
+          backgroundColor: getThemeColors().primary,
+          textColor: '#ffffff',
+          height: '600px',
+          backgroundImage: '',
+          buttonText: 'Get Started',
+          buttonLink: '#',
+        };
+      case 'banner-minimal':
+        return {
+          heading: null,
+          subheading: null,
+          backgroundColor: getThemeColors().primary,
+          textColor: '#ffffff',
+          height: '600px',
+          backgroundImage: '',
+          buttonText: null,
+          buttonLink: '#',
+        };
       case 'banner':
         return {
           heading: 'Welcome to our site',
           subheading: 'Discover amazing features',
           backgroundColor: getThemeColors().primary,
           textColor: '#ffffff',
-          height: '400px',
+          height: '600px',
           backgroundImage: '',
           buttonText: 'Get Started',
           buttonLink: '#',
@@ -1133,20 +1296,87 @@ export default function EditorPage() {
           color: getThemeColors().text,
         };
       case 'image':
-        return { src: '', alt: '', width: '400px', align: 'center', link: '', layout: 'single' };
+        return { src: '', alt: '', width: '400px', height: '300px', objectFit: 'cover', align: 'center', link: '', layout: 'single' };
       case 'button':
         return { text: 'Click me', href: '#', variant: 'primary', align: 'center' };
       case 'video':
         return { url: '', autoplay: false };
       case 'divider':
-        return { style: 'solid', color: '#e5e7eb' };
+        return { style: 'solid', color: '#e5e7eb', height: '40px' };
+      case 'social':
+        return {
+          instagramUrl: '',
+          facebookUrl: '',
+          twitterUrl: '',
+          iconSize: 32,
+          iconColor: getThemeColors().primary,
+          iconGap: 16,
+        };
+      case 'footer':
+        return {
+          companyName: 'Your Company',
+          description: 'Building amazing experiences for our customers.',
+          backgroundColor: '#1f2937',
+          textColor: '#ffffff',
+          link1Text: 'About',
+          link1Url: '#',
+          link2Text: 'Services', 
+          link2Url: '#',
+          link3Text: 'Contact',
+          link3Url: '#',
+          social1Text: 'Twitter',
+          social1Url: '#',
+          social2Text: 'LinkedIn',
+          social2Url: '#',
+          social3Text: 'Facebook',
+          social3Url: '#',
+        };
+      case 'timer':
+        return {
+          targetDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
+          title: 'Coming Soon',
+          backgroundColor: getThemeColors().primary,
+          textColor: '#ffffff',
+          fontSize: 48,
+          showLabels: true,
+        };
       case 'card':
         return {
+          cardType: 'text',
+          icon: '⭐',
+          image: '',
           title: 'Card Title',
           description: 'Card description goes here',
           backgroundColor: '#ffffff',
           borderColor: '#e5e7eb',
           padding: 24,
+        };
+      case 'carousel':
+        return {
+          images: [
+            { src: '', alt: 'Slide 1' },
+            { src: '', alt: 'Slide 2' },
+          ],
+          showArrows: true,
+          showDots: true,
+          currentIndex: 0,
+          aspect: '16:9',
+          autoplay: false,
+          autoplayInterval: 3000,
+        };
+      case 'bullet-list':
+        return {
+          items: ['First item', 'Second item', 'Third item'],
+          style: 'bulleted', // bulleted | numbered | none
+          align: 'left',
+          gap: 8,
+        };
+      case 'collapsible-list':
+        return {
+          items: ['Item 1', 'Item 2', 'Item 3'],
+          expanded: false,
+          buttonTextShow: 'Show Items',
+          buttonTextHide: 'Hide Items',
         };
       default:
         return {};
@@ -1257,13 +1487,23 @@ export default function EditorPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setShowLogoModal(true)}>
-            <Settings className="h-4 w-4 mr-2" />
-            Logo
-          </Button>
+          <LogoHandler 
+            site={site} 
+            siteId={siteId} 
+            onLogoUpdate={handleSaveLogo} 
+          />
           <Button variant="outline" size="sm" onClick={() => window.open(`http://localhost:3000/site/${site?.subdomain}`, '_blank')}>
             <Eye className="h-4 w-4 mr-2" />
             Preview
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowNavbarSettings(true)}
+            title="Configure navbar section names"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Navbar
           </Button>
           <Button variant="outline" size="sm" onClick={handleSave} disabled={saving}>
             <Save className="h-4 w-4 mr-2" />
@@ -1287,14 +1527,19 @@ export default function EditorPage() {
       </header>
 
       {/* Main Editor Area */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Center Canvas */}
         <div 
-          className="flex-1 overflow-y-auto bg-gray-100 p-8"
+          className="flex-1 min-h-0 bg-gray-100 p-4 overflow-y-auto relative"
           onClick={(e) => {
             // Deselect component when clicking on canvas background
             const target = e.target as HTMLElement;
-            if (target.classList.contains('bg-gray-100') || target.classList.contains('p-8')) {
+            
+            // Check if clicked outside any component
+            const clickedOnComponent = target.closest('[data-component-id]');
+            const clickedOnToolbar = target.closest('.absolute') || target.closest('[role="toolbar"]') || target.closest('button');
+            
+            if (!clickedOnComponent && !clickedOnToolbar) {
               setSelectedComponent(null);
               setShowTextToolbar(false);
               setShowImageModal(false);
@@ -1303,14 +1548,15 @@ export default function EditorPage() {
           }}
         >
           <div 
-            className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm min-h-[800px]"
+            className="max-w-7xl mx-auto bg-white rounded-lg shadow-sm min-h-[800px]"
+            style={{ maxWidth: '1400px' }}
             onClick={(e) => {
               // Deselect component when clicking on white canvas area (not on a component)
               const target = e.target as HTMLElement;
-              if (target.classList.contains('max-w-4xl') || 
+              if (target.classList.contains('max-w-7xl') || 
                   target.classList.contains('bg-white') ||
                   target.classList.contains('min-h-[800px]') ||
-                  target.classList.contains('p-8') ||
+                  target.classList.contains('p-4') ||
                   target.classList.contains('space-y-4')) {
                 setSelectedComponent(null);
                 setShowTextToolbar(false);
@@ -1332,8 +1578,12 @@ export default function EditorPage() {
                   <img 
                     src={site.logo} 
                     alt={site.siteName}
-                    style={{ width: site.logoWidth || '120px' }}
-                    className="h-auto"
+                    style={{ 
+                      height: '40px',
+                      width: 'auto',
+                      maxWidth: site.logoWidth || '200px',
+                      objectFit: 'contain'
+                    }}
                   />
                 ) : (
                   <h1 
@@ -1368,15 +1618,15 @@ export default function EditorPage() {
 
             {/* Page Content */}
             <div 
-              className="p-8"
+              className="p-8 pt-0 pb-0"
               style={{
                 backgroundColor: getThemeColors().background,
                 fontFamily: `'${getThemeFonts().body}', sans-serif`,
-                paddingTop: '80px',
+                overflow: 'visible',
               }}
               onClick={(e) => {
                 const target = e.target as HTMLElement;
-                if (target.classList.contains('p-8')) {
+                if (target.classList.contains('p-8') || target.classList.contains('pt-0')) {
                   setSelectedComponent(null);
                   setSelectedSection(null);
                 }
@@ -1394,7 +1644,9 @@ export default function EditorPage() {
                     <SectionWrapper
                       key={section.id}
                       section={section}
+                      isFirstSection={index === 0}
                       isSelected={selectedSection === section.id}
+                      onOpenCardGridModal={(sectionId) => openCardGridEditorForSection(sectionId)}
                       onSelect={() => {
                         setSelectedSection(section.id);
                         setSelectedComponent(null);
@@ -1403,18 +1655,14 @@ export default function EditorPage() {
                         updateSection(section.id, { ...section, ...updates });
                       }}
                       onDelete={() => {
-                        if (confirm('Delete this section?')) {
-                          deleteSection(section.id);
-                          setSelectedSection(null);
-                        }
+                        deleteSection(section.id);
+                        setSelectedSection(null);
                       }}
                       onUpdateComponent={(componentId, updates) => {
                         updateComponent(componentId, updates);
                       }}
                       onDeleteComponent={(componentId) => {
-                        if (confirm('Delete this component?')) {
-                          deleteComponent(componentId);
-                        }
+                        deleteComponent(componentId);
                       }}
                       onCopyComponent={(componentId) => {
                         const componentToCopy = section.components.find(c => c.id === componentId);
@@ -1498,6 +1746,39 @@ export default function EditorPage() {
                         setDragOverSection(null);
                       }}
                       isDragging={draggedSection === section.id}
+                      onComponentDragStart={(componentId, sectionId) => {
+                        setDraggedComponent({ componentId, sectionId });
+                      }}
+                      onComponentDragEnd={() => {
+                        setDraggedComponent(null);
+                        setDragOverComponent(null);
+                      }}
+                      onComponentDragOver={(componentId) => {
+                        if (draggedComponent && draggedComponent.componentId !== componentId) {
+                          setDragOverComponent(componentId);
+                        }
+                      }}
+                      onComponentDrop={(targetComponentId, targetSectionId) => {
+                        if (draggedComponent && draggedComponent.sectionId === targetSectionId) {
+                          // Reorder within same section
+                          const section = sections.find(s => s.id === targetSectionId);
+                          if (section) {
+                            const draggedIndex = section.components.findIndex(c => c.id === draggedComponent.componentId);
+                            const dropIndex = section.components.findIndex(c => c.id === targetComponentId);
+                            
+                            if (draggedIndex !== -1 && dropIndex !== -1 && draggedIndex !== dropIndex) {
+                              const componentIds = [...section.components.map(c => c.id)];
+                              const [removed] = componentIds.splice(draggedIndex, 1);
+                              componentIds.splice(dropIndex, 0, removed);
+                              
+                              reorderComponentsInSection(targetSectionId, componentIds);
+                            }
+                          }
+                        }
+                        setDraggedComponent(null);
+                        setDragOverComponent(null);
+                      }}
+                      draggedComponentId={draggedComponent?.componentId || null}
                     />
                   ))}
                 </div>
@@ -1506,11 +1787,27 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* Right Sidebar - Components, Themes, Pages (NO SETTINGS) */}
-        <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto">
-          <div className="p-4">
-            {/* Tabbed Panel - Components, Themes, Pages */}
-            <div className="flex border-b border-gray-200 -mx-4 px-4">
+        {/* Right Sidebar - Components, Themes, Pages (collapsible) */}
+        <div
+          className="bg-white border-l border-gray-200 flex flex-col h-[calc(100vh-64px)] min-h-0 relative"
+          style={{ width: sidebarCollapsed ? '12px' : '20rem' }}
+        >
+          {/* Collapse/Expand toggle */}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="absolute -left-3 top-1/2 -translate-y-1/2 bg-white border border-gray-300 rounded-full shadow p-1 hover:bg-gray-50 z-10"
+            title={sidebarCollapsed ? 'Expand' : 'Collapse'}
+          >
+            {sidebarCollapsed ? (
+              <ChevronLeft className="h-4 w-4 text-gray-600" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-600" />
+            )}
+          </button>
+          {/* Tabbed Panel - Components, Themes, Pages */}
+          {!sidebarCollapsed && (
+            <div className="flex border-b border-gray-200 px-4 shrink-0">
               <button
                 onClick={() => setActivePanel('insert')}
                 className={`flex-1 px-3 py-2.5 text-sm font-medium transition-colors ${
@@ -1545,40 +1842,41 @@ export default function EditorPage() {
                 Pages
               </button>
             </div>
+          )}
 
-            <div className="mt-4">
+          {!sidebarCollapsed && (
+            <div className="flex-1 min-h-0 overflow-y-auto px-4">
               {/* Components Tab */}
               {activePanel === 'insert' && (
                 <ComponentsPanel
                   insertComponentTypes={insertComponentTypes}
                   onInsertComponent={handleInsertComponent}
                   onOpenBlockModal={() => setShowBlockModal(true)}
-                  onAddEmptySection={handleAddEmptySection}
                 />
               )}
 
-                  {/* Themes Tab */}
-                  {activePanel === 'themes' && (
-                    <ThemesPanel
-                      themes={themes}
-                      site={site}
-                      siteId={siteId}
-                      onThemeChange={(updatedSite) => setSite(updatedSite)}
-                    />
-                  )}
+              {/* Themes Tab */}
+              {activePanel === 'themes' && (
+                <ThemesPanel
+                  themes={themes}
+                  site={site}
+                  siteId={siteId}
+                  onThemeChange={(updatedSite) => setSite(updatedSite)}
+                />
+              )}
 
-                  {/* Pages Tab */}
-                  {activePanel === 'pages' && (
-                    <PagesPanel
-                      pages={pages}
-                      currentPage={currentPage}
-                      siteId={siteId}
-                      onPageSwitch={handlePageSwitch}
-                      onPagesUpdate={(updatedPages) => setPages(updatedPages)}
-                    />
-                  )}
-                </div>
-          </div>
+              {/* Pages Tab */}
+              {activePanel === 'pages' && (
+                <PagesPanel
+                  pages={pages}
+                  currentPage={currentPage}
+                  siteId={siteId}
+                  onPageSwitch={handlePageSwitch}
+                  onPagesUpdate={(updatedPages) => setPages(updatedPages)}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1648,13 +1946,28 @@ export default function EditorPage() {
           isOpen={showImageModal}
           onClose={closeAllModals}
           onSave={(props) => {
-            updateComponent(selectedComponent.id, {
-              ...selectedComponent,
-              props: { ...selectedComponent.props, ...props }
-            });
+            // For banner components, save image to backgroundImage instead of src
+            if (selectedComponent.type === 'banner') {
+              updateComponent(selectedComponent.id, {
+                ...selectedComponent,
+                props: { 
+                  ...selectedComponent.props, 
+                  backgroundImage: props.src,
+                  alt: props.alt 
+                }
+              });
+            } else {
+              updateComponent(selectedComponent.id, {
+                ...selectedComponent,
+                props: { ...selectedComponent.props, ...props }
+              });
+            }
             closeAllModals();
           }}
-          initialProps={selectedComponent.props}
+          initialProps={selectedComponent.type === 'banner' 
+            ? { ...selectedComponent.props, src: selectedComponent.props.backgroundImage }
+            : selectedComponent.props
+          }
           onDelete={handleDeleteComponent}
           onCopy={handleCopyComponent}
         />
@@ -1687,17 +2000,6 @@ export default function EditorPage() {
         />
       )}
 
-      {/* Logo Modal */}
-      {showLogoModal && (
-        <LogoModal
-          isOpen={showLogoModal}
-          onClose={() => setShowLogoModal(false)}
-          onSave={handleSaveLogo}
-          currentLogo={site?.logo}
-          currentWidth={site?.logoWidth}
-        />
-      )}
-
       {/* Text Editor Toolbar */}
       {showTextToolbar && selectedComponent && (
         <TextEditorToolbar
@@ -1719,6 +2021,177 @@ export default function EditorPage() {
           themeColors={getThemeColors()}
           themeFonts={getThemeFonts()}
         />
+      )}
+
+      {/* Card Grid Modal (Create/Edit) */}
+      {showCardGridModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">
+              {cardGridMode === 'create' ? 'Add Card Grid' : 'Edit Card Grid'}
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Number of cards</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={cardGridForm.count}
+                  onChange={(e) => setCardGridForm({ ...cardGridForm, count: Math.max(1, Math.min(12, parseInt(e.target.value) || 1)) })}
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Card type</label>
+                <select
+                  value={cardGridForm.cardType}
+                  onChange={(e) => setCardGridForm({ ...cardGridForm, cardType: e.target.value as any })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                >
+                  <option value="text">Text</option>
+                  <option value="icon">Icon</option>
+                  <option value="image">Image</option>
+                </select>
+              </div>
+
+              {cardGridForm.cardType === 'icon' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Default icon</label>
+                  <input
+                    type="text"
+                    value={cardGridForm.icon}
+                    onChange={(e) => setCardGridForm({ ...cardGridForm, icon: e.target.value })}
+                    className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                  />
+                </div>
+              )}
+
+              {cardGridForm.cardType === 'image' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Image frame height (px)</label>
+                  <input
+                    type="number"
+                    min={120}
+                    max={600}
+                    value={cardGridForm.imageFrameHeight}
+                    onChange={(e) => setCardGridForm({ ...cardGridForm, imageFrameHeight: Math.max(120, Math.min(600, parseInt(e.target.value) || 180)) })}
+                    className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">The image will be cropped to this fixed frame (object-fit: cover)</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
+                <select
+                  value={cardGridForm.template}
+                  onChange={(e) => setCardGridForm({ ...cardGridForm, template: e.target.value as any })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                >
+                  <option value="simple">Simple</option>
+                  <option value="outlined">Outlined</option>
+                  <option value="elevated">Elevated</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowCardGridModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (cardGridMode === 'create') {
+                    createCardGrid(cardGridForm.count, {
+                      cardType: cardGridForm.cardType,
+                      template: cardGridForm.template,
+                      imageFrameHeight: cardGridForm.imageFrameHeight,
+                      icon: cardGridForm.icon,
+                    });
+                  } else if (cardGridMode === 'edit' && cardGridTargetSectionId) {
+                    applyCardGridToSection(cardGridTargetSectionId, cardGridForm);
+                  }
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {cardGridMode === 'create' ? 'Add Grid' : 'Apply Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navbar Settings Modal */}
+      {showNavbarSettings && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Navbar Section Names</h2>
+              <button
+                onClick={() => setShowNavbarSettings(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-4">
+              Customize the navigation labels and visibility for each section. Toggle sections on/off to control what appears in the navbar.
+            </p>
+
+            <div className="space-y-3">
+              {sections.map((section, index) => (
+                <div key={section.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
+                  <div className="shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold text-sm">
+                    {index + 1}
+                  </div>
+                  <input
+                    type="text"
+                    value={section.sectionName || ''}
+                    onChange={(e) => {
+                      updateSection(section.id, {
+                        ...section,
+                        sectionName: e.target.value
+                      });
+                    }}
+                    placeholder={`Section ${index + 1}`}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  />
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={section.showInNavbar === true || section.showInNavbar === undefined}
+                      onChange={(e) => {
+                        updateSection(section.id, {
+                          ...section,
+                          showInNavbar: e.target.checked
+                        });
+                      }}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Show</span>
+                  </label>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowNavbarSettings(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       </div>
     </>

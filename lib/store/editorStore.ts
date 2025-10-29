@@ -20,6 +20,8 @@ interface Section {
     backgroundColor?: string;
   };
   order: number;
+  sectionName?: string;
+  showInNavbar?: boolean;
 }
 
 interface Page {
@@ -69,6 +71,7 @@ interface EditorState {
   deleteComponentFromSection: (sectionId: string, componentId: string) => void;
   reorderComponents: (components: Component[]) => void; // Legacy
   reorderSections: (sections: Section[]) => void;
+  reorderComponentsInSection: (sectionId: string, componentIds: string[]) => void;
   setComponents: (components: Component[]) => void; // Legacy
   setSections: (sections: Section[]) => void;
   undo: () => void;
@@ -312,6 +315,30 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   reorderSections: (newSections) => {
     const { history, historyIndex } = get();
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(newSections);
+    
+    set({
+      sections: newSections,
+      history: newHistory,
+      historyIndex: historyIndex + 1,
+      isDirty: true,
+    });
+  },
+
+  reorderComponentsInSection: (sectionId, componentIds) => {
+    const { sections, history, historyIndex } = get();
+    const newSections = sections.map(section => {
+      if (section.id === sectionId) {
+        // Reorder components based on the provided IDs
+        const reorderedComponents = componentIds
+          .map(id => section.components.find(c => c.id === id))
+          .filter((c): c is Component => c !== undefined);
+        return { ...section, components: reorderedComponents };
+      }
+      return section;
+    });
+    
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push(newSections);
     

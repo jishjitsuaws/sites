@@ -13,31 +13,15 @@ interface ComponentsPanelProps {
   insertComponentTypes: ComponentType[];
   onInsertComponent: (type: string) => void;
   onOpenBlockModal: () => void;
-  onAddEmptySection?: () => void;
 }
 
 export default function ComponentsPanel({ 
   insertComponentTypes, 
   onInsertComponent,
-  onOpenBlockModal,
-  onAddEmptySection
+  onOpenBlockModal
 }: ComponentsPanelProps) {
   return (
     <div>
-      {/* Add Empty Section Button */}
-      {onAddEmptySection && (
-        <div className="mb-6">
-          <button
-            onClick={onAddEmptySection}
-            className="w-full p-4 rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all text-center group bg-white"
-          >
-            <Plus className="h-6 w-6 mx-auto mb-2 text-blue-400 group-hover:text-blue-600" />
-            <div className="text-sm font-semibold text-blue-600 group-hover:text-blue-700">Add Empty Section</div>
-            <div className="text-xs text-gray-500 mt-1">Create a flexible container</div>
-          </button>
-        </div>
-      )}
-
       {/* Content Block Templates Section */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">

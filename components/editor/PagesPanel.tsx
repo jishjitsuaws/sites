@@ -71,54 +71,6 @@ export default function PagesPanel({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
-        <Button 
-          size="sm" 
-          variant="ghost"
-          onClick={() => setShowAddPageForm(true)}
-          className="h-7 px-2 ml-auto"
-        >
-          <Plus className="h-3 w-3 mr-1" />
-          New Page
-        </Button>
-      </div>
-
-      {showAddPageForm && (
-        <div className="mb-3 p-2.5 border border-gray-300 rounded-lg bg-gray-50">
-          <input
-            type="text"
-            value={newPageName}
-            onChange={(e) => setNewPageName(e.target.value)}
-            placeholder="Enter page name..."
-            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-black mb-2"
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleAddPage();
-              if (e.key === 'Escape') {
-                setShowAddPageForm(false);
-                setNewPageName('');
-              }
-            }}
-          />
-          <div className="flex gap-2">
-            <Button size="sm" onClick={handleAddPage} className="flex-1 h-7 text-xs">
-              Create
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={() => {
-                setShowAddPageForm(false);
-                setNewPageName('');
-              }}
-              className="flex-1 h-7 text-xs"
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-
       <div className="space-y-1.5">
         {pages && pages.length > 0 ? pages.map((page) => (
           <div
@@ -135,7 +87,9 @@ export default function PagesPanel({
             >
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm truncate">{page.pageName}</div>
-                <div className="text-xs text-gray-500">/{page.slug}</div>
+                <div className="text-xs text-gray-500">
+                  {page.isHome ? '/' : `/${page.slug}`}
+                </div>
               </div>
               <div className="flex items-center gap-1">
                 {page.isHome && (
@@ -159,6 +113,53 @@ export default function PagesPanel({
         )) : (
           <div className="text-center py-3 text-gray-500 text-xs">
             No pages yet
+          </div>
+        )}
+        
+        {/* New Page Card */}
+        {!showAddPageForm ? (
+          <div
+            onClick={() => setShowAddPageForm(true)}
+            className="p-2.5 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center justify-center gap-2 text-gray-500 group-hover:text-blue-600">
+              <Plus className="h-4 w-4" />
+              <span className="text-sm font-medium">New Page</span>
+            </div>
+          </div>
+        ) : (
+          <div className="p-2.5 border-2 border-dashed border-blue-400 rounded-lg bg-blue-50">
+            <input
+              type="text"
+              value={newPageName}
+              onChange={(e) => setNewPageName(e.target.value)}
+              placeholder="Enter page name..."
+              className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-black mb-2"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAddPage();
+                if (e.key === 'Escape') {
+                  setShowAddPageForm(false);
+                  setNewPageName('');
+                }
+              }}
+            />
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleAddPage} className="flex-1 h-7 text-xs">
+                Create
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => {
+                  setShowAddPageForm(false);
+                  setNewPageName('');
+                }}
+                className="flex-1 h-7 text-xs"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         )}
       </div>

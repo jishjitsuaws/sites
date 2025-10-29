@@ -4,6 +4,203 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { notFound } from 'next/navigation';
 
+// Timer Component with real-time countdown for published site
+function PublishedTimerComponent({ component, themeColors, themeFonts }: any) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      if (!component.props.targetDate) {
+        setTimeLeft({ days: 30, hours: 12, minutes: 45, seconds: 23 });
+        return;
+      }
+
+      const difference = new Date(component.props.targetDate).getTime() - Date.now();
+      
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((difference % (1000 * 60)) / 1000)
+        });
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [component.props.targetDate]);
+
+  return (
+    <div 
+      className="text-center p-4 md:p-8 rounded-lg"
+      style={{
+        backgroundColor: component.props.backgroundColor || 'transparent',
+        color: component.props.textColor || themeColors.text,
+      }}
+    >
+      <h3 
+        className="text-lg md:text-xl font-semibold mb-4"
+        style={{ fontFamily: `'${themeFonts.heading}', sans-serif` }}
+      >
+        {component.props.title || 'Countdown Timer'}
+      </h3>
+      <div className="grid grid-cols-4 gap-2 md:gap-4 max-w-md mx-auto">
+        <div className="bg-white p-2 md:p-4 rounded-lg shadow-sm border border-gray-200">
+          <div 
+            className="text-xl md:text-2xl font-bold"
+            style={{ color: themeColors.primary }}
+          >
+            {timeLeft.days}
+          </div>
+          <div className="text-[10px] md:text-xs text-gray-600 uppercase font-medium">
+            Days
+          </div>
+        </div>
+        <div className="bg-white p-2 md:p-4 rounded-lg shadow-sm border border-gray-200">
+          <div 
+            className="text-xl md:text-2xl font-bold"
+            style={{ color: themeColors.primary }}
+          >
+            {timeLeft.hours}
+          </div>
+          <div className="text-[10px] md:text-xs text-gray-600 uppercase font-medium">
+            Hours
+          </div>
+        </div>
+        <div className="bg-white p-2 md:p-4 rounded-lg shadow-sm border border-gray-200">
+          <div 
+            className="text-xl md:text-2xl font-bold"
+            style={{ color: themeColors.primary }}
+          >
+            {timeLeft.minutes}
+          </div>
+          <div className="text-[10px] md:text-xs text-gray-600 uppercase font-medium">
+            Minutes
+          </div>
+        </div>
+        <div className="bg-white p-2 md:p-4 rounded-lg shadow-sm border border-gray-200">
+          <div 
+            className="text-xl md:text-2xl font-bold"
+            style={{ color: themeColors.primary }}
+          >
+            {timeLeft.seconds}
+          </div>
+          <div className="text-[10px] md:text-xs text-gray-600 uppercase font-medium">
+            Seconds
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+function PublishedCollapsibleList({ component, themeColors, themeFonts }: any) {
+  const [expanded, setExpanded] = useState(!!component.props.expanded);
+  const items = Array.isArray(component.props.items) ? component.props.items : [];
+  const showLabel = component.props.buttonTextShow || 'Show Items';
+  const hideLabel = component.props.buttonTextHide || 'Hide Items';
+
+  return (
+    <div style={{ 
+      textAlign: component.props.align || 'left',
+      maxWidth: component.props.width || '100%',
+      margin: component.props.align === 'center' ? '0 auto' : component.props.align === 'right' ? '0 0 0 auto' : '0'
+    }}>
+      <div className="mb-3">
+        <button
+          className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-black"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? hideLabel : showLabel}
+        </button>
+      </div>
+      {expanded && (
+        <div className="space-y-2">
+          {items.map((raw: any, idx: number) => {
+            const text = typeof raw === 'string' ? raw : (raw?.title || '');
+            return (
+              <div key={idx} className="border rounded-md p-3 bg-white shadow-sm">
+                <div style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>
+                  {text || `Item ${idx + 1}`}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Published Carousel Component (16:9, cover)
+function PublishedCarousel({ component }: any) {
+  const [index, setIndex] = useState(component.props.currentIndex || 0);
+  const [hover, setHover] = useState(false);
+  const images = Array.isArray(component.props.images) ? component.props.images : [];
+  const normalizeUrl = (u: string) => {
+    if (!u) return '';
+    if (u.startsWith('http')) return u;
+    if (u.startsWith('/')) return `http://localhost:5000${u}`;
+    if (u.startsWith('uploads')) return `http://localhost:5000/${u}`;
+    return u;
+  };
+  const getImgSrc = (img: any) => {
+    if (!img) return '';
+    if (typeof img === 'string') return normalizeUrl(img);
+    return normalizeUrl(img.src || img.url || img.image || img.path || '');
+  };
+  useEffect(() => {
+    // Clamp index if images change
+    if (index >= images.length) setIndex(0);
+  }, [images.length]);
+
+  // Autoplay on published site (always on unless hovered or only one image)
+  useEffect(() => {
+    const intervalMs = Number(component.props.autoplayInterval) || 3000;
+    if (images.length <= 1 || hover) return;
+    const t = setInterval(() => {
+      setIndex((prev: number) => ((prev + 1) % images.length));
+    }, Math.max(1000, intervalMs));
+    return () => clearInterval(t);
+  }, [component.props.autoplayInterval, images.length, hover]);
+
+  if (!images.length) {
+    return (
+      <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-gray-200"></div>
+    );
+  }
+
+  return (
+    <div className="relative w-full" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+      <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-gray-200 border border-gray-300" style={{ aspectRatio: '16 / 9' }}>
+        {images.map((img: any, idx: number) => (
+          <div key={idx} className={`absolute inset-0 transition-opacity duration-300 ${idx === index ? 'opacity-100' : 'opacity-0'}`}>
+            {(() => {
+              const src = getImgSrc(img);
+              return src ? (
+                <img src={src} alt={(typeof img === 'object' && img?.alt) || `Slide ${idx + 1}`} className="w-full h-full" style={{ objectFit: 'cover', display: 'block' }} />
+              ) : (
+                <div className="w-full h-full"></div>
+              );
+            })()}
+          </div>
+        ))}
+      </div>
+      {component.props.showDots && images.length > 1 && (
+        <div className="flex gap-2 justify-center mt-2">
+          {images.map((_: any, i: number) => (
+            <button key={i} onClick={() => setIndex(i)} className={`w-2.5 h-2.5 rounded-full ${i === index ? 'bg-blue-600' : 'bg-gray-300 hover:bg-gray-400'}`} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface Component {
   id: string;
   type: string;
@@ -12,6 +209,8 @@ interface Component {
 
 interface Section {
   id: string;
+  sectionName?: string;
+  showInNavbar?: boolean;
   components: Component[];
   layout: {
     direction: 'row' | 'column';
@@ -38,6 +237,8 @@ interface Site {
   siteName: string;
   subdomain: string;
   isPublished: boolean;
+  logo?: string;
+  logoWidth?: string;
   themeId?: {
     _id: string;
     name: string;
@@ -71,6 +272,7 @@ export default function PublishedSitePage() {
   const [pages, setPages] = useState<Page[]>([]);
   const [currentPage, setCurrentPage] = useState<Page | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState<string>('');
 
   useEffect(() => {
     if (subdomain) {
@@ -92,11 +294,12 @@ export default function PublishedSitePage() {
 
       const foundSite = siteData.data[0];
       
-      // Check if site is published
-      if (!foundSite.isPublished) {
-        notFound();
-        return;
-      }
+      // Allow preview for both published and unpublished sites in development
+      // Remove this check in production or add environment check
+      // if (!foundSite.isPublished) {
+      //   notFound();
+      //   return;
+      // }
 
       console.log('Fetched site:', foundSite); // Debug: check theme data
       setSite(foundSite);
@@ -121,6 +324,73 @@ export default function PublishedSitePage() {
       notFound();
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Scrollspy effect for single-page sites
+  useEffect(() => {
+    if (!currentPage || !currentPage.sections || pages.length > 1) return;
+
+    let ticking = false;
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const sections = currentPage.sections || [];
+          let current = '';
+          let lastPassedSection = '';
+          
+          // Find the section that's currently in view or the last one we've scrolled past
+          sections.forEach((section) => {
+            const element = document.getElementById(`section-${section.id}`);
+            if (element) {
+              const rect = element.getBoundingClientRect();
+              
+              // Section is in the activation zone (near top of viewport)
+              if (rect.top <= 200 && rect.bottom >= 0) {
+                current = section.id;
+              }
+              
+              // Keep track of the last section we've scrolled past
+              if (rect.top <= 200) {
+                lastPassedSection = section.id;
+              }
+            }
+          });
+
+          // If no section is in the activation zone, use the last section we passed
+          if (!current && lastPassedSection) {
+            current = lastPassedSection;
+          }
+          
+          // If still no section (at top of page), default to first section
+          if (!current && sections.length > 0) {
+            current = sections[0].id;
+          }
+
+          if (current && current !== activeSection) {
+            setActiveSection(current);
+          }
+          
+          ticking = false;
+        });
+        
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [currentPage, pages.length, activeSection]);
+
+  // Scroll to section
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(`section-${sectionId}`);
+    if (element) {
+      const navHeight = 80; // Approximate navbar height
+      const top = element.getBoundingClientRect().top + window.scrollY - navHeight;
+      window.scrollTo({ top, behavior: 'smooth' });
     }
   };
 
@@ -150,10 +420,10 @@ export default function PublishedSitePage() {
       case 'heading':
         const HeadingTag = `h${component.props.level}` as keyof JSX.IntrinsicElements;
         const headingClasses = component.props.level === 1 
-          ? 'text-4xl font-bold' 
+          ? 'text-3xl md:text-4xl font-bold' 
           : component.props.level === 2 
-          ? 'text-3xl font-bold' 
-          : 'text-2xl font-bold';
+          ? 'text-2xl md:text-3xl font-bold' 
+          : 'text-xl md:text-2xl font-bold';
         return (
           <HeadingTag 
             className={headingClasses}
@@ -178,7 +448,7 @@ export default function PublishedSitePage() {
 
       case 'text':
         return (
-          <p style={{ 
+          <p className="text-sm md:text-base" style={{ 
             textAlign: component.props.align,
             color: themeColors.text,
             fontFamily: `'${themeFonts.body}', sans-serif`,
@@ -253,29 +523,76 @@ export default function PublishedSitePage() {
       case 'divider':
         return (
           <div style={{ clear: 'both' }}>
-            {component.props.style !== 'none' && (
+            {component.props.style === 'spacer' ? (
+              <div style={{ height: component.props.height || '40px' }} />
+            ) : component.props.style !== 'none' ? (
               <hr 
                 style={{ 
                   borderColor: component.props.color || themeColors.primary, 
                   borderStyle: component.props.style || 'solid'
                 }} 
               />
-            )}
+            ) : null}
           </div>
         );
 
       case 'card':
         return (
           <div 
-            className="flex flex-col rounded-lg border-2"
+            className="rounded-lg border-2 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:border-blue-300 cursor-pointer"
             style={{
               backgroundColor: component.props.backgroundColor || '#ffffff',
               borderColor: component.props.borderColor || '#e5e7eb',
               padding: `${component.props.padding || 24}px`,
-              flex: '1 1 0',
-              minWidth: '200px',
+              flex: '1 1 300px',
+              minWidth: '250px',
+              maxWidth: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              transform: 'translateY(0)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)';
+              e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
             }}
           >
+            {/* Icon Card */}
+            {component.props.cardType === 'icon' && component.props.icon && (
+              <div className="text-center mb-4">
+                <div className="text-5xl mb-3">{component.props.icon}</div>
+              </div>
+            )}
+
+            {/* Image Card */}
+            {component.props.cardType === 'image' && component.props.image && (
+              <div className="mb-4">
+                <div 
+                  className="w-full rounded-lg overflow-hidden"
+                  style={{ 
+                    height: `${component.props.imageFrameHeight || 180}px`,
+                    maxHeight: `${component.props.imageFrameHeight || 180}px`,
+                    minHeight: `${component.props.imageFrameHeight || 180}px`
+                  }}
+                >
+                  <img
+                    src={component.props.image}
+                    alt={component.props.title || 'Card image'}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block'
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            
             <h3 
               className="text-xl font-bold mb-3 text-center"
               style={{ 
@@ -300,56 +617,330 @@ export default function PublishedSitePage() {
           </div>
         );
 
+      case 'carousel':
+        return (
+          <PublishedCarousel component={component} />
+        );
+
       case 'banner':
         return (
           <div 
-            className="w-full flex flex-col items-center justify-center text-center"
+            className="w-full flex flex-col items-center justify-center text-center relative"
             style={{
               backgroundColor: component.props.backgroundColor || themeColors.primary,
-              backgroundImage: component.props.backgroundImage ? `url(${component.props.backgroundImage})` : 'none',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              minHeight: component.props.height || '400px',
-              padding: '60px 40px',
+              minHeight: component.props.backgroundImage ? 'auto' : (component.props.height || '400px'),
+              padding: '0',
               color: component.props.textColor || '#ffffff',
             }}
           >
-            <h1 
-              className="text-5xl font-bold mb-4"
-              style={{ 
-                fontFamily: `'${themeFonts.heading}', sans-serif`,
-                color: component.props.textColor || '#ffffff',
-              }}
-            >
-              {component.props.heading}
-            </h1>
-            
-            {component.props.subheading && (
-              <p 
-                className="text-xl mb-8 max-w-2xl"
-                style={{ 
-                  fontFamily: `'${themeFonts.body}', sans-serif`,
-                  color: component.props.textColor || '#ffffff',
-                  opacity: 0.9,
+            {component.props.backgroundImage && (
+              <img
+                src={component.props.backgroundImage}
+                alt="Banner background"
+                className="w-full h-auto block"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  height: 'auto',
                 }}
-              >
-                {component.props.subheading}
-              </p>
+              />
             )}
             
-            {component.props.buttonText && (
-              <a
-                href={component.props.buttonLink || '#'}
-                className="px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105 inline-block"
-                style={{
-                  backgroundColor: '#ffffff',
-                  color: component.props.backgroundColor || themeColors.primary,
-                }}
+            {/* Content overlay when there's an image */}
+            {component.props.backgroundImage && (component.props.heading || component.props.subheading || component.props.buttonText) && (
+              <div 
+                className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 md:px-10"
+                style={{ paddingTop: '60px', paddingBottom: '60px' }}
               >
-                {component.props.buttonText}
+                {component.props.heading && (
+                  <h1 
+                    className="text-3xl md:text-5xl font-bold mb-4"
+                    style={{ 
+                      fontFamily: `'${themeFonts.heading}', sans-serif`,
+                      color: component.props.textColor || '#ffffff',
+                    }}
+                  >
+                    {component.props.heading}
+                  </h1>
+                )}
+                
+                {component.props.subheading && (
+                  <p 
+                    className="text-base md:text-xl mb-8 max-w-2xl"
+                    style={{ 
+                      fontFamily: `'${themeFonts.body}', sans-serif`,
+                      color: component.props.textColor || '#ffffff',
+                      opacity: 0.9,
+                    }}
+                  >
+                    {component.props.subheading}
+                  </p>
+                )}
+                
+                {component.props.buttonText && (
+                  <a
+                    href={component.props.buttonLink || '#'}
+                    target={component.props.buttonLink ? '_blank' : '_self'}
+                    rel={component.props.buttonLink ? 'noopener noreferrer' : undefined}
+                    className="px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold text-base md:text-lg transition-all hover:scale-105 inline-block"
+                    style={{
+                      backgroundColor: '#ffffff',
+                      color: component.props.backgroundColor || themeColors.primary,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {component.props.buttonText}
+                  </a>
+                )}
+              </div>
+            )}
+            
+            {/* Content when there's NO image */}
+            {!component.props.backgroundImage && (
+              <div className="px-4 md:px-10" style={{ paddingTop: '60px', paddingBottom: '60px', width: '100%' }}>
+                {component.props.heading && (
+                  <h1 
+                    className="text-3xl md:text-5xl font-bold mb-4"
+                    style={{ 
+                      fontFamily: `'${themeFonts.heading}', sans-serif`,
+                      color: component.props.textColor || '#ffffff',
+                    }}
+                  >
+                    {component.props.heading}
+                  </h1>
+                )}
+                
+                {component.props.subheading && (
+                  <p 
+                    className="text-base md:text-xl mb-8 max-w-2xl mx-auto"
+                    style={{ 
+                      fontFamily: `'${themeFonts.body}', sans-serif`,
+                      color: component.props.textColor || '#ffffff',
+                      opacity: 0.9,
+                    }}
+                  >
+                    {component.props.subheading}
+                  </p>
+                )}
+                
+                {component.props.buttonText && (
+                  <a
+                    href={component.props.buttonLink || '#'}
+                    target={component.props.buttonLink ? '_blank' : '_self'}
+                    rel={component.props.buttonLink ? 'noopener noreferrer' : undefined}
+                    className="px-6 md:px-8 py-2 md:py-3 rounded-lg font-semibold text-base md:text-lg transition-all hover:scale-105 inline-block"
+                    style={{
+                      backgroundColor: '#ffffff',
+                      color: component.props.backgroundColor || themeColors.primary,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {component.props.buttonText}
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
+      case 'bullet-list':
+        if (component.props.style === 'numbered') {
+          return (
+            <ol className="list-decimal pl-6" style={{ lineHeight: 1.6, textAlign: component.props.align || 'left' }}>
+              {(component.props.items || []).map((item: string, idx: number) => (
+                <li key={idx} className="mb-1" style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>{item}</li>
+              ))}
+            </ol>
+          );
+        }
+        if (component.props.style === 'none') {
+          return (
+            <div className="space-y-1" style={{ textAlign: component.props.align || 'left' }}>
+              {(component.props.items || []).map((item: string, idx: number) => (
+                <div key={idx} style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>{item}</div>
+              ))}
+            </div>
+          );
+        }
+        return (
+          <ul className="list-disc pl-6" style={{ lineHeight: 1.6, textAlign: component.props.align || 'left' }}>
+            {(component.props.items || []).map((item: string, idx: number) => (
+              <li key={idx} className="mb-1" style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>{item}</li>
+            ))}
+          </ul>
+        );
+
+      case 'collapsible-list':
+        return <PublishedCollapsibleList component={component} themeColors={themeColors} themeFonts={themeFonts} />;
+
+      case 'social':
+        return (
+          <div className="flex gap-4 items-center justify-center py-4">
+            {/* Instagram Icon */}
+            {component.props.instagramUrl && (
+              <a
+                href={component.props.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="hover:scale-110 transition-transform"
+                style={{ color: component.props.iconColor || themeColors.primary }}
+              >
+                <svg width={component.props.iconSize || 32} height={component.props.iconSize || 32} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+              </a>
+            )}
+
+            {/* Facebook Icon */}
+            {component.props.facebookUrl && (
+              <a
+                href={component.props.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="hover:scale-110 transition-transform"
+                style={{ color: component.props.iconColor || themeColors.primary }}
+              >
+                <svg width={component.props.iconSize || 32} height={component.props.iconSize || 32} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </a>
+            )}
+
+            {/* Twitter Icon */}
+            {component.props.twitterUrl && (
+              <a
+                href={component.props.twitterUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Twitter"
+                className="hover:scale-110 transition-transform"
+                style={{ color: component.props.iconColor || themeColors.primary }}
+              >
+                <svg width={component.props.iconSize || 32} height={component.props.iconSize || 32} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                </svg>
               </a>
             )}
           </div>
+        );
+
+      case 'footer':
+        return (
+          <div 
+            className="w-screen mt-auto"
+            style={{
+              backgroundColor: component.props.backgroundColor || themeColors.secondary,
+              color: component.props.textColor || '#ffffff',
+              marginLeft: 'calc(-50vw + 50%)',
+              marginRight: 'calc(-50vw + 50%)',
+              padding: '2rem 1rem',
+            }}
+          >
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="flex flex-col md:flex-row justify-between gap-6 md:gap-8 mb-6 md:mb-8">
+                {/* Company Info - Left */}
+                <div className="flex-1 max-w-md">
+                  <h3 
+                    className="text-base md:text-lg font-semibold mb-2"
+                    style={{ fontFamily: `'${themeFonts.heading}', sans-serif` }}
+                  >
+                    {component.props.companyName || 'Company Name'}
+                  </h3>
+                  <p 
+                    className="text-xs md:text-sm opacity-80"
+                    style={{ fontFamily: `'${themeFonts.body}', sans-serif` }}
+                  >
+                    {component.props.description || 'Your company description goes here.'}
+                  </p>
+                </div>
+
+                {/* Links - Right */}
+                <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 md:gap-12">
+                  <div>
+                    <h4 className="text-sm md:text-base font-semibold mb-2">Quick Links</h4>
+                    <ul className="space-y-1 text-xs md:text-sm opacity-80">
+                      <li><a href={component.props.link1Url || '#'} className="hover:opacity-100">{component.props.link1Text || 'About'}</a></li>
+                      <li><a href={component.props.link2Url || '#'} className="hover:opacity-100">{component.props.link2Text || 'Services'}</a></li>
+                      <li><a href={component.props.link3Url || '#'} className="hover:opacity-100">{component.props.link3Text || 'Contact'}</a></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="text-sm md:text-base font-semibold mb-2">Connect</h4>
+                    <ul className="space-y-1 text-xs md:text-sm opacity-80">
+                      <li><a href={component.props.social1Url || '#'} className="hover:opacity-100">{component.props.social1Text || 'Twitter'}</a></li>
+                      <li><a href={component.props.social2Url || '#'} className="hover:opacity-100">{component.props.social2Text || 'LinkedIn'}</a></li>
+                      <li><a href={component.props.social3Url || '#'} className="hover:opacity-100">{component.props.social3Text || 'Facebook'}</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-t pt-4 text-center text-xs md:text-sm opacity-60">
+                © 2024 {component.props.companyName || 'Company Name'}. All rights reserved.
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'timer':
+        return (
+          <PublishedTimerComponent 
+            component={component}
+            themeColors={themeColors}
+            themeFonts={themeFonts}
+          />
+        );
+
+      case 'bullet-list':
+        const textSizeClass = component.props.textSize === 'heading' ? 'text-2xl md:text-3xl' : 
+                             component.props.textSize === 'title' ? 'text-xl md:text-2xl' :
+                             component.props.textSize === 'subheading' ? 'text-lg md:text-xl' : 'text-sm md:text-base';
+        
+        return (
+          <div style={{ textAlign: component.props.align || 'left' }}>
+            {component.props.style === 'numbered' ? (
+              <ol className={`list-decimal pl-6 ${textSizeClass}`} style={{ lineHeight: 1.6, color: themeColors.text }}>
+                {(component.props.items || []).map((item: string, idx: number) => (
+                  <li key={idx} className="mb-1">
+                    <span style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            ) : component.props.style === 'none' ? (
+              <div className={`space-y-1 ${textSizeClass}`}>
+                {(component.props.items || []).map((item: string, idx: number) => (
+                  <div key={idx}>
+                    <span style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ul className={`list-disc pl-6 ${textSizeClass}`} style={{ lineHeight: 1.6, color: themeColors.text }}>
+                {(component.props.items || []).map((item: string, idx: number) => (
+                  <li key={idx} className="mb-1">
+                    <span style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+
+      case 'collapsible-list':
+        return (
+          <PublishedCollapsibleList 
+            component={component}
+            themeColors={themeColors}
+            themeFonts={themeFonts}
+          />
         );
 
       default:
@@ -388,76 +979,172 @@ export default function PublishedSitePage() {
         style={{ 
           backgroundColor: themeColors.background,
           color: themeColors.text,
-          fontFamily: `'${themeFonts.body}', sans-serif`
+          fontFamily: `'${themeFonts.body}', sans-serif`,
+          overflowX: 'clip'
         }}
       >
       {/* Fixed Navbar */}
       <header 
-        className="sticky top-0 z-50 border-b shadow-sm"
+        className="sticky top-0 z-50 border-b shadow-sm bg-white"
         style={{
           backgroundColor: themeColors.background,
           borderColor: themeColors.primary
         }}
       >
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 
-              className="text-xl font-bold"
-              style={{ color: themeColors.primary }}
-            >
-              {site.siteName}
-            </h1>
-            <nav className="flex gap-4">
-              {pages.map((page) => (
-                <button
-                  key={page._id}
-                  onClick={() => setCurrentPage(page)}
-                  className="text-sm font-medium transition-colors pb-1"
-                  style={{
-                    color: currentPage._id === page._id ? themeColors.primary : themeColors.text,
-                    borderBottom: currentPage._id === page._id ? `2px solid ${themeColors.primary}` : 'none',
-                    opacity: currentPage._id === page._id ? 1 : 0.7
-                  }}
-                >
-                  {page.pageName}
-                </button>
-              ))}
-            </nav>
+            {site.logo ? (
+              <img 
+                src={site.logo} 
+                alt={site.siteName}
+                style={{
+                  height: '32px',
+                  width: 'auto',
+                  maxWidth: site.logoWidth || '150px',
+                  objectFit: 'contain'
+                }}
+                className="md:h-10"
+              />
+            ) : (
+              <h1 
+                className="text-lg md:text-xl font-bold"
+                style={{ color: themeColors.primary }}
+              >
+                {site.siteName}
+              </h1>
+            )}
+            
+            {/* Multi-page navigation */}
+            {pages.length > 1 && (
+              <nav className="hidden md:flex gap-6">
+                {pages.map((page) => (
+                  <button
+                    key={page._id}
+                    onClick={() => setCurrentPage(page)}
+                    className="text-base font-medium transition-colors pb-2"
+                    style={{
+                      color: currentPage._id === page._id ? themeColors.primary : themeColors.text,
+                      borderBottom: currentPage._id === page._id ? `2px solid ${themeColors.primary}` : 'none',
+                      opacity: currentPage._id === page._id ? 1 : 0.7
+                    }}
+                  >
+                    {page.pageName}
+                  </button>
+                ))}
+              </nav>
+            )}
+            
+            {/* Single-page section navigation (scrollspy) */}
+            {pages.length === 1 && currentPage?.sections && currentPage.sections.length > 0 && (
+              <nav className="hidden md:flex gap-4 lg:gap-6">
+                {currentPage.sections
+                  .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
+                  .map((section) => {
+                    const visibleSections = (currentPage.sections || []).filter(s => s.showInNavbar === true || s.showInNavbar === undefined);
+                    const visibleIndex = visibleSections.findIndex(s => s.id === section.id);
+                    const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
+                    return (
+                      <button
+                        key={section.id}
+                        onClick={() => scrollToSection(section.id)}
+                        className="text-sm lg:text-base font-medium transition-colors pb-2"
+                        style={{
+                          color: activeSection === section.id ? themeColors.primary : themeColors.text,
+                          borderBottom: activeSection === section.id ? `2px solid ${themeColors.primary}` : 'none',
+                          opacity: activeSection === section.id ? 1 : 0.7
+                        }}
+                      >
+                        {sectionName}
+                      </button>
+                    );
+                  })}
+              </nav>
+            )}
           </div>
         </div>
       </header>
 
       {/* Page Content */}
-      <main className="container mx-auto px-6 py-8">
+      <main className="container mx-auto p-4 md:p-8 pb-0" style={{ overflow: 'visible' }}>
         {currentPage.sections && currentPage.sections.length > 0 ? (
           // Render sections with flexbox layout
-          <div className="space-y-0">
-            {currentPage.sections.map((section) => (
-              <div 
-                key={section.id}
-                className="flex"
-                style={{
-                  flexDirection: section.layout.direction,
-                  justifyContent: section.layout.justifyContent,
-                  alignItems: section.layout.alignItems,
-                  gap: `${section.layout.gap}px`,
-                  padding: `${section.layout.padding}px`,
-                  backgroundColor: section.layout.backgroundColor || 'transparent',
-                }}
-              >
-                {section.components.map((component) => (
-                  <div 
-                    key={component.id}
-                    style={{
-                      width: component.props.width || 'auto',
-                      maxWidth: '100%',
-                    }}
-                  >
-                    {renderComponent(component)}
-                  </div>
-                ))}
+          <div className="space-y-6">
+            {currentPage.sections.map((section, index) => {
+              // Check if this is a card section
+              const cardCount = section.components?.filter((c: any) => c.type === 'card').length || 0;
+              const isCardSection = cardCount >= 1; // Any section with cards
+              
+              // Respect user's direction choice, don't force row layout
+              const direction = section.layout.direction || 'column';
+              const justify = section.layout.justifyContent || 'flex-start';
+              const align = section.layout.alignItems || 'stretch';
+              const flexWrap = isCardSection ? 'wrap' : 'nowrap';
+              
+              // Check if section has banner or footer (full-width components)
+              const hasFullWidthComponent = section.components?.some((c: any) => 
+                c.type === 'banner' || c.type === 'footer'
+              );
+              
+              return (
+                <div 
+                  id={`section-${section.id}`}
+                  key={section.id}
+                  className="flex w-full scroll-mt-20"
+                  style={{
+                    display: 'flex',
+                    flexDirection: direction,
+                    justifyContent: justify,
+                    alignItems: align,
+                    flexWrap: flexWrap,
+                    gap: isCardSection ? '24px' : `${section.layout.gap || 16}px`,
+                    padding: hasFullWidthComponent ? '0' : `${section.layout.padding}px`,
+                    backgroundColor: section.layout.backgroundColor || 'transparent',
+                    // For full-width components, extend to full width by negating parent's padding
+                    marginLeft: hasFullWidthComponent ? '-32px' : '0',
+                    marginRight: hasFullWidthComponent ? '-32px' : '0',
+                    marginTop: hasFullWidthComponent && index === 0 ? '-16px' : undefined,
+                    width: hasFullWidthComponent ? 'calc(100% + 64px)' : 'auto',
+                  }}
+                >
+                {section.components.map((component) => {
+                  // Check if component has its own alignment (text, heading, button)
+                  const hasOwnAlignment = (component.type === 'text' || component.type === 'heading' || component.type === 'button') && component.props.align;
+                  
+                  // Calculate alignment override based on component's align property
+                  let alignSelf = 'auto';
+                  if (hasOwnAlignment) {
+                    if (component.props.align === 'left') {
+                      alignSelf = 'flex-start';
+                    } else if (component.props.align === 'center') {
+                      alignSelf = 'center';
+                    } else if (component.props.align === 'right') {
+                      alignSelf = 'flex-end';
+                    }
+                  }
+                  
+                  return (
+                    <div 
+                      key={component.id}
+                      style={{
+                        // Ensure full width for components that need container width for geometry
+                        width: hasOwnAlignment
+                          ? '100%'
+                          : (component.type === 'card'
+                              ? undefined
+                              : (component.type === 'carousel' || component.type === 'banner' || component.type === 'footer'
+                                  ? '100%'
+                                  : (component.props.width || 'auto'))),
+                        alignSelf: alignSelf,
+                        // Don't apply flex/minWidth to wrapper when it's a card - the card itself has these properties
+                      }}
+                    >
+                      {renderComponent(component)}
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : currentPage.content && currentPage.content.length > 0 ? (
           // Legacy: Render flat components (backward compatibility)

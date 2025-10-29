@@ -59,7 +59,15 @@ export default function TextEditorToolbar({
     setTextColor(component.props.color || themeColors?.text || '#1e293b');
     setAlignment(component.props.align || 'left');
     setLink(component.props.link || '');
-  }, [component.id]); // Re-sync when component changes
+  }, [component.id, component.props.text]); // Re-sync when component changes or text is edited
+
+  // Helper function to update component props
+  const updateProps = (newProps: any) => {
+    onUpdate({
+      ...component.props,
+      ...newProps,
+    });
+  };
 
   // Only update fontSize when textSize changes intentionally (not on component switch)
   const handleTextSizeChange = (newSize: string) => {
@@ -70,23 +78,13 @@ export default function TextEditorToolbar({
     else if (newSize === 'text') newFontSize = 16;
     else if (newSize === 'subtext') newFontSize = 14;
     setFontSize(newFontSize);
-  };
-
-  useEffect(() => {
-    // Update component when any property changes
-    onUpdate({
-      ...component.props,
-      size: textSize,
-      fontSize,
-      fontFamily,
-      bold: isBold,
-      italic: isItalic,
-      underline: isUnderline,
-      color: textColor,
-      align: alignment,
-      link,
+    
+    // Immediately update component with new size and fontSize
+    updateProps({
+      size: newSize,
+      fontSize: newFontSize,
     });
-  }, [textSize, fontSize, fontFamily, isBold, isItalic, isUnderline, textColor, alignment, link]);
+  };
 
   const fontOptions = [
     'Inter',
@@ -132,7 +130,11 @@ export default function TextEditorToolbar({
         {/* Font Family */}
         <select
           value={fontFamily}
-          onChange={(e) => setFontFamily(e.target.value)}
+          onChange={(e) => {
+            const newFont = e.target.value;
+            setFontFamily(newFont);
+            updateProps({ fontFamily: newFont });
+          }}
           className="px-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[140px]"
         >
           {fontOptions.map((font) => (
@@ -144,7 +146,11 @@ export default function TextEditorToolbar({
         <input
           type="number"
           value={fontSize}
-          onChange={(e) => setFontSize(parseInt(e.target.value) || 16)}
+          onChange={(e) => {
+            const newSize = parseInt(e.target.value) || 16;
+            setFontSize(newSize);
+            updateProps({ fontSize: newSize });
+          }}
           min="8"
           max="72"
           className="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -154,21 +160,33 @@ export default function TextEditorToolbar({
 
         {/* Text Formatting */}
         <button
-          onClick={() => setIsBold(!isBold)}
+          onClick={() => {
+            const newBold = !isBold;
+            setIsBold(newBold);
+            updateProps({ bold: newBold });
+          }}
           className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${isBold ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
           title="Bold"
         >
           <Bold className="h-4 w-4" />
         </button>
         <button
-          onClick={() => setIsItalic(!isItalic)}
+          onClick={() => {
+            const newItalic = !isItalic;
+            setIsItalic(newItalic);
+            updateProps({ italic: newItalic });
+          }}
           className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${isItalic ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
           title="Italic"
         >
           <Italic className="h-4 w-4" />
         </button>
         <button
-          onClick={() => setIsUnderline(!isUnderline)}
+          onClick={() => {
+            const newUnderline = !isUnderline;
+            setIsUnderline(newUnderline);
+            updateProps({ underline: newUnderline });
+          }}
           className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${isUnderline ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
           title="Underline"
         >
@@ -182,7 +200,11 @@ export default function TextEditorToolbar({
           <input
             type="color"
             value={textColor}
-            onChange={(e) => setTextColor(e.target.value)}
+            onChange={(e) => {
+              const newColor = e.target.value;
+              setTextColor(newColor);
+              updateProps({ color: newColor });
+            }}
             className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
             title="Text Color"
           />
@@ -192,21 +214,30 @@ export default function TextEditorToolbar({
 
         {/* Alignment Icons */}
         <button
-          onClick={() => setAlignment('left')}
+          onClick={() => {
+            setAlignment('left');
+            updateProps({ align: 'left' });
+          }}
           className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${alignment === 'left' ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
           title="Align Left"
         >
           <AlignLeft className="h-4 w-4" />
         </button>
         <button
-          onClick={() => setAlignment('center')}
+          onClick={() => {
+            setAlignment('center');
+            updateProps({ align: 'center' });
+          }}
           className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${alignment === 'center' ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
           title="Align Center"
         >
           <AlignCenter className="h-4 w-4" />
         </button>
         <button
-          onClick={() => setAlignment('right')}
+          onClick={() => {
+            setAlignment('right');
+            updateProps({ align: 'right' });
+          }}
           className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${alignment === 'right' ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
           title="Align Right"
         >
@@ -260,7 +291,10 @@ export default function TextEditorToolbar({
               className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
-              onClick={() => setShowLinkInput(false)}
+              onClick={() => {
+                setShowLinkInput(false);
+                updateProps({ link });
+              }}
               className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
             >
               Done
