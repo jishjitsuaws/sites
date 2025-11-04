@@ -20,16 +20,37 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter
+// File filter with enhanced security
 const fileFilter = (req, file, cb) => {
+  // Allowed MIME types
   const allowedTypes = process.env.ALLOWED_FILE_TYPES
     ? process.env.ALLOWED_FILE_TYPES.split(',')
-    : ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    : ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'video/mp4', 'video/webm'];
 
-  if (allowedTypes.includes(file.mimetype)) {
+  // Allowed file extensions
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.mp4', '.webm'];
+  
+  const ext = path.extname(file.originalname).toLowerCase();
+  
+  // Check both MIME type and extension
+  if (allowedTypes.includes(file.mimetype) && allowedExtensions.includes(ext)) {
+    // Additional security: check filename for path traversal
+    if (file.originalname.includes('..') || file.originalname.includes('/') || file.originalname.includes('\\')) {
+      return cb(new Error('Invalid filename: path traversal detected'), false);
+    }
+    
+    // Check for executable extensions disguised as images
+    const dangerousExtensions = ['.exe', '.sh', '.bat', '.cmd', '.com', '.pif', '.application', '.gadget', '.msi', '.msp', '.scr', '.hta', '.cpl', '.msc', '.jar', '.vb', '.vbs', '.js', '.jse', '.ws', '.wsf', '.wsc', '.wsh', '.ps1', '.ps1xml', '.ps2', '.ps2xml', '.psc1', '.psc2', '.msh', '.msh1', '.msh2', '.mshxml', '.msh1xml', '.msh2xml'];
+    
+    for (const dangerousExt of dangerousExtensions) {
+      if (file.originalname.toLowerCase().includes(dangerousExt)) {
+        return cb(new Error('File contains dangerous extension'), false);
+      }
+    }
+    
     cb(null, true);
   } else {
-    cb(new Error(`File type ${file.mimetype} is not allowed`), false);
+    cb(new Error(`File type ${file.mimetype} or extension ${ext} is not allowed`), false);
   }
 };
 

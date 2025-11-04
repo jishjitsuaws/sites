@@ -1,5 +1,4 @@
 const express = require('express');
-const { body } = require('express-validator');
 const {
   getSites,
   getSite,
@@ -12,6 +11,7 @@ const {
 } = require('../controllers/siteController');
 const { protect } = require('../middleware/auth');
 const { handleValidationErrors, validateObjectId } = require('../middleware/validation');
+const { siteValidation, commonValidation } = require('../middleware/validationRules');
 
 const router = express.Router();
 
@@ -25,36 +25,18 @@ const optionalAuth = (req, res, next) => {
   return protect(req, res, next);
 };
 
-// Validation rules
-const createSiteValidation = [
-  body('siteName')
-    .trim()
-    .notEmpty().withMessage('Site name is required')
-    .isLength({ min: 2, max: 100 }).withMessage('Site name must be between 2 and 100 characters'),
-  body('subdomain')
-    .trim()
-    .notEmpty().withMessage('Subdomain is required')
-    .isLength({ min: 3, max: 50 }).withMessage('Subdomain must be between 3 and 50 characters')
-    .matches(/^[a-z0-9-]+$/).withMessage('Subdomain can only contain lowercase letters, numbers, and hyphens')
-    .not().matches(/^-|-$/).withMessage('Subdomain cannot start or end with a hyphen'),
-  body('description')
-    .optional()
-    .trim()
-    .isLength({ max: 500 }).withMessage('Description cannot exceed 500 characters')
-];
-
 // Routes
 router.route('/')
-  .get(optionalAuth, getSites)
-  .post(protect, createSiteValidation, handleValidationErrors, createSite);
+  .get(optionalAuth, siteValidation.query, handleValidationErrors, getSites)
+  .post(protect, siteValidation.create, handleValidationErrors, createSite);
 
 router.route('/:id')
-  .get(protect, validateObjectId('id'), getSite)
-  .put(protect, validateObjectId('id'), updateSite)
-  .delete(protect, validateObjectId('id'), deleteSite);
+  .get(protect, ...commonValidation.objectId('id'), handleValidationErrors, getSite)
+  .put(protect, ...commonValidation.objectId('id'), siteValidation.update, handleValidationErrors, updateSite)
+  .delete(protect, ...commonValidation.objectId('id'), handleValidationErrors, deleteSite);
 
-router.post('/:id/publish', protect, validateObjectId('id'), publishSite);
-router.post('/:id/unpublish', protect, validateObjectId('id'), unpublishSite);
-router.post('/:id/duplicate', protect, validateObjectId('id'), duplicateSite);
+router.post('/:id/publish', protect, ...commonValidation.objectId('id'), siteValidation.publish, handleValidationErrors, publishSite);
+router.post('/:id/unpublish', protect, ...commonValidation.objectId('id'), handleValidationErrors, unpublishSite);
+router.post('/:id/duplicate', protect, ...commonValidation.objectId('id'), handleValidationErrors, duplicateSite);
 
 module.exports = router;

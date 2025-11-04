@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
 const morgan = require('morgan');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
@@ -25,10 +26,35 @@ const app = express();
 // Connect to database
 connectDB();
 
-// Security middleware
+// Security middleware - Comprehensive security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
-  contentSecurityPolicy: false // Allow serving images
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'fonts.googleapis.com', 'cdn.jsdelivr.net'],
+      fontSrc: ["'self'", 'fonts.gstatic.com', 'cdn.jsdelivr.net'],
+      imgSrc: ["'self'", 'data:', 'https:', 'http://localhost:5000', 'blob:'],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      connectSrc: ["'self'", 'http://localhost:3000', 'http://localhost:5000'],
+      frameSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
+    }
+  },
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true
+  },
+  frameguard: {
+    action: 'sameorigin'
+  },
+  xssFilter: true,
+  noSniff: true,
+  referrerPolicy: {
+    policy: 'strict-origin-when-cross-origin'
+  }
 }));
 
 // Serve static files from uploads directory
@@ -55,6 +81,14 @@ app.use('/api', limiter);
 // Body parser middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// MongoDB injection prevention
+app.use(mongoSanitize({
+  replaceWith: '_',
+  onSanitize: ({ req, key }) => {
+    console.warn(`MongoDB injection attempt detected: ${key} in ${req.originalUrl}`);
+  }
+}));
 
 // Cookie parser
 app.use(cookieParser());

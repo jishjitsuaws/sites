@@ -3,6 +3,7 @@
 import { Copy, Trash2, AlignLeft, AlignCenter, AlignRight, Settings, Link as LinkIcon, Image as ImageIcon, Video, Type, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
+import { sanitizeText, sanitizeHtml, sanitizeUrl } from '@/lib/sanitize';
 
 // Timer Component with real-time countdown
 function TimerComponent({ component, themeColors, themeFonts, isSelected, onUpdateComponent, onDeleteComponent }: any) {
@@ -305,7 +306,8 @@ export default function ComponentRenderer({
             contentEditable
             suppressContentEditableWarning
             onBlur={(e) => {
-              const newText = e.currentTarget.textContent || '';
+              const rawText = e.currentTarget.textContent || '';
+              const newText = sanitizeText(rawText);
               if (newText !== component.props.text) {
                 onUpdateComponent(component.id, {
                   ...component,
@@ -314,28 +316,35 @@ export default function ComponentRenderer({
               }
             }}
             onFocus={(e) => {
+              // Select component first if not already selected
+              if (!isSelected) {
+                onComponentClick(component, e as any);
+              }
+              
               setSelectedComponent(component);
               const element = e.currentTarget as HTMLElement;
               const rect = element.getBoundingClientRect();
-              const container = element.closest('.overflow-y-auto') || document.body;
-              const containerRect = container.getBoundingClientRect();
               
-              // Calculate position relative to the scrollable container
-              const relativeRect = {
-                x: rect.left - containerRect.left,
-                y: rect.top - containerRect.top + container.scrollTop,
-                left: rect.left - containerRect.left,
-                top: rect.top - containerRect.top + container.scrollTop,
+              // Use absolute screen coordinates for fixed positioning
+              const absoluteRect = {
+                x: rect.left,
+                y: rect.top,
+                left: rect.left,
+                top: rect.top,
                 right: rect.right,
                 bottom: rect.bottom,
                 width: rect.width,
                 height: rect.height,
                 toJSON: () => ({})
               } as DOMRect;
-              onShowTextToolbar(relativeRect);
+              onShowTextToolbar(absoluteRect);
             }}
             onClick={(e) => {
               e.stopPropagation();
+              // Also select component on click
+              if (!isSelected) {
+                onComponentClick(component, e);
+              }
             }}
           >
             {component.props.text}
@@ -2014,27 +2023,28 @@ export default function ComponentRenderer({
                       }
                     }}
                     onFocus={(e) => {
-                      if (isSelected) {
-                        setSelectedComponent(component);
-                        const element = e.currentTarget as HTMLElement;
-                        const rect = element.getBoundingClientRect();
-                        const container = element.closest('.overflow-y-auto') || document.body;
-                        const containerRect = container.getBoundingClientRect();
-                        
-                        // Calculate position relative to the scrollable container
-                        const relativeRect = {
-                          x: rect.left - containerRect.left,
-                          y: rect.top - containerRect.top + container.scrollTop,
-                          left: rect.left - containerRect.left,
-                          top: rect.top - containerRect.top + container.scrollTop,
-                          right: rect.right,
-                          bottom: rect.bottom,
-                          width: rect.width,
-                          height: rect.height,
-                          toJSON: () => ({})
-                        } as DOMRect;
-                        onShowTextToolbar(relativeRect);
+                      // Select component first if not already selected
+                      if (!isSelected) {
+                        onComponentClick(component, e as any);
                       }
+                      
+                      setSelectedComponent(component);
+                      const element = e.currentTarget as HTMLElement;
+                      const rect = element.getBoundingClientRect();
+                      
+                      // Use absolute screen coordinates for fixed positioning
+                      const absoluteRect = {
+                        x: rect.left,
+                        y: rect.top,
+                        left: rect.left,
+                        top: rect.top,
+                        right: rect.right,
+                        bottom: rect.bottom,
+                        width: rect.width,
+                        height: rect.height,
+                        toJSON: () => ({})
+                      } as DOMRect;
+                      onShowTextToolbar(absoluteRect);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -2043,8 +2053,10 @@ export default function ComponentRenderer({
                       }
                     }}
                     onClick={(e) => {
-                      if (isSelected) {
-                        e.stopPropagation();
+                      e.stopPropagation();
+                      // Also select component on click
+                      if (!isSelected) {
+                        onComponentClick(component, e);
                       }
                     }}
                     className="text-5xl font-bold mb-4 outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
@@ -2091,31 +2103,34 @@ export default function ComponentRenderer({
                       }
                     }}
                     onFocus={(e) => {
-                      if (isSelected) {
-                        setSelectedComponent(component);
-                        const element = e.currentTarget as HTMLElement;
-                        const rect = element.getBoundingClientRect();
-                        const container = element.closest('.overflow-y-auto') || document.body;
-                        const containerRect = container.getBoundingClientRect();
-                        
-                        // Calculate position relative to the scrollable container
-                        const relativeRect = {
-                          x: rect.left - containerRect.left,
-                          y: rect.top - containerRect.top + container.scrollTop,
-                          left: rect.left - containerRect.left,
-                          top: rect.top - containerRect.top + container.scrollTop,
-                          right: rect.right,
-                          bottom: rect.bottom,
-                          width: rect.width,
-                          height: rect.height,
-                          toJSON: () => ({})
-                        } as DOMRect;
-                        onShowTextToolbar(relativeRect);
+                      // Select component first if not already selected
+                      if (!isSelected) {
+                        onComponentClick(component, e as any);
                       }
+                      
+                      setSelectedComponent(component);
+                      const element = e.currentTarget as HTMLElement;
+                      const rect = element.getBoundingClientRect();
+                      
+                      // Use absolute screen coordinates for fixed positioning
+                      const absoluteRect = {
+                        x: rect.left,
+                        y: rect.top,
+                        left: rect.left,
+                        top: rect.top,
+                        right: rect.right,
+                        bottom: rect.bottom,
+                        width: rect.width,
+                        height: rect.height,
+                        toJSON: () => ({})
+                      } as DOMRect;
+                      onShowTextToolbar(absoluteRect);
                     }}
                     onClick={(e) => {
-                      if (isSelected) {
-                        e.stopPropagation();
+                      e.stopPropagation();
+                      // Also select component on click
+                      if (!isSelected) {
+                        onComponentClick(component, e);
                       }
                     }}
                     className="text-xl mb-8 max-w-2xl outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"

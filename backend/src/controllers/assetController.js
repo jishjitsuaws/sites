@@ -15,6 +15,28 @@ exports.uploadAsset = asyncHandler(async (req, res, next) => {
 
   const { siteId, alt, tags, folder } = req.body;
 
+  // Additional security validation
+  const allowedMimeTypes = [
+    'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+    'video/mp4', 'video/webm', 'video/ogg'
+  ];
+
+  if (!allowedMimeTypes.includes(req.file.mimetype)) {
+    throw new ApiError(`File type ${req.file.mimetype} is not allowed`, 400);
+  }
+
+  // Validate file size (already done by multer, but double-check)
+  const maxSize = parseInt(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024; // 5MB
+  if (req.file.size > maxSize) {
+    throw new ApiError(`File size exceeds maximum allowed size of ${maxSize / 1024 / 1024}MB`, 400);
+  }
+
+  // Sanitize filename to prevent path traversal
+  const sanitizedFilename = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+  if (sanitizedFilename !== req.file.originalname) {
+    console.warn(`Sanitized filename: ${req.file.originalname} -> ${sanitizedFilename}`);
+  }
+
   // Check user storage limit
   const user = await User.findById(req.user._id);
   const currentStorage = await Asset.calculateUserStorage(req.user._id);
@@ -35,12 +57,12 @@ exports.uploadAsset = asyncHandler(async (req, res, next) => {
       folder: folder || 'cms-uploads'
     });
 
-    // Create asset record
+    // Create asset record with sanitized data
     const asset = await Asset.create({
       userId: req.user._id,
       siteId: siteId || null,
       filename: result.public_id,
-      originalName: req.file.originalname,
+      originalName: sanitizedFilename,
       url: result.secure_url,
       publicId: result.public_id,
       type: assetType,
@@ -50,9 +72,9 @@ exports.uploadAsset = asyncHandler(async (req, res, next) => {
         width: result.width,
         height: result.height
       } : undefined,
-      alt: alt || '',
-      tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-      folder: folder || 'uploads'
+      alt: (alt || '').replace(/[<>\"']/g, ''), // Sanitize alt text
+      tags: tags ? tags.split(',').map(tag => tag.trim().replace(/[<>\"']/g, '')) : [],
+      folder: (folder || 'uploads').replace(/[^a-zA-Z0-9_-]/g, '_')
     });
 
     // Update user storage

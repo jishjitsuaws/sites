@@ -104,11 +104,13 @@ export default function TextEditorToolbar({
   return (
     <div 
       ref={toolbarRef}
-      className="absolute bg-white rounded-lg shadow-2xl border border-gray-300 p-3 z-50"
+      className="fixed bg-white rounded-lg shadow-2xl border border-gray-300 p-3 z-50"
       style={{
-        left: `${position.x}px`,
-        top: `${position.y - 70}px`,
+        left: `${Math.max(10, position.x)}px`,
+        top: `${Math.max(80, position.y - 80)}px`, // Position above the text, min 80px from top
         minWidth: '700px',
+        maxWidth: 'calc(100vw - 20px)', // Don't overflow viewport
+        transform: position.x + 700 > window.innerWidth ? 'translateX(-50%)' : 'none', // Center if near right edge
       }}
       onClick={(e) => e.stopPropagation()}
     >

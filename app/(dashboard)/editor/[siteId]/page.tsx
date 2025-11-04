@@ -1435,19 +1435,19 @@ export default function EditorPage() {
     // Set the new selected component
     setSelectedComponent(component);
     
+    // Find and select the parent section
+    const parentSection = sections.find(section => 
+      section.components.some(c => c.id === component.id)
+    );
+    
+    if (parentSection) {
+      setSelectedSection(parentSection.id);
+    }
+    
     // For text/heading, show toolbar
     if (component.type === 'text' || component.type === 'heading') {
-      const element = event.currentTarget as HTMLElement;
-      const rect = element.getBoundingClientRect();
-      const container = element.closest('.overflow-y-auto') || document.body;
-      const containerRect = container.getBoundingClientRect();
-      
-      // Calculate position relative to the scrollable container
-      setToolbarPosition({ 
-        x: rect.left - containerRect.left, 
-        y: rect.top - containerRect.top + container.scrollTop 
-      });
-      setShowTextToolbar(true);
+      // Don't show toolbar immediately - let the onFocus handler in ComponentRenderer do it
+      // This prevents multiple toolbars from showing
     }
     // For images and buttons, just select them (inline controls will show)
   };
@@ -2160,6 +2160,42 @@ export default function EditorPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Text Editor Toolbar */}
+      {showTextToolbar && selectedComponent && (
+        <TextEditorToolbar
+          component={selectedComponent}
+          onUpdate={(props) => {
+            if (selectedComponent) {
+              updateComponent(selectedComponent.id, {
+                ...selectedComponent,
+                props: { ...selectedComponent.props, ...props }
+              });
+            }
+          }}
+          onClose={() => setShowTextToolbar(false)}
+          onDelete={() => {
+            if (selectedComponent) {
+              deleteComponent(selectedComponent.id);
+              setSelectedComponent(null);
+              setShowTextToolbar(false);
+            }
+          }}
+          onCopy={() => {
+            if (selectedComponent) {
+              const newComponent = {
+                ...selectedComponent,
+                id: `${selectedComponent.type}-${Date.now()}`,
+              };
+              addComponent(newComponent);
+              toast.success('Component copied');
+            }
+          }}
+          position={toolbarPosition}
+          themeColors={getThemeColors()}
+          themeFonts={getThemeFonts()}
+        />
       )}
 
       {/* Navbar Settings Modal */}
