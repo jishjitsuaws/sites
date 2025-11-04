@@ -144,8 +144,9 @@ function PublishedCarousel({ component }: any) {
   const normalizeUrl = (u: string) => {
     if (!u) return '';
     if (u.startsWith('http')) return u;
-    if (u.startsWith('/')) return `http://localhost:5000${u}`;
-    if (u.startsWith('uploads')) return `http://localhost:5000/${u}`;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+    if (u.startsWith('/')) return `${apiUrl}${u}`;
+    if (u.startsWith('uploads')) return `${apiUrl}/${u}`;
     return u;
   };
   const getImgSrc = (img: any) => {
@@ -273,6 +274,7 @@ export default function PublishedSitePage() {
   const [currentPage, setCurrentPage] = useState<Page | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string>('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (subdomain) {
@@ -283,8 +285,9 @@ export default function PublishedSitePage() {
   const fetchSite = async () => {
     try {
       setLoading(true);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
       // Fetch site by subdomain
-      const siteRes = await fetch(`http://localhost:5000/api/sites?subdomain=${subdomain}`);
+      const siteRes = await fetch(`${apiUrl}/sites?subdomain=${subdomain}`);
       const siteData = await siteRes.json();
       
       if (!siteData.success || !siteData.data || siteData.data.length === 0) {
@@ -305,7 +308,7 @@ export default function PublishedSitePage() {
       setSite(foundSite);
 
       // Fetch pages for this site
-      const pagesRes = await fetch(`http://localhost:5000/api/sites/${foundSite._id}/pages`);
+      const pagesRes = await fetch(`${apiUrl}/sites/${foundSite._id}/pages`);
       const pagesData = await pagesRes.json();
 
       if (pagesData.success && pagesData.data) {
@@ -436,8 +439,9 @@ export default function PublishedSitePage() {
               fontStyle: component.props.italic ? 'italic' : 'normal',
               textDecoration: component.props.underline ? 'underline' : 'none',
               maxWidth: component.props.width || '100%',
-              width: component.props.width || 'auto',
-              margin: component.props.width 
+              width: component.props.width || '100%',
+              display: 'block',
+              margin: component.props.width && component.props.width !== '100%'
                 ? (component.props.align === 'center' ? '0 auto' : component.props.align === 'right' ? '0 0 0 auto' : '0')
                 : '0',
             }}
@@ -762,10 +766,13 @@ export default function PublishedSitePage() {
             </div>
           );
         }
+        const bulletTextSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
+                             component.props.textSize === 'title' ? 'text-2xl' :
+                             component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
         return (
           <ul className="list-disc pl-6" style={{ lineHeight: 1.6, textAlign: component.props.align || 'left' }}>
             {(component.props.items || []).map((item: string, idx: number) => (
-              <li key={idx} className="mb-1" style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>{item}</li>
+              <li key={idx} className={`mb-1 ${bulletTextSizeClass}`} style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>{item}</li>
             ))}
           </ul>
         );
@@ -894,16 +901,16 @@ export default function PublishedSitePage() {
         );
 
       case 'bullet-list':
-        const textSizeClass = component.props.textSize === 'heading' ? 'text-2xl md:text-3xl' : 
+        const listTextSizeClass = component.props.textSize === 'heading' ? 'text-2xl md:text-3xl' : 
                              component.props.textSize === 'title' ? 'text-xl md:text-2xl' :
                              component.props.textSize === 'subheading' ? 'text-lg md:text-xl' : 'text-sm md:text-base';
         
         return (
           <div style={{ textAlign: component.props.align || 'left' }}>
             {component.props.style === 'numbered' ? (
-              <ol className={`list-decimal pl-6 ${textSizeClass}`} style={{ lineHeight: 1.6, color: themeColors.text }}>
+              <ol className="list-decimal pl-6" style={{ lineHeight: 1.6, color: themeColors.text }}>
                 {(component.props.items || []).map((item: string, idx: number) => (
-                  <li key={idx} className="mb-1">
+                  <li key={idx} className={`mb-1 ${listTextSizeClass}`}>
                     <span style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>
                       {item}
                     </span>
@@ -911,9 +918,9 @@ export default function PublishedSitePage() {
                 ))}
               </ol>
             ) : component.props.style === 'none' ? (
-              <div className={`space-y-1 ${textSizeClass}`}>
+              <div className="space-y-1">
                 {(component.props.items || []).map((item: string, idx: number) => (
-                  <div key={idx}>
+                  <div key={idx} className={listTextSizeClass}>
                     <span style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>
                       {item}
                     </span>
@@ -921,9 +928,9 @@ export default function PublishedSitePage() {
                 ))}
               </div>
             ) : (
-              <ul className={`list-disc pl-6 ${textSizeClass}`} style={{ lineHeight: 1.6, color: themeColors.text }}>
+              <ul className="list-disc pl-6" style={{ lineHeight: 1.6, color: themeColors.text }}>
                 {(component.props.items || []).map((item: string, idx: number) => (
-                  <li key={idx} className="mb-1">
+                  <li key={idx} className={`mb-1 ${listTextSizeClass}`}>
                     <span style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>
                       {item}
                     </span>
@@ -993,28 +1000,104 @@ export default function PublishedSitePage() {
       >
         <div className="container mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center justify-between">
-            {site.logo ? (
-              <img 
-                src={site.logo} 
-                alt={site.siteName}
-                style={{
-                  height: '32px',
-                  width: 'auto',
-                  maxWidth: site.logoWidth || '150px',
-                  objectFit: 'contain'
-                }}
-                className="md:h-10"
-              />
-            ) : (
-              <h1 
-                className="text-lg md:text-xl font-bold"
-                style={{ color: themeColors.primary }}
-              >
-                {site.siteName}
-              </h1>
+            {/* Mobile: Single page - centered logo */}
+            {pages.length === 1 && (
+              <div className="md:hidden flex-1 flex justify-center">
+                {site.logo ? (
+                  <img 
+                    src={site.logo} 
+                    alt={site.siteName}
+                    style={{
+                      height: '32px',
+                      width: 'auto',
+                      maxWidth: site.logoWidth || '150px',
+                      objectFit: 'contain'
+                    }}
+                  />
+                ) : (
+                  <h1 
+                    className="text-lg font-bold"
+                    style={{ color: themeColors.primary }}
+                  >
+                    {site.siteName}
+                  </h1>
+                )}
+              </div>
             )}
+
+            {/* Mobile: Multi-page - logo left, hamburger right */}
+            {pages.length > 1 && (
+              <>
+                <div className="md:hidden">
+                  {site.logo ? (
+                    <img 
+                      src={site.logo} 
+                      alt={site.siteName}
+                      style={{
+                        height: '32px',
+                        width: 'auto',
+                        maxWidth: site.logoWidth || '150px',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  ) : (
+                    <h1 
+                      className="text-lg font-bold"
+                      style={{ color: themeColors.primary }}
+                    >
+                      {site.siteName}
+                    </h1>
+                  )}
+                </div>
+                
+                {/* Hamburger Menu Button */}
+                <button
+                  className="md:hidden p-2"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  aria-label="Toggle menu"
+                >
+                  <svg 
+                    className="h-6 w-6" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                    style={{ color: themeColors.text }}
+                  >
+                    {mobileMenuOpen ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    )}
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {/* Desktop Logo/Title */}
+            <div className="hidden md:block">
+              {site.logo ? (
+                <img 
+                  src={site.logo} 
+                  alt={site.siteName}
+                  style={{
+                    height: '32px',
+                    width: 'auto',
+                    maxWidth: site.logoWidth || '150px',
+                    objectFit: 'contain'
+                  }}
+                  className="md:h-10"
+                />
+              ) : (
+                <h1 
+                  className="text-lg md:text-xl font-bold"
+                  style={{ color: themeColors.primary }}
+                >
+                  {site.siteName}
+                </h1>
+              )}
+            </div>
             
-            {/* Multi-page navigation */}
+            {/* Desktop Multi-page navigation */}
             {pages.length > 1 && (
               <nav className="hidden md:flex gap-6">
                 {pages.map((page) => (
@@ -1034,7 +1117,7 @@ export default function PublishedSitePage() {
               </nav>
             )}
             
-            {/* Single-page section navigation (scrollspy) */}
+            {/* Desktop Single-page section navigation (scrollspy) */}
             {pages.length === 1 && currentPage?.sections && currentPage.sections.length > 0 && (
               <nav className="hidden md:flex gap-4 lg:gap-6">
                 {currentPage.sections
@@ -1061,6 +1144,31 @@ export default function PublishedSitePage() {
               </nav>
             )}
           </div>
+
+          {/* Mobile Menu Dropdown */}
+          {pages.length > 1 && mobileMenuOpen && (
+            <div className="md:hidden mt-4 py-4 border-t" style={{ borderColor: themeColors.primary }}>
+              <nav className="flex flex-col gap-3">
+                {pages.map((page) => (
+                  <button
+                    key={page._id}
+                    onClick={() => {
+                      setCurrentPage(page);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="text-left px-4 py-2 rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: currentPage._id === page._id ? `${themeColors.primary}15` : 'transparent',
+                      color: currentPage._id === page._id ? themeColors.primary : themeColors.text,
+                      fontWeight: currentPage._id === page._id ? '600' : '400'
+                    }}
+                  >
+                    {page.pageName}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          )}
         </div>
       </header>
 
@@ -1085,6 +1193,9 @@ export default function PublishedSitePage() {
                 c.type === 'banner' || c.type === 'footer'
               );
               
+              // For cards on mobile, use centered justification
+              const mobileJustify = isCardSection && direction === 'row' ? 'center' : justify;
+              
               return (
                 <div 
                   id={`section-${section.id}`}
@@ -1093,7 +1204,6 @@ export default function PublishedSitePage() {
                   style={{
                     display: 'flex',
                     flexDirection: direction,
-                    justifyContent: justify,
                     alignItems: align,
                     flexWrap: flexWrap,
                     gap: isCardSection ? '24px' : `${section.layout.gap || 16}px`,
@@ -1106,6 +1216,18 @@ export default function PublishedSitePage() {
                     width: hasFullWidthComponent ? 'calc(100% + 64px)' : 'auto',
                   }}
                 >
+                  <style jsx>{`
+                    @media (max-width: 767px) {
+                      #section-${section.id} {
+                        justify-content: ${mobileJustify} !important;
+                      }
+                    }
+                    @media (min-width: 768px) {
+                      #section-${section.id} {
+                        justify-content: ${justify} !important;
+                      }
+                    }
+                  `}</style>
                 {section.components.map((component) => {
                   // Check if component has its own alignment (text, heading, button)
                   const hasOwnAlignment = (component.type === 'text' || component.type === 'heading' || component.type === 'button') && component.props.align;

@@ -49,7 +49,7 @@ exports.getSites = asyncHandler(async (req, res, next) => {
  */
 exports.getSite = asyncHandler(async (req, res, next) => {
   const site = await Site.findById(req.params.id)
-    .populate('themeId', 'name colors fonts')
+    .populate('themeId', 'name description colors fonts effects')
     .populate({
       path: 'pages',
       options: { sort: { order: 1 } }

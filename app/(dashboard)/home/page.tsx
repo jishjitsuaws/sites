@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { Plus, Globe, Settings, LogOut, Search, ExternalLink, MoreVertical, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import TemplatesModal from '@/components/modals/TemplatesModal';
 
 interface Site {
   _id: string;
@@ -27,6 +28,7 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [creating, setCreating] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   useEffect(() => {
     fetchSites();
@@ -154,10 +156,15 @@ export default function DashboardPage() {
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          <Button onClick={handleCreateWebsite} className="gap-2" disabled={creating}>
-            <Plus className="h-5 w-5" />
-            {creating ? 'Creating...' : 'Create New Website'}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowTemplates(true)} variant="outline" className="gap-2">
+              View Templates
+            </Button>
+            <Button onClick={handleCreateWebsite} className="gap-2" disabled={creating}>
+              <Plus className="h-5 w-5" />
+              {creating ? 'Creating...' : 'Create New Website'}
+            </Button>
+          </div>
         </div>
 
         {/* Sites Grid */}
@@ -187,7 +194,8 @@ export default function DashboardPage() {
                 className="hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => {
                   if (site.isPublished) {
-                    window.open(`http://localhost:3000/site/${site.subdomain}`, '_blank');
+                    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+                    window.open(`${siteUrl}/site/${site.subdomain}`, '_blank');
                   } else {
                     router.push(`/editor/${site._id}`);
                   }
@@ -230,7 +238,8 @@ export default function DashboardPage() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                window.open(`http://localhost:3000/site/${site.subdomain}`, '_blank');
+                                const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+                                window.open(`${siteUrl}/site/${site.subdomain}`, '_blank');
                                 setOpenDropdown(null);
                               }}
                               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-black"
@@ -307,6 +316,9 @@ export default function DashboardPage() {
           </Card>
         </div>
       </main>
+
+      {/* Templates Modal */}
+      <TemplatesModal isOpen={showTemplates} onClose={() => setShowTemplates(false)} />
     </div>
   );
 }

@@ -24,7 +24,7 @@ interface Site {
   _id: string;
   siteName: string;
   subdomain: string;
-  themeId?: string;
+  themeId?: string | Theme;
   theme?: Theme;
   logo?: string;
   logoWidth?: string;
@@ -44,7 +44,8 @@ export default function ThemesPanel({ themes, site, siteId, onThemeChange }: The
       const response = await api.put(`/sites/${siteId}`, { themeId: theme._id });
       toast.success(`Theme changed to ${theme.name}`);
       if (site) {
-        const updatedSite = { ...site, themeId: theme._id, theme: theme };
+        // Update both theme and themeId to ensure compatibility
+        const updatedSite = { ...site, themeId: theme, theme: theme };
         onThemeChange(updatedSite);
       }
     } catch (err) {
@@ -55,12 +56,17 @@ export default function ThemesPanel({ themes, site, siteId, onThemeChange }: The
   return (
     <div className="space-y-2">
       {themes && themes.length > 0 ? (
-        themes.map((theme) => (
+        themes.map((theme) => {
+          // Handle both string ID and populated object
+          const siteThemeId = typeof site?.themeId === 'string' ? site.themeId : site?.themeId?._id;
+          const isSelected = siteThemeId === theme._id || site?.theme?._id === theme._id;
+          
+          return (
           <div
             key={theme._id}
             onClick={() => handleThemeSelect(theme)}
             className={`border-2 rounded-lg p-2.5 cursor-pointer transition-all ${
-              site?.themeId === theme._id || site?.theme?._id === theme._id
+              isSelected
                 ? 'border-blue-600 bg-blue-50'
                 : 'border-gray-200 hover:border-gray-300'
             }`}
@@ -82,7 +88,8 @@ export default function ThemesPanel({ themes, site, siteId, onThemeChange }: The
               </div>
             )}
           </div>
-        ))
+          );
+        })
       ) : (
         <p className="text-gray-500 text-xs">Loading themes...</p>
       )}

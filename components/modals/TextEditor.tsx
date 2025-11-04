@@ -104,10 +104,10 @@ export default function TextEditorToolbar({
   return (
     <div 
       ref={toolbarRef}
-      className="fixed bg-white rounded-lg shadow-2xl border border-gray-300 p-3 z-50"
+      className="absolute bg-white rounded-lg shadow-2xl border border-gray-300 p-3 z-50"
       style={{
-        left: Math.min(position.x, window.innerWidth - 750),
-        top: Math.max(position.y - 70, 80),
+        left: `${position.x}px`,
+        top: `${position.y - 70}px`,
         minWidth: '700px',
       }}
       onClick={(e) => e.stopPropagation()}
@@ -160,6 +160,7 @@ export default function TextEditorToolbar({
 
         {/* Text Formatting */}
         <button
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
             const newBold = !isBold;
             setIsBold(newBold);
@@ -171,6 +172,7 @@ export default function TextEditorToolbar({
           <Bold className="h-4 w-4" />
         </button>
         <button
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
             const newItalic = !isItalic;
             setIsItalic(newItalic);
@@ -182,6 +184,7 @@ export default function TextEditorToolbar({
           <Italic className="h-4 w-4" />
         </button>
         <button
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
             const newUnderline = !isUnderline;
             setIsUnderline(newUnderline);
@@ -196,7 +199,7 @@ export default function TextEditorToolbar({
         <div className="w-px h-6 bg-gray-300"></div>
 
         {/* Text Color */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <input
             type="color"
             value={textColor}
@@ -208,12 +211,31 @@ export default function TextEditorToolbar({
             className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
             title="Text Color"
           />
+          <input
+            type="text"
+            value={textColor}
+            onChange={(e) => {
+              let newColor = e.target.value;
+              // Validate hex format
+              if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
+                setTextColor(newColor);
+                updateProps({ color: newColor });
+              } else if (newColor.match(/^#[0-9A-Fa-f]{0,5}$/)) {
+                // Allow typing but don't update
+                setTextColor(newColor);
+              }
+            }}
+            placeholder="#000000"
+            className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
+            title="Hex Color Code"
+          />
         </div>
 
         <div className="w-px h-6 bg-gray-300"></div>
 
         {/* Alignment Icons */}
         <button
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
             setAlignment('left');
             updateProps({ align: 'left' });
@@ -224,6 +246,7 @@ export default function TextEditorToolbar({
           <AlignLeft className="h-4 w-4" />
         </button>
         <button
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
             setAlignment('center');
             updateProps({ align: 'center' });
@@ -234,6 +257,7 @@ export default function TextEditorToolbar({
           <AlignCenter className="h-4 w-4" />
         </button>
         <button
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
             setAlignment('right');
             updateProps({ align: 'right' });

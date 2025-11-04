@@ -43,7 +43,25 @@ interface Site {
   isPublished: boolean;
   logo?: string;
   logoWidth?: string;
-  themeId?: string;
+  themeId?: string | {
+    _id: string;
+    name: string;
+    description?: string;
+    colors?: any;
+    fonts?: {
+      heading: string;
+      body: string;
+    };
+    effects?: {
+      enableHoverEffects?: boolean;
+      hoverScale?: number;
+      hoverShadow?: string;
+      transitionDuration?: string;
+      enableGradients?: boolean;
+      enableAlternatingSections?: boolean;
+      alternateSectionColor?: string;
+    };
+  };
   theme?: {
     _id: string;
     name: string;
@@ -319,7 +337,8 @@ export default function EditorPage() {
         setSite({ ...site, isPublished: true });
       }
       // Open published site in new tab
-      window.open(`http://localhost:3000/site/${site.subdomain}`, '_blank');
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      window.open(`${siteUrl}/site/${site.subdomain}`, '_blank');
     } catch (err: any) {
       toast.error('Failed to publish site');
     }
@@ -350,7 +369,8 @@ export default function EditorPage() {
       }
       
       // Open published site
-      window.open(`http://localhost:3000/site/${publishSubdomain}`, '_blank');
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      window.open(`${siteUrl}/site/${publishSubdomain}`, '_blank');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to publish site');
     }
@@ -1385,7 +1405,8 @@ export default function EditorPage() {
 
   // Get theme colors for editor preview
   const getThemeColors = () => {
-    return site?.theme?.colors || {
+    const themeData = typeof site?.themeId === 'object' ? site.themeId : site?.theme;
+    return themeData?.colors || {
       background: '#ffffff',
       text: '#1e293b',
       primary: '#3b82f6',
@@ -1395,7 +1416,8 @@ export default function EditorPage() {
 
   // Get theme fonts for editor preview
   const getThemeFonts = () => {
-    return site?.theme?.fonts || {
+    const themeData = typeof site?.themeId === 'object' ? site.themeId : site?.theme;
+    return themeData?.fonts || {
       heading: 'Inter',
       body: 'Inter'
     };
@@ -1415,8 +1437,16 @@ export default function EditorPage() {
     
     // For text/heading, show toolbar
     if (component.type === 'text' || component.type === 'heading') {
-      const rect = event.currentTarget.getBoundingClientRect();
-      setToolbarPosition({ x: rect.left, y: rect.top });
+      const element = event.currentTarget as HTMLElement;
+      const rect = element.getBoundingClientRect();
+      const container = element.closest('.overflow-y-auto') || document.body;
+      const containerRect = container.getBoundingClientRect();
+      
+      // Calculate position relative to the scrollable container
+      setToolbarPosition({ 
+        x: rect.left - containerRect.left, 
+        y: rect.top - containerRect.top + container.scrollTop 
+      });
       setShowTextToolbar(true);
     }
     // For images and buttons, just select them (inline controls will show)
@@ -1492,7 +1522,10 @@ export default function EditorPage() {
             siteId={siteId} 
             onLogoUpdate={handleSaveLogo} 
           />
-          <Button variant="outline" size="sm" onClick={() => window.open(`http://localhost:3000/site/${site?.subdomain}`, '_blank')}>
+          <Button variant="outline" size="sm" onClick={() => {
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+            window.open(`${siteUrl}/site/${site?.subdomain}`, '_blank');
+          }}>
             <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
@@ -1512,7 +1545,10 @@ export default function EditorPage() {
           {site?.isPublished ? (
             <Button 
               size="sm" 
-              onClick={() => window.open(`http://localhost:3000/site/${site?.subdomain}`, '_blank')}
+              onClick={() => {
+                const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+                window.open(`${siteUrl}/site/${site?.subdomain}`, '_blank');
+              }}
               className="bg-green-600 hover:bg-green-700"
             >
               <Eye className="h-4 w-4 mr-2" />
@@ -2004,14 +2040,14 @@ export default function EditorPage() {
       {showTextToolbar && selectedComponent && (
         <TextEditorToolbar
           component={selectedComponent}
-          onUpdate={(props) => {
+          onUpdate={(newProps) => {
             updateComponent(selectedComponent.id, {
               ...selectedComponent,
-              props
+              props: { ...selectedComponent.props, ...newProps }
             });
             setSelectedComponent({
               ...selectedComponent,
-              props
+              props: { ...selectedComponent.props, ...newProps }
             });
           }}
           onClose={closeAllModals}

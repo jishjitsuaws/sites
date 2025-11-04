@@ -149,6 +149,24 @@ function TimerComponent({ component, themeColors, themeFonts, isSelected, onUpda
               className="w-8 h-8 rounded cursor-pointer border border-gray-300"
               title="Background Color"
             />
+            <input
+              type="text"
+              value={component.props.backgroundColor || themeColors.primary}
+              onChange={(e) => {
+                e.stopPropagation();
+                const newColor = e.target.value;
+                if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
+                  onUpdateComponent(component.id, {
+                    ...component,
+                    props: { ...component.props, backgroundColor: newColor }
+                  });
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+              placeholder="#000000"
+              className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
+              title="Hex Color Code"
+            />
           </div>
           <div className="w-px bg-gray-300"></div>
           <button
@@ -297,8 +315,24 @@ export default function ComponentRenderer({
             }}
             onFocus={(e) => {
               setSelectedComponent(component);
-              const rect = e.currentTarget.getBoundingClientRect();
-              onShowTextToolbar(rect);
+              const element = e.currentTarget as HTMLElement;
+              const rect = element.getBoundingClientRect();
+              const container = element.closest('.overflow-y-auto') || document.body;
+              const containerRect = container.getBoundingClientRect();
+              
+              // Calculate position relative to the scrollable container
+              const relativeRect = {
+                x: rect.left - containerRect.left,
+                y: rect.top - containerRect.top + container.scrollTop,
+                left: rect.left - containerRect.left,
+                top: rect.top - containerRect.top + container.scrollTop,
+                right: rect.right,
+                bottom: rect.bottom,
+                width: rect.width,
+                height: rect.height,
+                toJSON: () => ({})
+              } as DOMRect;
+              onShowTextToolbar(relativeRect);
             }}
             onClick={(e) => {
               e.stopPropagation();
@@ -906,6 +940,24 @@ export default function ComponentRenderer({
                   onClick={(e) => e.stopPropagation()}
                   className="w-6 h-6 rounded cursor-pointer border-none"
                   title="Icon Color"
+                />
+                <input
+                  type="text"
+                  value={component.props.iconColor || themeColors.primary}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    const newColor = e.target.value;
+                    if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, iconColor: newColor }
+                      });
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="#000000"
+                  className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
+                  title="Hex Color Code"
                 />
               </div>
               <div className="w-px bg-gray-300"></div>
@@ -1964,8 +2016,24 @@ export default function ComponentRenderer({
                     onFocus={(e) => {
                       if (isSelected) {
                         setSelectedComponent(component);
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        onShowTextToolbar(rect);
+                        const element = e.currentTarget as HTMLElement;
+                        const rect = element.getBoundingClientRect();
+                        const container = element.closest('.overflow-y-auto') || document.body;
+                        const containerRect = container.getBoundingClientRect();
+                        
+                        // Calculate position relative to the scrollable container
+                        const relativeRect = {
+                          x: rect.left - containerRect.left,
+                          y: rect.top - containerRect.top + container.scrollTop,
+                          left: rect.left - containerRect.left,
+                          top: rect.top - containerRect.top + container.scrollTop,
+                          right: rect.right,
+                          bottom: rect.bottom,
+                          width: rect.width,
+                          height: rect.height,
+                          toJSON: () => ({})
+                        } as DOMRect;
+                        onShowTextToolbar(relativeRect);
                       }
                     }}
                     onKeyDown={(e) => {
@@ -2025,8 +2093,24 @@ export default function ComponentRenderer({
                     onFocus={(e) => {
                       if (isSelected) {
                         setSelectedComponent(component);
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        onShowTextToolbar(rect);
+                        const element = e.currentTarget as HTMLElement;
+                        const rect = element.getBoundingClientRect();
+                        const container = element.closest('.overflow-y-auto') || document.body;
+                        const containerRect = container.getBoundingClientRect();
+                        
+                        // Calculate position relative to the scrollable container
+                        const relativeRect = {
+                          x: rect.left - containerRect.left,
+                          y: rect.top - containerRect.top + container.scrollTop,
+                          left: rect.left - containerRect.left,
+                          top: rect.top - containerRect.top + container.scrollTop,
+                          right: rect.right,
+                          bottom: rect.bottom,
+                          width: rect.width,
+                          height: rect.height,
+                          toJSON: () => ({})
+                        } as DOMRect;
+                        onShowTextToolbar(relativeRect);
                       }
                     }}
                     onClick={(e) => {
@@ -2420,6 +2504,24 @@ export default function ComponentRenderer({
                   className="w-6 h-6 rounded cursor-pointer border-none"
                   title="Background Color"
                 />
+                <input
+                  type="text"
+                  value={component.props.backgroundColor || themeColors.primary}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    const newColor = e.target.value;
+                    if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, backgroundColor: newColor }
+                      });
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="#000000"
+                  className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
+                  title="Hex Color Code"
+                />
               </div>
               <div className="w-px bg-gray-300"></div>
               <div className="px-2 py-1.5 flex items-center gap-1.5">
@@ -2435,6 +2537,24 @@ export default function ComponentRenderer({
                   onClick={(e) => e.stopPropagation()}
                   className="w-6 h-6 rounded cursor-pointer border-none"
                   title="Text Color"
+                />
+                <input
+                  type="text"
+                  value={component.props.textColor || '#ffffff'}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    const newColor = e.target.value;
+                    if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, textColor: newColor }
+                      });
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="#ffffff"
+                  className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
+                  title="Hex Color Code"
                 />
               </div>
               <div className="w-px bg-gray-300"></div>
@@ -2642,6 +2762,24 @@ export default function ComponentRenderer({
                   className="w-8 h-8 rounded cursor-pointer border border-gray-300"
                   title="Background Color"
                 />
+                <input
+                  type="text"
+                  value={component.props.backgroundColor || themeColors.secondary}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    const newColor = e.target.value;
+                    if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, backgroundColor: newColor }
+                      });
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="#000000"
+                  className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
+                  title="Hex Color Code"
+                />
               </div>
               <div className="w-px bg-gray-300"></div>
               <div className="px-2 py-1.5 flex items-center gap-2">
@@ -2659,6 +2797,24 @@ export default function ComponentRenderer({
                   onClick={(e) => e.stopPropagation()}
                   className="w-8 h-8 rounded cursor-pointer border border-gray-300"
                   title="Text Color"
+                />
+                <input
+                  type="text"
+                  value={component.props.textColor || '#ffffff'}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    const newColor = e.target.value;
+                    if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, textColor: newColor }
+                      });
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="#ffffff"
+                  className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
+                  title="Hex Color Code"
                 />
               </div>
               <div className="w-px bg-gray-300"></div>
