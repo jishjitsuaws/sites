@@ -9,7 +9,8 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, helperText, id, ...props }, ref) => {
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    // Use provided id or generate a stable one from the label/name
+    const inputId = id || (props.name ? `input-${props.name}` : undefined);
 
     return (
       <div className="w-full">

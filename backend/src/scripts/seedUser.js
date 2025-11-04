@@ -5,7 +5,7 @@ const User = require('../models/User');
 const seedUser = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI);
     console.log('✅ Connected to MongoDB');
 
     // Check if user already exists

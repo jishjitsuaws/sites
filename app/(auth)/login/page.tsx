@@ -20,16 +20,11 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (username !== 'user' || password !== 'user123') {
-      toast.error('Invalid credentials. Use username: user, password: user123');
-      return;
-    }
-
     setLoading(true);
     try {
       const response = await api.post('/auth/login', {
         email: 'user@sitebuilder.com',
-        password: 'user123',
+        password: password,
       });
 
       setUser(response.data.user);
@@ -38,22 +33,9 @@ export default function LoginPage() {
       toast.success('Welcome back!');
       router.push('/home');
     } catch (err: any) {
-      // If user doesn't exist, create them automatically
-      try {
-        const registerResponse = await api.post('/auth/register', {
-          name: 'User',
-          email: 'user@sitebuilder.com',
-          password: 'user123',
-        });
-
-        setUser(registerResponse.data.user);
-        setTokens(registerResponse.data.accessToken, registerResponse.data.refreshToken);
-        
-        toast.success('Welcome!');
-        router.push('/home');
-      } catch (registerErr: any) {
-        toast.error('Failed to login');
-      }
+      const errorMessage = err.response?.data?.message || 'Invalid credentials';
+      toast.error(errorMessage);
+      console.error('Login error:', err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
@@ -73,6 +55,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <Input
             label="Username"
+            name="username"
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -83,6 +66,7 @@ export default function LoginPage() {
 
           <Input
             label="Password"
+            name="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
