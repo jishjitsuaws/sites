@@ -35,7 +35,7 @@ const uploadToLocalStorage = async (file, options = {}) => {
 
     // Return result in similar format to Cloudinary
     // Use full URL so frontend can access the image from backend server
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = process.env.BACKEND_URL;
     return {
       public_id: filename,
       secure_url: `${baseUrl}/uploads/${filename}`,

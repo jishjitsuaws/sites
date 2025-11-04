@@ -206,7 +206,7 @@ export default function DashboardPage() {
                     <div className="flex-1">
                       <CardTitle>{site.siteName}</CardTitle>
                       <CardDescription>
-                        {site.customDomain || `localhost:3000/site/${site.subdomain}`}
+                        {site.customDomain}
                       </CardDescription>
                     </div>
                     <div className="relative">

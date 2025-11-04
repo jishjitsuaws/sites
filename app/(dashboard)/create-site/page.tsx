@@ -182,7 +182,7 @@ export default function CreateSitePage() {
                   error={subdomainAvailable === false ? 'Invalid subdomain format' : undefined}
                 />
                 <p className="text-sm text-black opacity-70 mt-1">
-                  {subdomain && `localhost:3000/site/${subdomain}`}
+                  {subdomain}
                 </p>
               </div>
 

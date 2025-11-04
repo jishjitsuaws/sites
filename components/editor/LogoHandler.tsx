@@ -16,7 +16,7 @@ export default function LogoHandler({ site, siteId, onLogoUpdate }: LogoHandlerP
 
   const handleSaveLogo = async (logoData: { logo: string; logoWidth: string }) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(`${apiUrl}/sites/${siteId}`, {
         method: 'PUT',
         headers: {

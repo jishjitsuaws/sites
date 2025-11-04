@@ -144,7 +144,7 @@ function PublishedCarousel({ component }: any) {
   const normalizeUrl = (u: string) => {
     if (!u) return '';
     if (u.startsWith('http')) return u;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '');
     if (u.startsWith('/')) return `${apiUrl}${u}`;
     if (u.startsWith('uploads')) return `${apiUrl}/${u}`;
     return u;
@@ -285,7 +285,7 @@ export default function PublishedSitePage() {
   const fetchSite = async () => {
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
       // Fetch site by subdomain
       const siteRes = await fetch(`${apiUrl}/sites?subdomain=${subdomain}`);
       const siteData = await siteRes.json();

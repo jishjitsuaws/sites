@@ -1951,7 +1951,7 @@ export default function EditorPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 />
                 <p className="text-sm text-black opacity-70 mt-1">
-                  {publishSubdomain && `Your site will be at: localhost:3000/site/${publishSubdomain}`}
+                  {publishSubdomain}
                 </p>
               </div>
             </div>
