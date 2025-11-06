@@ -183,9 +183,17 @@ const pageValidation = {
     body('slug')
       .optional()
       .trim()
-      .isLength({ min: 1, max: 100 }).withMessage('Slug must be between 1 and 100 characters')
-      .matches(/^[a-z0-9-]+$/).withMessage('Slug can only contain lowercase letters, numbers, and hyphens')
-      .toLowerCase(),
+      .custom((value, { req }) => {
+        // Allow empty string or "/" for home pages
+        if (req.body.isHome && (value === '' || value === '/')) {
+          return true;
+        }
+        // For non-home pages, validate slug format
+        if (value && !/^[a-z0-9-]+$/.test(value)) {
+          throw new Error('Slug can only contain lowercase letters, numbers, and hyphens');
+        }
+        return true;
+      }),
     
     body('order')
       .optional()

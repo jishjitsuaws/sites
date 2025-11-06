@@ -37,7 +37,7 @@ export default function TemplatesModal({ isOpen, onClose }: TemplatesModalProps)
       // Create the home page with sections from template
       const pageData = {
         pageName: 'Home',
-        slug: '/',
+        slug: '',  // Empty string for home page
         isHome: true,
         sections: template.sections
       };
