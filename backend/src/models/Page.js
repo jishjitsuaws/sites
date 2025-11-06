@@ -146,6 +146,12 @@ pageSchema.index({ siteId: 1, isHome: 1 });
 
 // Ensure only one home page per site
 pageSchema.pre('save', async function(next) {
+  // Normalize slug: convert "/" to empty string for home pages
+  if (this.slug === '/' || (this.isHome && !this.slug)) {
+    this.slug = '';
+  }
+  
+  // Ensure only one home page exists per site
   if (this.isHome) {
     await mongoose.model('Page').updateMany(
       { siteId: this.siteId, _id: { $ne: this._id } },
