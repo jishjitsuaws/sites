@@ -34,19 +34,29 @@ export default function TemplatesModal({ isOpen, onClose }: TemplatesModalProps)
 
       const siteId = siteResponse.data.data._id;
 
-      // Create the home page with sections from template
-      const pageData = {
-        pageName: 'Home',
-        slug: '',  // Empty string for home page
-        isHome: true,
-        sections: template.sections
-      };
-      
-      console.log('Creating page with sections count:', template.sections.length);
-      console.log('First section:', JSON.stringify(template.sections[0], null, 2));
-      
-      await api.post(`/sites/${siteId}/pages`, pageData);
-      console.log('Page created successfully');
+      // Fetch existing pages (site creation auto-creates a default home page)
+      const pagesResponse = await api.get(`/sites/${siteId}/pages`);
+      const existingPages = pagesResponse.data.data || [];
+      const existingHomePage = existingPages.find((p: any) => p.isHome);
+
+      if (existingHomePage) {
+        // Update the existing home page with template sections
+        console.log('Updating existing home page with template sections');
+        await api.put(`/pages/${existingHomePage._id}`, {
+          sections: template.sections
+        });
+        console.log('Home page updated successfully');
+      } else {
+        // Create home page if it doesn't exist (shouldn't happen, but fallback)
+        console.log('Creating new home page with sections count:', template.sections.length);
+        await api.post(`/sites/${siteId}/pages`, {
+          pageName: 'Home',
+          slug: '',
+          isHome: true,
+          sections: template.sections
+        });
+        console.log('Page created successfully');
+      }
 
       toast.success('Site created from template!');
       router.push(`/editor/${siteId}`);
