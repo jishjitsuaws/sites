@@ -52,8 +52,16 @@ const componentSchema = new mongoose.Schema({
 
 const sectionSchema = new mongoose.Schema({
   id: { type: String, required: true },
+  type: { type: String, enum: ['hero', 'content', 'footer', 'banner', 'gallery', 'testimonial', 'pricing', 'faq', 'custom'], default: 'content' },
+  title: { type: String, default: '' },
+  subtitle: { type: String, default: '' },
   sectionName: { type: String, default: '' },
   showInNavbar: { type: Boolean, default: true },
+  backgroundColor: { type: String, default: 'transparent' },
+  textColor: { type: String, default: 'inherit' },
+  backgroundImage: { type: String, default: '' },
+  alignment: { type: String, enum: ['left', 'center', 'right'], default: 'center' },
+  height: { type: String, enum: ['small', 'medium', 'large', 'auto'], default: 'auto' },
   components: [componentSchema],
   layout: {
     direction: { type: String, enum: ['row', 'column'], default: 'column' },
