@@ -21,31 +21,26 @@ export default function TemplatesModal({ isOpen, onClose }: TemplatesModalProps)
   const handleCreateFromTemplate = async (template: Template) => {
     setCreating(true);
     try {
-      // Create site first
+      // Create site with template name
       const siteResponse = await api.post('/sites', {
         siteName: template.name,
         subdomain: `${template.id}-${Date.now()}`,
-        description: template.description,
-        themeId: template.siteData.themeId || null,
       });
 
       const siteId = siteResponse.data.data._id;
 
-      // Get the home page that was auto-created
-      const pagesResponse = await api.get(`/sites/${siteId}/pages`);
-      const homePage = pagesResponse.data.data.find((p: any) => p.isHome);
-
-      if (homePage && template.siteData.pages && template.siteData.pages[0]) {
-        // Update the home page with template sections
-        await api.put(`/pages/${homePage._id}`, {
-          sections: template.siteData.pages[0].sections || [],
-          content: []
-        });
-      }
+      // Create the home page with sections from template
+      await api.post(`/sites/${siteId}/pages`, {
+        pageName: 'Home',
+        slug: '/',
+        isHome: true,
+        sections: template.sections
+      });
 
       toast.success('Site created from template!');
       router.push(`/editor/${siteId}`);
     } catch (err: any) {
+      console.error('Template creation error:', err);
       toast.error(err.response?.data?.message || 'Failed to create site from template');
       setCreating(false);
     }
