@@ -10,7 +10,7 @@ export interface Template {
 export const templates: Template[] = [
   {
     id: 'hackathon-codenovate',
-    name: 'Hackathon Event (CODENOVATE)',
+    name: 'Hackathon Event - CODENOVATE',
     description: 'Complete hackathon landing page with prizes, winners, gallery, countdown timer, and more',
     thumbnail: '/templates/hackathon-thumb.jpg',
     sections: [
