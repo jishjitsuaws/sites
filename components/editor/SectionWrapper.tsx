@@ -94,6 +94,7 @@ export default function SectionWrapper({
   onOpenCardGridModal,
 }: SectionWrapperProps) {
   const [showSettings, setShowSettings] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
   
   // Auto-fix section layout when it has multiple cards
   useEffect(() => {
@@ -108,7 +109,6 @@ export default function SectionWrapper({
       });
     }
   }, [section.components, section.layout.direction, section.id, onUpdate]);
-  const settingsRef = useRef<HTMLDivElement>(null);
 
   // Check if this section contains a footer or banner component
   const hasFooterOrBanner = section.components.some(c => c.type === 'footer' || c.type === 'banner');
@@ -122,13 +122,24 @@ export default function SectionWrapper({
     };
 
     if (showSettings) {
-      document.addEventListener('mousedown', handleClickOutside);
+      // Use setTimeout to avoid immediate closure on the same click that opened it
+      const timer = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 0);
+      
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
     }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
   }, [showSettings]);
+
+  // Close settings when section is deselected
+  useEffect(() => {
+    if (!isSelected) {
+      setShowSettings(false);
+    }
+  }, [isSelected]);
 
   return (
     <div
@@ -224,7 +235,7 @@ export default function SectionWrapper({
 
       {/* Section Settings Panel */}
       {isSelected && showSettings && (
-        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-10000">
+        <div ref={settingsRef} className="fixed top-24 left-1/2 transform -translate-x-1/2 z-10000">
           <div className="bg-white rounded-lg shadow-xl border-2 border-blue-500 p-4 mt-12 w-96">
             <h3 className="font-semibold text-sm mb-3 text-gray-900">Section Settings</h3>
             
