@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GripVertical, Trash2, Settings, Plus } from 'lucide-react';
+import { GripVertical, Trash2, Settings, Plus, ChevronUp, ChevronDown } from 'lucide-react';
 import ComponentRenderer from './ComponentRenderer';
 
 interface Component {
@@ -29,10 +29,13 @@ interface Section {
 interface SectionWrapperProps {
   section: Section;
   isFirstSection?: boolean;
+  isLastSection?: boolean;
   isSelected: boolean;
   onSelect: () => void;
   onUpdate: (updates: Partial<Section>) => void;
   onDelete: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
   onUpdateComponent: (componentId: string, updates: any) => void;
   onDeleteComponent: (componentId: string) => void;
   onCopyComponent: (componentId: string) => void;
@@ -60,10 +63,13 @@ interface SectionWrapperProps {
 export default function SectionWrapper({
   section,
   isFirstSection,
+  isLastSection,
   isSelected,
   onSelect,
   onUpdate,
   onDelete,
+  onMoveUp,
+  onMoveDown,
   onUpdateComponent,
   onDeleteComponent,
   onCopyComponent,
@@ -155,6 +161,40 @@ export default function SectionWrapper({
       {isSelected && (
         <div className="absolute -top-12 left-0 right-0 flex justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl border-2 border-blue-500 p-2 flex gap-2 items-center">
+            {/* Move Up Button */}
+            {!isFirstSection && onMoveUp && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMoveUp();
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded"
+                  title="Move Section Up"
+                >
+                  <ChevronUp className="h-4 w-4 text-gray-600" />
+                </button>
+                <div className="w-px h-6 bg-gray-300"></div>
+              </>
+            )}
+            
+            {/* Move Down Button */}
+            {!isLastSection && onMoveDown && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMoveDown();
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded"
+                  title="Move Section Down"
+                >
+                  <ChevronDown className="h-4 w-4 text-gray-600" />
+                </button>
+                <div className="w-px h-6 bg-gray-300"></div>
+              </>
+            )}
+            
             <button
               className="p-2 hover:bg-gray-100 rounded cursor-move"
               title="Drag to reorder"

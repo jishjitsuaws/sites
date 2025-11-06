@@ -1674,6 +1674,7 @@ export default function EditorPage() {
                       key={section.id}
                       section={section}
                       isFirstSection={index === 0}
+                      isLastSection={index === sections.length - 1}
                       isSelected={selectedSection === section.id}
                       onOpenCardGridModal={(sectionId) => openCardGridEditorForSection(sectionId)}
                       onSelect={() => {
@@ -1686,6 +1687,28 @@ export default function EditorPage() {
                       onDelete={() => {
                         deleteSection(section.id);
                         setSelectedSection(null);
+                      }}
+                      onMoveUp={() => {
+                        if (index > 0) {
+                          const newSections = [...sections];
+                          [newSections[index - 1], newSections[index]] = [newSections[index], newSections[index - 1]];
+                          // Update order property
+                          newSections.forEach((s, idx) => {
+                            s.order = idx;
+                          });
+                          setSections(newSections);
+                        }
+                      }}
+                      onMoveDown={() => {
+                        if (index < sections.length - 1) {
+                          const newSections = [...sections];
+                          [newSections[index], newSections[index + 1]] = [newSections[index + 1], newSections[index]];
+                          // Update order property
+                          newSections.forEach((s, idx) => {
+                            s.order = idx;
+                          });
+                          setSections(newSections);
+                        }
                       }}
                       onUpdateComponent={(componentId, updates) => {
                         updateComponent(componentId, updates);
