@@ -21,10 +21,11 @@ export default function TemplatesModal({ isOpen, onClose }: TemplatesModalProps)
   const handleCreateFromTemplate = async (template: Template) => {
     setCreating(true);
     try {
-      // Create site with template name
+      // Create site with template name - keep subdomain short
+      const timestamp = Date.now().toString().slice(-6); // Last 6 digits
       const siteResponse = await api.post('/sites', {
         siteName: template.name,
-        subdomain: `${template.id}-${Date.now()}`,
+        subdomain: `${template.id}-${timestamp}`,
       });
 
       const siteId = siteResponse.data.data._id;
