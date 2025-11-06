@@ -134,6 +134,8 @@ export default function EditorPage() {
   const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showNavbarSettings, setShowNavbarSettings] = useState(false);
+  const [isEditingSiteName, setIsEditingSiteName] = useState(false);
+  const [editedSiteName, setEditedSiteName] = useState('');
 
   const { 
     components, 
@@ -372,6 +374,28 @@ export default function EditorPage() {
   const handleSaveLogo = (logoData: { logo: string; logoWidth: string }) => {
     if (site) {
       setSite({ ...site, ...logoData });
+    }
+  };
+
+  const handleSaveSiteName = async () => {
+    if (!editedSiteName.trim() || editedSiteName === site?.siteName) {
+      setIsEditingSiteName(false);
+      return;
+    }
+
+    try {
+      await api.put(`/sites/${siteId}`, {
+        siteName: editedSiteName.trim(),
+      });
+      
+      if (site) {
+        setSite({ ...site, siteName: editedSiteName.trim() });
+      }
+      
+      toast.success('Site name updated');
+      setIsEditingSiteName(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to update site name');
     }
   };
 
@@ -1504,7 +1528,35 @@ export default function EditorPage() {
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="font-semibold text-gray-900">{site?.siteName}</h1>
+            {isEditingSiteName ? (
+              <input
+                type="text"
+                value={editedSiteName}
+                onChange={(e) => setEditedSiteName(e.target.value)}
+                onBlur={handleSaveSiteName}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSaveSiteName();
+                  } else if (e.key === 'Escape') {
+                    setIsEditingSiteName(false);
+                  }
+                }}
+                autoFocus
+                className="font-semibold text-gray-900 border-b-2 border-blue-500 outline-none bg-transparent px-1"
+                style={{ width: Math.max(150, editedSiteName.length * 8) + 'px' }}
+              />
+            ) : (
+              <h1
+                className="font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                onClick={() => {
+                  setEditedSiteName(site?.siteName || '');
+                  setIsEditingSiteName(true);
+                }}
+                title="Click to edit site name"
+              >
+                {site?.siteName}
+              </h1>
+            )}
             <p className="text-sm text-gray-500">{currentPage?.pageName || 'Untitled'}</p>
           </div>
         </div>
@@ -1884,14 +1936,14 @@ export default function EditorPage() {
               </button>
               <button
                 onClick={() => setActivePanel('pages')}
-                className={`flex-1 px-3 py-2.5 text-sm font-medium transition-colors ${
+                className={`flex-1 px-3 py-2.5 text-sm font-medium transition-colors flex flex-col items-center gap-1 ${
                   activePanel === 'pages'
                     ? 'text-blue-600 border-b-2 border-blue-600'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <FileText className="h-4 w-4 inline mr-1.5" />
-                Pages
+                <FileText className="h-4 w-4" />
+                <span className="text-xs">Pages</span>
               </button>
             </div>
           )}

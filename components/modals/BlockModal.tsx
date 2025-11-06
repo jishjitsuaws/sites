@@ -27,36 +27,6 @@ const BLOCK_TEMPLATES = [
     }
   },
   {
-    id: 'hero-image-right',
-    name: 'Hero - Image Right',
-    thumbnail: '📄🖼️',
-    description: 'Heading and text on left, image on right',
-    layout: 'hero-image-right',
-    structure: {
-      heading: 'Build Faster',
-      text: 'Create beautiful websites without the hassle. Our platform makes it simple.',
-      buttonText: 'Learn More',
-      buttonLink: '#',
-      image: '',
-      imageAlt: 'Hero image'
-    }
-  },
-  {
-    id: 'hero-image-left',
-    name: 'Hero - Image Left',
-    thumbnail: '🖼️📄',
-    description: 'Image on left, heading and text on right',
-    layout: 'hero-image-left',
-    structure: {
-      heading: 'Build Faster',
-      text: 'Create beautiful websites without the hassle. Our platform makes it simple.',
-      buttonText: 'Learn More',
-      buttonLink: '#',
-      image: '',
-      imageAlt: 'Hero image'
-    }
-  },
-  {
     id: 'feature-grid-3',
     name: 'Feature Grid - 3 Column',
     thumbnail: '📦📦📦',
@@ -85,20 +55,6 @@ const BLOCK_TEMPLATES = [
         { icon: '🔒', title: 'Secure', description: 'Enterprise-grade security' },
         { icon: '💎', title: 'Premium', description: 'Premium features included' }
       ]
-    }
-  },
-  {
-    id: 'image-text-2col',
-    name: 'Image + Text (2 Column)',
-    thumbnail: '🖼️📄',
-    description: 'Image and text side by side',
-    layout: 'image-text-2col',
-    structure: {
-      image: '',
-      imageAlt: 'Feature image',
-      heading: 'Amazing Feature',
-      text: 'Discover how this feature can transform your workflow and boost productivity.',
-      imagePosition: 'left'
     }
   },
   {
