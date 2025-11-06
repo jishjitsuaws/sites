@@ -185,7 +185,7 @@ const pageValidation = {
       .trim()
       .custom((value, { req }) => {
         // Allow empty string or "/" for home pages
-        if (req.body.isHome && (value === '' || value === '/')) {
+        if (req.body.isHome && (value === '' || value === '')) {
           return true;
         }
         // For non-home pages, validate slug format
