@@ -196,15 +196,6 @@ export default function SectionWrapper({
             )}
             
             <button
-              className="p-2 hover:bg-gray-100 rounded cursor-move"
-              title="Drag to reorder"
-            >
-              <GripVertical className="h-4 w-4 text-gray-600" />
-            </button>
-            
-            <div className="w-px h-6 bg-gray-300"></div>
-            
-            <button
               onClick={(e) => {
                 e.stopPropagation();
                 setShowSettings(!showSettings);
