@@ -34,12 +34,15 @@ const uploadToLocalStorage = async (file, options = {}) => {
     }
 
     // Return result in similar format to Cloudinary
-    // Use full URL so frontend can access the image from backend server
-    const baseUrl = process.env.BACKEND_URL;
+    // Use relative URL path that will work with Next.js proxy/rewrites
+    // Frontend will handle constructing the full URL if needed
+    const backendUrl = process.env.BACKEND_URL;
+    
     return {
       public_id: filename,
-      secure_url: `${baseUrl}/uploads/${filename}`,
-      url: `${baseUrl}/uploads/${filename}`,
+      secure_url: `/uploads/${filename}`,
+      url: `/uploads/${filename}`,
+      fullUrl: `${backendUrl}/uploads/${filename}`, // Full URL for external access
       width: dimensions?.width,
       height: dimensions?.height,
       format: path.extname(filename).substring(1),
