@@ -67,7 +67,7 @@ exports.getPage = asyncHandler(async (req, res, next) => {
  */
 exports.createPage = asyncHandler(async (req, res, next) => {
   const { siteId } = req.params;
-  const { pageName, slug, content, isHome, settings } = req.body;
+  const { pageName, slug, content, sections, isHome, settings } = req.body;
 
   // Verify site exists and user owns it
   const site = await Site.findById(siteId);
@@ -106,6 +106,7 @@ exports.createPage = asyncHandler(async (req, res, next) => {
     pageName,
     slug: finalSlug,
     content: content || [],
+    sections: sections || [],
     isHome: isHome || false,
     order,
     settings: settings || {}
