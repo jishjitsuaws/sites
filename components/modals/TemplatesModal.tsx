@@ -23,25 +23,39 @@ export default function TemplatesModal({ isOpen, onClose }: TemplatesModalProps)
     try {
       // Create site with template name - keep subdomain short
       const timestamp = Date.now().toString().slice(-6); // Last 6 digits
-      const siteResponse = await api.post('/sites', {
+      const siteData = {
         siteName: template.name,
         subdomain: `${template.id}-${timestamp}`,
-      });
+      };
+      
+      console.log('Creating site with data:', siteData);
+      const siteResponse = await api.post('/sites', siteData);
+      console.log('Site created successfully:', siteResponse.data);
 
       const siteId = siteResponse.data.data._id;
 
       // Create the home page with sections from template
-      await api.post(`/sites/${siteId}/pages`, {
+      const pageData = {
         pageName: 'Home',
         slug: '/',
         isHome: true,
         sections: template.sections
-      });
+      };
+      
+      console.log('Creating page with sections count:', template.sections.length);
+      console.log('First section:', JSON.stringify(template.sections[0], null, 2));
+      
+      await api.post(`/sites/${siteId}/pages`, pageData);
+      console.log('Page created successfully');
 
       toast.success('Site created from template!');
       router.push(`/editor/${siteId}`);
     } catch (err: any) {
       console.error('Template creation error:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error status:', err.response?.status);
+      console.error('Error message:', err.response?.data?.message);
+      console.error('Validation errors:', err.response?.data?.errors);
       toast.error(err.response?.data?.message || 'Failed to create site from template');
       setCreating(false);
     }

@@ -69,6 +69,17 @@ exports.createPage = asyncHandler(async (req, res, next) => {
   const { siteId } = req.params;
   const { pageName, slug, content, sections, isHome, settings } = req.body;
 
+  console.log('=== CREATE PAGE REQUEST ===');
+  console.log('Site ID:', siteId);
+  console.log('Page Name:', pageName);
+  console.log('Slug:', slug);
+  console.log('Is Home:', isHome);
+  console.log('Content length:', content?.length || 0);
+  console.log('Sections length:', sections?.length || 0);
+  if (sections && sections.length > 0) {
+    console.log('First section:', JSON.stringify(sections[0], null, 2));
+  }
+
   // Verify site exists and user owns it
   const site = await Site.findById(siteId);
   if (!site) {
@@ -111,6 +122,9 @@ exports.createPage = asyncHandler(async (req, res, next) => {
     order,
     settings: settings || {}
   });
+
+  console.log('Page created successfully:', page._id);
+  console.log('=========================');
 
   // Update site's lastEditedAt
   site.lastEditedAt = Date.now();

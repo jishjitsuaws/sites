@@ -7,14 +7,20 @@ const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   
   if (!errors.isEmpty()) {
+    const errorDetails = errors.array().map(error => ({
+      field: error.path || error.param,
+      message: error.msg,
+      value: error.value
+    }));
+    
+    console.error('Validation failed for', req.method, req.path);
+    console.error('Request body:', JSON.stringify(req.body, null, 2));
+    console.error('Validation errors:', JSON.stringify(errorDetails, null, 2));
+    
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
-      errors: errors.array().map(error => ({
-        field: error.path || error.param,
-        message: error.msg,
-        value: error.value
-      }))
+      errors: errorDetails
     });
   }
   
