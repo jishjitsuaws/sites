@@ -4,6 +4,7 @@ import { Copy, Trash2, AlignLeft, AlignCenter, AlignRight, Settings, Link as Lin
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { sanitizeText, sanitizeHtml, sanitizeUrl } from '@/lib/sanitize';
+import { getImageUrl } from '@/lib/utils';
 
 // Timer Component with real-time countdown
 function TimerComponent({ component, themeColors, themeFonts, isSelected, onUpdateComponent, onDeleteComponent }: any) {
@@ -567,7 +568,7 @@ export default function ComponentRenderer({
                 }}
               >
                 <img
-                  src={component.props.src}
+                  src={getImageUrl(component.props.src)}
                   alt={component.props.alt || ''}
                   className="w-full rounded"
                   style={{
@@ -1315,7 +1316,7 @@ export default function ComponentRenderer({
                   }}
                 >
                   <img
-                    src={component.props.image}
+                    src={getImageUrl(component.props.image)}
                     alt={component.props.title || 'Card image'}
                     style={{
                       width: '100%',

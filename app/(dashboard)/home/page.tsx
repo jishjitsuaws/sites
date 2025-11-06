@@ -65,8 +65,6 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       const response = await api.get('/sites');
-      console.log('Fetched sites response:', response.data);
-      console.log('Sites array:', response.data.data);
       setSites(response.data.data || []);
     } catch (err: any) {
       console.error('Error fetching sites:', err);
@@ -183,12 +181,7 @@ export default function DashboardPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredSites.map((site) => {
-              console.log('=== Rendering site card ===');
-              console.log('Site ID:', site._id);
-              console.log('Site Name:', site.siteName);
-              console.log('Full site object:', site);
-              return (
+            {filteredSites.map((site) => (
               <Card 
                 key={site._id} 
                 className="hover:shadow-lg transition-shadow cursor-pointer"
@@ -225,7 +218,6 @@ export default function DashboardPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              console.log('Opening editor for site:', site._id);
                               router.push(`/editor/${site._id}`);
                               setOpenDropdown(null);
                             }}
@@ -279,8 +271,7 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
-            );
-            })}
+            ))}
           </div>
         )}
 

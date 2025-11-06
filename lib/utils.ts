@@ -50,6 +50,31 @@ export function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+/**
+ * Converts a relative upload path to an absolute URL
+ * Handles both relative paths and already-absolute URLs
+ */
+export function getImageUrl(path: string | undefined | null): string {
+  if (!path) return '';
+  
+  // If it's already an absolute URL, return as is
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+    return path;
+  }
+  
+  // Get the API base URL without /api suffix
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const baseUrl = apiUrl.replace('/api', '');
+  
+  // Remove leading slash if present
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  
+  // If path doesn't start with 'uploads/', prepend it
+  const fullPath = cleanPath.startsWith('uploads/') ? cleanPath : `uploads/${cleanPath}`;
+  
+  return `${baseUrl}/${fullPath}`;
+}
+
 export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);

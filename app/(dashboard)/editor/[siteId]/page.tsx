@@ -188,7 +188,6 @@ export default function EditorPage() {
       // Then fetch pages - handle error if no pages exist yet
       try {
         const pagesRes = await api.get(`/sites/${siteId}/pages`);
-        console.log('Pages response:', pagesRes.data);
         const pagesData = pagesRes.data.data || [];
         setPages(pagesData);
 
@@ -198,18 +197,12 @@ export default function EditorPage() {
         
         if (firstPage) {
           setCurrentPage(firstPage);
-          console.log('Page data:', { 
-            sections: firstPage.sections?.length || 0, 
-            content: firstPage.content?.length || 0 
-          });
           
           // ALWAYS prioritize sections if they exist
           if (firstPage.sections && firstPage.sections.length > 0) {
-            console.log('Loading from sections - keeping structure intact');
             setSections(firstPage.sections);
             setComponents([]); // Don't use content when sections exist
           } else {
-            console.log('No sections found, initializing empty');
             setSections([]);
             setComponents([]);
           }
