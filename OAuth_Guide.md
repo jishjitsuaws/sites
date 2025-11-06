@@ -26,12 +26,12 @@ STEP 1: User Clicks "Login"
 STEP 2: User Authenticates on OAuth Provider
    │
    └─> OAuth Provider redirects back with code and state
-       URL: http://localhost:3000/auth/callback?code=XXX&state=YYY
+       URL: http://sites.isea.in/auth/callback?code=XXX&state=YYY
 
 STEP 3: Exchange Code for Access Token
    │
    ├─> Frontend sends code to backend
-   │   POST http://localhost:4000/api/oauth/token
+   │   POST http://sites.isea.in/api/oauth/token
    │   Body: { code, state, client_id }
    │
    ├─> Backend calls OAuth Provider
@@ -43,7 +43,7 @@ STEP 3: Exchange Code for Access Token
 STEP 4: Fetch User Information
    │
    ├─> Frontend calls backend with access_token
-   │   POST http://localhost:4000/api/oauth/userinfo
+   │   POST http://sites.isea.in/api/oauth/userinfo
    │   Body: { access_token, uid }
    │
    ├─> Backend calls OAuth Provider
@@ -56,7 +56,7 @@ STEP 4: Fetch User Information
 STEP 5: Check if User Profile Exists
    │
    ├─> Frontend calls backend
-   │   POST http://localhost:4000/api/oauth/profile
+   │   POST http://sites.isea.in/api/oauth/profile
    │   Body: { access_token, uid }
    │
    ├─> Backend calls OAuth Provider
@@ -80,7 +80,7 @@ STEP 6: Complete Profile (if needed)
    │   - mode: "ivp" (hardcoded)
    │
    ├─> Frontend calls backend
-   │   POST http://localhost:4000/api/oauth/update-profile
+   │   POST http://sites.isea.in/api/oauth/update-profile
    │   Body: { first_name, last_name, email, mobileno, uid, mode }
    │
    ├─> Backend calls OAuth Provider
@@ -385,8 +385,8 @@ Create/update `.env` file:
 # Frontend OAuth Configuration
 NEXT_PUBLIC_OAUTH_LOGIN_URL=https://ivp.isea.in/backend/loginRedirect
 NEXT_PUBLIC_OAUTH_CLIENT_ID=owl
-NEXT_PUBLIC_OAUTH_REDIRECT_URI=http://localhost:3000/auth/callback
-NEXT_PUBLIC_BACKEND_URL=http://localhost:4000
+NEXT_PUBLIC_OAUTH_REDIRECT_URI=http://sites.isea.in/auth/callback
+NEXT_PUBLIC_BACKEND_URL=http://sites.isea.in
 
 # Backend OAuth Configuration (for server/routes/oauthRoutes.js)
 OAUTH_BASE_URL=https://ivp.isea.in/backend
@@ -406,7 +406,7 @@ Create `src/lib/auth.ts`:
 // OAuth Configuration
 const CLIENT_ID = process.env.NEXT_PUBLIC_OAUTH_CLIENT_ID || 'owl';
 const OAUTH_LOGIN_URL = process.env.NEXT_PUBLIC_OAUTH_LOGIN_URL || 'https://ivp.isea.in/backend/loginRedirect';
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://sites.isea.in';
 
 export interface UserInfo {
   uid: string;
@@ -922,7 +922,7 @@ function CallbackContent() {
         setStatus('Exchanging code for token...');
 
         // STEP 3: Exchange code for access token
-        // Calls: POST http://localhost:4000/api/oauth/token
+        // Calls: POST http://sites.isea.in/api/oauth/token
         // Which calls: POST https://ivp.isea.in/backend/tokengen
         const tokenData = await exchangeCodeForToken(code, state);
         const accessToken = tokenData.access_token;
@@ -935,7 +935,7 @@ function CallbackContent() {
         // For now, we'll try to fetch userinfo and get uid from there
         
         // STEP 4: Fetch user info
-        // Calls: POST http://localhost:4000/api/oauth/userinfo
+        // Calls: POST http://sites.isea.in/api/oauth/userinfo
         // Which calls: POST https://ivp.isea.in/backend/userinfo
         // Note: If uid is needed for userinfo, you may need to decode the token first
         
@@ -951,7 +951,7 @@ function CallbackContent() {
         setStatus('Checking user profile...');
 
         // STEP 5: Check if user profile exists
-        // Calls: POST http://localhost:4000/api/oauth/profile
+        // Calls: POST http://sites.isea.in/api/oauth/profile
         // Which calls: POST https://ivp.isea.in/backend/ivp/profile/
         const userProfile = await fetchUserProfile(accessToken, userInfo.uid);
 
@@ -1113,8 +1113,8 @@ After successful authentication, `sessionStorage` contains:
 node server/index.js
 
 # You should see:
-✅ Server running on http://localhost:4000
-✅ OAuth routes available at http://localhost:4000/api/oauth/*
+✅ Server running on http://sites.isea.in
+✅ OAuth routes available at http://sites.isea.in/api/oauth/*
 ```
 
 ### Check Frontend Console
@@ -1132,7 +1132,7 @@ Open browser console (F12) and look for:
 **Issue**: "Token exchange failed"
 - **Check**: Backend is running on port 4000
 - **Check**: `OAUTH_BASE_URL` in backend .env is correct
-- **Check**: Network tab shows request to `http://localhost:4000/api/oauth/token`
+- **Check**: Network tab shows request to `http://sites.isea.in/api/oauth/token`
 
 **Issue**: "Invalid state parameter"
 - **Check**: Browser cookies/sessionStorage enabled
