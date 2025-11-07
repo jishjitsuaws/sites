@@ -19,6 +19,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   // Initialize auth state from OAuth storage on app load
   useEffect(() => {
+    // Debug: Check what's in sessionStorage
+    console.log('[Providers] SessionStorage contents:', {
+      access_token: !!sessionStorage.getItem('access_token'),
+      user_info: !!sessionStorage.getItem('user_info'),
+      user_profile: !!sessionStorage.getItem('user_profile'),
+    });
+    
     initializeFromOAuth();
   }, [initializeFromOAuth]);
 
