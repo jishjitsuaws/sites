@@ -194,24 +194,24 @@ export const authStorage = {
   setAuth: (accessToken: string, userInfo: UserInfo, userProfile?: UserProfile) => {
     if (typeof window === 'undefined') return;
     
-    sessionStorage.setItem('access_token', accessToken);
-    sessionStorage.setItem('user_info', JSON.stringify(userInfo));
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('user_info', JSON.stringify(userInfo));
     if (userProfile) {
-      sessionStorage.setItem('user_profile', JSON.stringify(userProfile));
+      localStorage.setItem('user_profile', JSON.stringify(userProfile));
     }
-    sessionStorage.setItem('auth_timestamp', Date.now().toString());
+    localStorage.setItem('auth_timestamp', Date.now().toString());
     
-    console.log('[OAuth] Authentication data stored');
+    console.log('[OAuth] Authentication data stored in localStorage');
   },
 
   getAccessToken: (): string | null => {
     if (typeof window === 'undefined') return null;
-    return sessionStorage.getItem('access_token');
+    return localStorage.getItem('access_token');
   },
 
   getUserInfo: (): UserInfo | null => {
     if (typeof window === 'undefined') return null;
-    const userInfoStr = sessionStorage.getItem('user_info');
+    const userInfoStr = localStorage.getItem('user_info');
     if (!userInfoStr) return null;
     try {
       return JSON.parse(userInfoStr);
@@ -222,7 +222,7 @@ export const authStorage = {
 
   getUserProfile: (): UserProfile | null => {
     if (typeof window === 'undefined') return null;
-    const userProfileStr = sessionStorage.getItem('user_profile');
+    const userProfileStr = localStorage.getItem('user_profile');
     if (!userProfileStr) return null;
     try {
       return JSON.parse(userProfileStr);
@@ -233,20 +233,20 @@ export const authStorage = {
 
   isAuthenticated: (): boolean => {
     if (typeof window === 'undefined') return false;
-    return !!sessionStorage.getItem('access_token') && !!sessionStorage.getItem('user_info');
+    return !!localStorage.getItem('access_token') && !!localStorage.getItem('user_info');
   },
 
   hasCompleteProfile: (): boolean => {
     if (typeof window === 'undefined') return false;
-    return !!sessionStorage.getItem('user_profile');
+    return !!localStorage.getItem('user_profile');
   },
 
   clearAuth: () => {
     if (typeof window === 'undefined') return;
-    sessionStorage.removeItem('access_token');
-    sessionStorage.removeItem('user_info');
-    sessionStorage.removeItem('user_profile');
-    sessionStorage.removeItem('auth_timestamp');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user_info');
+    localStorage.removeItem('user_profile');
+    localStorage.removeItem('auth_timestamp');
     sessionStorage.removeItem('oauth_state');
     sessionStorage.removeItem('oauth_state_timestamp');
     console.log('[OAuth] Authentication data cleared');
