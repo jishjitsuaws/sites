@@ -13,49 +13,21 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, accessToken, setUser, setTokens } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if we have a token in localStorage
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
-    
-    if (token && refreshToken && !user) {
-      // Restore tokens to store
-      setTokens(token, refreshToken);
-      // Try to fetch user data
-      fetchUser(token);
-    } else if (!token) {
-      // No token, redirect to login
-      router.push('/login');
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchUser = async (token: string) => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.data);
-      } else {
-        // Token invalid, redirect to login
+    // Small delay to let the OAuth initialization complete
+    const timer = setTimeout(() => {
+      if (!isAuthenticated) {
         router.push('/login');
+      } else {
+        setLoading(false);
       }
-    } catch (error) {
-      router.push('/login');
-    } finally {
-      setLoading(false);
-    }
-  };
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, router]);
 
   if (loading) {
     return (
@@ -65,7 +37,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (!accessToken && typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
+  if (!isAuthenticated) {
     return null;
   }
 
