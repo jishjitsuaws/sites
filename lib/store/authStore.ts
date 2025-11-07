@@ -83,12 +83,10 @@ export const useAuthStore = create<AuthState>()(
         // Clear OAuth storage
         oauthStorage.clearAuth();
         
-        // Clear any remaining storage items
+        // Clear sessionStorage
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('user_info');
-          localStorage.removeItem('user_profile');
-          localStorage.removeItem('auth_timestamp');
+          sessionStorage.removeItem('access_token');
+          sessionStorage.removeItem('refresh_token');
         }
         
         set({
@@ -107,12 +105,6 @@ export const useAuthStore = create<AuthState>()(
           const accessToken = oauthStorage.getAccessToken();
           const userInfo = oauthStorage.getUserInfo();
           const userProfile = oauthStorage.getUserProfile();
-          
-          console.log('[AuthStore] Initializing from OAuth storage:', {
-            hasToken: !!accessToken,
-            hasUserInfo: !!userInfo,
-            hasProfile: !!userProfile,
-          });
           
           if (accessToken && userInfo) {
             const user: User = {
@@ -135,11 +127,7 @@ export const useAuthStore = create<AuthState>()(
               userProfile,
               isAuthenticated: true 
             });
-            
-            console.log('[AuthStore] OAuth initialization complete, user authenticated');
           }
-        } else {
-          console.log('[AuthStore] No OAuth session found');
         }
       },
       

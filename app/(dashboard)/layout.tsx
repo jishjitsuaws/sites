@@ -13,25 +13,49 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { user, accessToken, setUser, setTokens } = useAuthStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[Dashboard Layout] Checking authentication, isAuthenticated:', isAuthenticated);
+    // Check if we have a token in localStorage
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
     
-    // Give a moment for initialization to complete
-    const timer = setTimeout(() => {
-      if (!isAuthenticated) {
-        console.log('[Dashboard Layout] Not authenticated, redirecting to login');
-        router.push('/login');
-      } else {
-        console.log('[Dashboard Layout] Authenticated, showing dashboard');
-        setLoading(false);
-      }
-    }, 200);
+    if (token && refreshToken && !user) {
+      // Restore tokens to store
+      setTokens(token, refreshToken);
+      // Try to fetch user data
+      fetchUser(token);
+    } else if (!token) {
+      // No token, redirect to login
+      router.push('/login');
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, router]);
+  const fetchUser = async (token: string) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${apiUrl}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.data);
+      } else {
+        // Token invalid, redirect to login
+        router.push('/login');
+      }
+    } catch (error) {
+      router.push('/login');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -41,7 +65,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (!isAuthenticated) {
+  if (!accessToken && typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
     return null;
   }
 
