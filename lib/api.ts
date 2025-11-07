@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { authStorage } from './oauth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -11,11 +12,11 @@ const apiClient = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor - add token to requests
+// Request interceptor - add OAuth token to requests
 apiClient.interceptors.request.use(
   (config) => {
-    // Get token from localStorage or session
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    // Get OAuth access token from sessionStorage
+    const token = authStorage.getAccessToken();
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -28,7 +29,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle errors and token refresh
+// Response interceptor - handle errors
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -38,29 +39,12 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      try {
-        const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
-        
-        if (refreshToken) {
-          const response = await axios.post(`${API_URL}/auth/refresh-token`, {
-            refreshToken,
-          });
-
-          const { accessToken } = response.data;
-          localStorage.setItem('accessToken', accessToken);
-
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return apiClient(originalRequest);
-        }
-      } catch (refreshError) {
-        // Refresh token failed, redirect to login
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          window.location.href = '/login';
-        }
-        return Promise.reject(refreshError);
+      // For OAuth, we can't refresh tokens automatically
+      // User needs to re-authenticate
+      if (typeof window !== 'undefined') {
+        authStorage.logout();
       }
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);

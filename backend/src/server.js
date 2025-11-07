@@ -19,6 +19,7 @@ const siteRoutes = require('./routes/sites');
 const pageRoutes = require('./routes/pages');
 const themeRoutes = require('./routes/themes');
 const assetRoutes = require('./routes/assets');
+const oauthRoutes = require('./routes/oauth');
 
 // Initialize app
 const app = express();
@@ -119,6 +120,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/oauth', oauthRoutes);
 app.use('/api/sites', siteRoutes);
 app.use('/api/sites/:siteId/pages', pageRoutes);
 app.use('/api/pages', pageRoutes);
@@ -133,6 +135,7 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',
+      oauth: '/api/oauth',
       sites: '/api/sites',
       pages: '/api/pages',
       themes: '/api/themes',

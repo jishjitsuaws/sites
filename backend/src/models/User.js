@@ -19,7 +19,26 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    required: function() {
+      // Password required only if not using OAuth
+      return !this.oauthProvider;
+    },
+    select: false
+  },
+  // OAuth fields
+  oauthProvider: {
+    type: String,
+    enum: ['ivp', 'google', 'github', null],
+    default: null
+  },
+  oauthUid: {
+    type: String,
+    default: null,
+    sparse: true // Allow multiple null values but unique non-null values
+  },
+  oauthAccessToken: {
+    type: String,
+    default: null,
     select: false
   },
   avatar: {
@@ -67,6 +86,8 @@ const userSchema = new mongoose.Schema({
 
 // Index for faster queries
 userSchema.index({ createdAt: -1 });
+userSchema.index({ oauthUid: 1, oauthProvider: 1 }); // Compound index for OAuth lookups
+userSchema.index({ email: 1 });
 
 // Virtual for user's sites
 userSchema.virtual('sites', {
@@ -77,7 +98,8 @@ userSchema.virtual('sites', {
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
+  // Skip password hashing if using OAuth or password not modified
+  if (!this.isModified('password') || this.oauthProvider) {
     return next();
   }
   

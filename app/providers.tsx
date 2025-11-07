@@ -2,7 +2,8 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuthStore } from '@/lib/store/authStore';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -13,6 +14,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       },
     },
   }));
+
+  const initializeFromOAuth = useAuthStore((state) => state.initializeFromOAuth);
+
+  // Initialize auth state from OAuth storage on app load
+  useEffect(() => {
+    initializeFromOAuth();
+  }, [initializeFromOAuth]);
 
   return (
     <QueryClientProvider client={queryClient}>
