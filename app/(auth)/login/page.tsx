@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { redirectToLogin } from '@/lib/oauth';
+import { useAuthStore } from '@/lib/store/authStore';
 import Button from '@/components/ui/Button';
 import { Globe } from 'lucide-react';
 
@@ -13,12 +14,25 @@ export const dynamic = 'force-dynamic';
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated } = useAuthStore();
+
+  // Redirect to home if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/home');
+    }
+  }, [isAuthenticated, router]);
 
   const handleOAuthLogin = () => {
     setIsLoading(true);
     // Redirect to OAuth provider
     redirectToLogin();
   };
+
+  // Don't show login form if already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
