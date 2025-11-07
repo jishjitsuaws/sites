@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
+import { authStorage } from '@/lib/oauth';
 import api from '@/lib/api';
 import Button from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
@@ -33,9 +34,15 @@ export default function DashboardPage() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
 
+  // Guard: if not authenticated redirect to login
   useEffect(() => {
+    const hasAuth = authStorage.isAuthenticated();
+    if (!hasAuth) {
+      router.replace('/login');
+      return;
+    }
     fetchSites();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     const handleClickOutside = () => setOpenDropdown(null);
