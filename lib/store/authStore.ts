@@ -83,10 +83,12 @@ export const useAuthStore = create<AuthState>()(
         // Clear OAuth storage
         oauthStorage.clearAuth();
         
-        // Clear sessionStorage
+        // Clear any remaining storage items
         if (typeof window !== 'undefined') {
-          sessionStorage.removeItem('access_token');
-          sessionStorage.removeItem('refresh_token');
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user_info');
+          localStorage.removeItem('user_profile');
+          localStorage.removeItem('auth_timestamp');
         }
         
         set({
