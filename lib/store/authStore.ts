@@ -106,6 +106,12 @@ export const useAuthStore = create<AuthState>()(
           const userInfo = oauthStorage.getUserInfo();
           const userProfile = oauthStorage.getUserProfile();
           
+          console.log('[AuthStore] Initializing from OAuth storage:', {
+            hasToken: !!accessToken,
+            hasUserInfo: !!userInfo,
+            hasProfile: !!userProfile,
+          });
+          
           if (accessToken && userInfo) {
             const user: User = {
               id: userInfo.uid,
@@ -127,7 +133,11 @@ export const useAuthStore = create<AuthState>()(
               userProfile,
               isAuthenticated: true 
             });
+            
+            console.log('[AuthStore] OAuth initialization complete, user authenticated');
           }
+        } else {
+          console.log('[AuthStore] No OAuth session found');
         }
       },
       

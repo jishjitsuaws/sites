@@ -17,14 +17,18 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Small delay to let the OAuth initialization complete
+    console.log('[Dashboard Layout] Checking authentication, isAuthenticated:', isAuthenticated);
+    
+    // Give a moment for initialization to complete
     const timer = setTimeout(() => {
       if (!isAuthenticated) {
+        console.log('[Dashboard Layout] Not authenticated, redirecting to login');
         router.push('/login');
       } else {
+        console.log('[Dashboard Layout] Authenticated, showing dashboard');
         setLoading(false);
       }
-    }, 100);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, [isAuthenticated, router]);
