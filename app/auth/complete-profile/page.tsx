@@ -8,6 +8,9 @@ import Input from '@/components/ui/Input';
 import { toast } from 'sonner';
 import { Globe } from 'lucide-react';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function CompleteProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);

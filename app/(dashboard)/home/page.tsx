@@ -10,6 +10,9 @@ import { Plus, Globe, Settings, LogOut, Search, ExternalLink, MoreVertical, Tras
 import { toast } from 'sonner';
 import TemplatesModal from '@/components/modals/TemplatesModal';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 interface Site {
   _id: string;
   siteName: string;

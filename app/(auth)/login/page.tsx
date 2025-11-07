@@ -7,6 +7,9 @@ import { redirectToLogin } from '@/lib/oauth';
 import Button from '@/components/ui/Button';
 import { Globe } from 'lucide-react';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);

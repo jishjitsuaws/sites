@@ -13,6 +13,9 @@ import ComponentRenderer from '@/components/editor/ComponentRenderer';
 import SectionWrapper from '@/components/editor/SectionWrapper';
 import ComponentsPanel from '@/components/editor/ComponentsPanel';
 import ThemesPanel from '@/components/editor/ThemesPanel';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 import PagesPanel from '@/components/editor/PagesPanel';
 import LogoHandler from '@/components/editor/LogoHandler';
 import {

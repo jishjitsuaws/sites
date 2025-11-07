@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
 
+// Force dynamic rendering for dashboard
+export const dynamic = 'force-dynamic';
+
 export default function DashboardLayout({
   children,
 }: {

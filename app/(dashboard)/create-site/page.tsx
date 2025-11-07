@@ -9,6 +9,9 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Globe, ArrowLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 interface Theme {
   _id: string;
   name: string;
