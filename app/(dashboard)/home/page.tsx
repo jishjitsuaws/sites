@@ -102,7 +102,7 @@ function DashboardContent() {
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ token: accessToken }),
+              body: JSON.stringify({ access_token: accessToken }),
             });
             
             if (debugResponse.ok) {

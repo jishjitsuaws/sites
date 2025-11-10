@@ -68,7 +68,7 @@ function CallbackContent() {
         let uid = tokenData.data?.uid || tokenData.uid;
         
         if (!uid) {
-          // Try to decode the JWT token to get uid
+          // Try to decode the JWT token to get uid (Keycloak uses 'sub' field)
           try {
             const base64Url = accessToken.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -77,7 +77,8 @@ function CallbackContent() {
             }).join(''));
             
             const payload = JSON.parse(jsonPayload);
-            uid = payload.uid || payload.sub || payload.user_id || payload.id;
+            // Keycloak standard: 'sub' contains the user ID
+            uid = payload.sub || payload.uid || payload.user_id || payload.id || payload.preferred_username;
             
             console.log('[Callback] Extracted uid from token:', uid);
           } catch (decodeError) {
