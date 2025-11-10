@@ -65,15 +65,8 @@ export default function DashboardLayout({
         return;
       }
       
-      // Check if user has completed their profile
-      const hasProfile = authStorage.hasCompleteProfile();
-      if (!hasProfile) {
-        console.log('[Dashboard Layout] User profile incomplete, redirecting to complete profile');
-        window.location.href = '/auth/complete-profile';
-        return;
-      }
-      
-      // All checks passed
+      // OAuth userinfo contains all necessary user data
+      // No need for separate profile completion step
       console.log('[Dashboard Layout] Authentication verified, rendering dashboard');
       setIsReady(true);
       setLoading(false);
