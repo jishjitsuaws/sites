@@ -18,7 +18,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const axiosInstance = axios.create({
   httpsAgent: new https.Agent({
     ca,
-    rejectUnauthorized: true,
+    rejectUnauthorized: false,
     requestCert: false,
     secureProtocol: 'TLSv1_2_method', // Force TLS 1.2
     secureOptions: require('constants').SSL_OP_NO_SSLv2 | require('constants').SSL_OP_NO_SSLv3,
