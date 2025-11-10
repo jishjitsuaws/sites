@@ -14,6 +14,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 // Create axios instance with comprehensive SSL bypass for OAuth provider
 const axiosInstance = axios.create({
   httpsAgent: new https.Agent({
+    ca,
     rejectUnauthorized: true,
     requestCert: false,
     secureProtocol: 'TLSv1_2_method', // Force TLS 1.2
