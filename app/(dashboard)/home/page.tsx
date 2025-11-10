@@ -80,12 +80,22 @@ function DashboardContent() {
           
           // Exchange code for access token
           const tokenData = await exchangeCodeForToken(code, state);
-          const accessToken = tokenData.access_token;
+          console.log('[Home] Token data received:', tokenData);
+          
+          // Handle nested structure: tokenData.data.access_token
+          const accessToken = tokenData.data?.access_token || tokenData.access_token;
+          
+          if (!accessToken) {
+            console.error('[Home] No access token in response:', tokenData);
+            toast.error('Failed to get access token');
+            router.push('/login');
+            return;
+          }
 
-          console.log('[Home] Access token received, debugging token structure...');
+          console.log('[Home] Access token extracted, debugging token structure...');
 
           // Debug token structure to identify UID field
-          let uid = tokenData.uid;
+          let uid = tokenData.data?.uid || tokenData.uid;
           try {
             const debugResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/oauth/debug-token`, {
               method: 'POST',

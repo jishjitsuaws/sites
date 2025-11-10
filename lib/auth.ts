@@ -23,10 +23,23 @@ export interface UserProfile {
 }
 
 export interface TokenResponse {
-  access_token: string;
+  access_token?: string;
   refresh_token?: string;
   expires_in?: number;
   uid?: string;
+  data?: {
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+    refresh_expires_in?: number;
+    token_type?: string;
+    session_state?: string;
+    scope?: string;
+    uid?: string;
+  };
+  requested_client?: any;
+  params?: any;
+  media_token?: string;
 }
 
 // Generate secure random state for CSRF protection
