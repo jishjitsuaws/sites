@@ -2,6 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const https = require('https');
 
+const ca = fs.readFileSync('/path/to/ca-or-server-cert.pem');
+
 const router = express.Router();
 
 const OAUTH_BASE_URL = process.env.OAUTH_BASE_URL || 'https://ivp.isea.in/backend';
