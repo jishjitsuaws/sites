@@ -106,6 +106,66 @@ router.get('/health', async (req, res) => {
   }
 });
 
+// Debug endpoint to decode and inspect JWT token structure
+router.post('/debug-token', async (req, res) => {
+  try {
+    const { access_token } = req.body;
+
+    if (!access_token) {
+      return res.status(400).json({
+        error: 'Missing access_token',
+      });
+    }
+
+    console.log('[OAuth Debug] Decoding token...');
+    console.log('[OAuth Debug] Token preview:', access_token.substring(0, 50) + '...');
+
+    // Decode JWT without verification to inspect its structure
+    const parts = access_token.split('.');
+    
+    if (parts.length !== 3) {
+      return res.status(400).json({
+        error: 'Invalid JWT format',
+        parts_count: parts.length,
+      });
+    }
+
+    // Decode header
+    const headerBase64 = parts[0].replace(/-/g, '+').replace(/_/g, '/');
+    const header = JSON.parse(Buffer.from(headerBase64, 'base64').toString());
+
+    // Decode payload
+    const payloadBase64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
+
+    console.log('[OAuth Debug] Token decoded successfully');
+    console.log('[OAuth Debug] Header:', header);
+    console.log('[OAuth Debug] Payload keys:', Object.keys(payload));
+    console.log('[OAuth Debug] Full payload:', JSON.stringify(payload, null, 2));
+
+    res.json({
+      header,
+      payload,
+      payload_keys: Object.keys(payload),
+      possible_uid_fields: {
+        uid: payload.uid,
+        sub: payload.sub,
+        user_id: payload.user_id,
+        id: payload.id,
+        userId: payload.userId,
+        email: payload.email,
+        preferred_username: payload.preferred_username,
+      },
+    });
+  } catch (error) {
+    console.error('[OAuth Debug] Token decode error:', error.message);
+    res.status(500).json({
+      error: 'Failed to decode token',
+      message: error.message,
+    });
+  }
+});
+
 // STEP 3: Token Generation - Exchange code for access token
 // Calls: POST https://ivp.isea.in/backend/tokengen
 router.post('/token', async (req, res) => {
@@ -138,8 +198,14 @@ router.post('/token', async (req, res) => {
     console.log('[OAuth] Token generation successful');
     console.log('[OAuth] Response status:', response.status);
     console.log('[OAuth] Response data keys:', Object.keys(response.data));
+    console.log('[OAuth] Full response data:', JSON.stringify(response.data, null, 2));
     
-    res.json(response.data);
+    // The IVP ISEA OAuth provider returns data in a nested structure
+    // Extract the actual token data from response.data.data
+    const tokenData = response.data.data || response.data;
+    console.log('[OAuth] Extracted token data:', JSON.stringify(tokenData, null, 2));
+    
+    res.json(tokenData);
   } catch (error) {
     console.error('[OAuth] Token generation error:');
     console.error('[OAuth] Error status:', error.response?.status);

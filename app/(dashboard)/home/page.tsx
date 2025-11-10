@@ -82,11 +82,38 @@ function DashboardContent() {
           const tokenData = await exchangeCodeForToken(code, state);
           const accessToken = tokenData.access_token;
 
-          console.log('[Home] Access token received, fetching user info...');
+          console.log('[Home] Access token received, debugging token structure...');
 
-          // Extract uid from token
+          // Debug token structure to identify UID field
           let uid = tokenData.uid;
-          if (!uid) {
+          try {
+            const debugResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/oauth/debug-token`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ token: accessToken }),
+            });
+            
+            if (debugResponse.ok) {
+              const debugData = await debugResponse.json();
+              console.log('[Home] Token debug info:', debugData);
+              
+              // Extract UID from debug data
+              if (debugData.possible_uid_fields) {
+                uid = debugData.possible_uid_fields.uid || 
+                      debugData.possible_uid_fields.sub || 
+                      debugData.possible_uid_fields.user_id || 
+                      debugData.possible_uid_fields.id ||
+                      debugData.possible_uid_fields.userId ||
+                      debugData.possible_uid_fields.email ||
+                      debugData.possible_uid_fields.preferred_username;
+              }
+            }
+          } catch (debugError) {
+            console.error('[Home] Token debug failed:', debugError);
+            
+            // Fallback: manual JWT decode
             try {
               const base64Url = accessToken.split('.')[1];
               const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -95,11 +122,14 @@ function DashboardContent() {
               }).join(''));
               
               const payload = JSON.parse(jsonPayload);
-              uid = payload.uid || payload.sub || payload.user_id || payload.id;
+              console.log('[Home] Manually decoded token payload:', payload);
+              uid = payload.uid || payload.sub || payload.user_id || payload.id || payload.userId || payload.email || payload.preferred_username;
             } catch (e) {
               console.error('[Home] Failed to decode token:', e);
             }
           }
+          
+          console.log('[Home] Extracted UID:', uid);
 
           if (!uid) {
             toast.error('Unable to extract user ID from token');
