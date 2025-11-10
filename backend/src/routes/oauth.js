@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const https = require('https');
 
-const ca = fs.readFileSync('/path/to/ca-or-server-cert.pem');
+const ca = fs.readFileSync('/etc/haproxy/certs/sites.pem');
 
 const router = express.Router();
 
