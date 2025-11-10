@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const https = require('https');
+const fs = require('fs');
 
 const ca = fs.readFileSync('/etc/haproxy/certs/sites.pem');
 
