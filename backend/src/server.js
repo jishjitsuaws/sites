@@ -27,19 +27,6 @@ const app = express();
 // Trust proxy - required for rate limiting behind nginx/proxy
 app.set('trust proxy', true);
 
-const axiosInstance = axios.create({
-  httpsAgent: new https.Agent({
-    ca,
-    rejectUnauthorized: false,
-    requestCert: false,
-    secureProtocol: 'TLSv1_2_method', // Force TLS 1.2
-    secureOptions: require('constants').SSL_OP_NO_SSLv2 | require('constants').SSL_OP_NO_SSLv3,
-    checkServerIdentity: () => undefined, // Disable server identity check
-  }),
-  timeout: 15000,
-  maxRedirects: 5,
-});
-
 // Connect to database
 connectDB();
 
