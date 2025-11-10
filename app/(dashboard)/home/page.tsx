@@ -1,8 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { authStorage, getUserDisplayName } from '@/lib/auth';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { 
+  authStorage, 
+  getUserDisplayName,
+  exchangeCodeForToken,
+  fetchUserInfo,
+  fetchUserProfile
+} from '@/lib/auth';
 import api from '@/lib/api';
 import Button from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
@@ -10,6 +16,7 @@ import { Plus, Globe, Settings, Search, ExternalLink, MoreVertical, Trash2 } fro
 import { toast } from 'sonner';
 import TemplatesModal from '@/components/modals/TemplatesModal';
 import LogoutButton from '@/components/LogoutButton';
+import { Suspense } from 'react';
 
 interface Site {
   _id: string;
@@ -21,23 +28,125 @@ interface Site {
   description?: string;
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [sites, setSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [creating, setCreating] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [processingOAuth, setProcessingOAuth] = useState(false);
   
   // Get user info from OAuth
   const userInfo = authStorage.getUserInfo();
   const userProfile = authStorage.getUserProfile();
   const displayName = getUserDisplayName(userInfo, userProfile);
 
+  // Handle OAuth callback if code and state are present in URL
   useEffect(() => {
-    fetchSites();
-  }, []);
+    const handleOAuthCallback = async () => {
+      const code = searchParams.get('code');
+      const state = searchParams.get('state');
+
+      // Only process if we have code and state and we're not already authenticated
+      if (code && state && !authStorage.isAuthenticated()) {
+        console.log('[Home] OAuth callback detected, processing...');
+        setProcessingOAuth(true);
+        
+        try {
+          // Verify state (CSRF protection)
+          const savedState = sessionStorage.getItem('oauth_state') || localStorage.getItem('oauth_state');
+          if (state !== savedState) {
+            console.error('[Home] State mismatch! Possible CSRF attack.');
+            toast.error('Authentication failed: Invalid state');
+            router.push('/login');
+            return;
+          }
+
+          console.log('[Home] State verified, exchanging code for token...');
+          
+          // Exchange code for access token
+          const tokenData = await exchangeCodeForToken(code, state);
+          const accessToken = tokenData.access_token;
+
+          console.log('[Home] Access token received, fetching user info...');
+
+          // Extract uid from token
+          let uid = tokenData.uid;
+          if (!uid) {
+            try {
+              const base64Url = accessToken.split('.')[1];
+              const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+              const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+              }).join(''));
+              
+              const payload = JSON.parse(jsonPayload);
+              uid = payload.uid || payload.sub || payload.user_id || payload.id;
+            } catch (e) {
+              console.error('[Home] Failed to decode token:', e);
+            }
+          }
+
+          if (!uid) {
+            toast.error('Unable to extract user ID from token');
+            router.push('/login');
+            return;
+          }
+
+          // Fetch user info
+          const userInfoData = await fetchUserInfo(accessToken, uid);
+          console.log('[Home] User info received:', userInfoData);
+
+          // Fetch user profile
+          const userProfileData = await fetchUserProfile(accessToken, userInfoData.uid);
+
+          if (!userProfileData) {
+            console.log('[Home] No profile found, redirecting to complete profile');
+            authStorage.setAuth(accessToken, userInfoData);
+            window.location.href = '/auth/complete-profile';
+            return;
+          }
+
+          // Store auth data
+          console.log('[Home] Profile found, storing auth data...');
+          authStorage.setAuth(accessToken, userInfoData, userProfileData);
+          
+          toast.success('Successfully logged in!');
+          
+          // Clean URL by removing query parameters
+          window.history.replaceState({}, '', '/home');
+          
+          // Reload to show dashboard
+          setProcessingOAuth(false);
+          setLoading(false);
+          fetchSites();
+
+        } catch (error) {
+          console.error('[Home] OAuth error:', error);
+          toast.error('Authentication failed');
+          router.push('/login');
+        }
+      } else if (!authStorage.isAuthenticated()) {
+        // No OAuth callback and not authenticated - redirect to login
+        console.log('[Home] Not authenticated, redirecting to login');
+        router.push('/login');
+      } else {
+        // Already authenticated, just load sites
+        setLoading(false);
+      }
+    };
+
+    handleOAuthCallback();
+  }, [searchParams, router]);
+
+  useEffect(() => {
+    if (authStorage.isAuthenticated() && !processingOAuth) {
+      fetchSites();
+    }
+  }, [processingOAuth]);
 
   useEffect(() => {
     const handleClickOutside = () => setOpenDropdown(null);
@@ -301,5 +410,20 @@ export default function DashboardPage() {
       {/* Templates Modal */}
       <TemplatesModal isOpen={showTemplates} onClose={() => setShowTemplates(false)} />
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }

@@ -17,8 +17,20 @@ export default function DashboardLayout({
   useEffect(() => {
     // Small delay to ensure localStorage/sessionStorage is fully accessible
     const checkAuth = () => {
+      // Check if this is an OAuth callback (has code and state in URL)
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasOAuthParams = urlParams.has('code') && urlParams.has('state');
+      
+      if (hasOAuthParams && pathname === '/home') {
+        console.log('[Dashboard Layout] OAuth callback detected on /home, allowing through...');
+        setIsReady(true);
+        setLoading(false);
+        return;
+      }
+      
       console.log('[Dashboard Layout] Checking authentication...', {
         pathname,
+        hasOAuthParams,
         timestamp: new Date().toISOString()
       });
       
