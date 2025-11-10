@@ -25,7 +25,7 @@ const assetRoutes = require('./routes/assets');
 const app = express();
 
 // Trust proxy - required for rate limiting behind nginx/proxy
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 
 // Connect to database
 connectDB();

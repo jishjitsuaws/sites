@@ -19,9 +19,9 @@ const axiosInstance = axios.create({
   httpsAgent: new https.Agent({
     ca,
     rejectUnauthorized: false,
-    servername: undefined, // <- you have this line already
+    
     requestCert: false,
-    secureProtocol: 'TLSv1_2_method',
+    //secureProtocol: 'TLSv1_2_method',
     secureOptions: require('constants').SSL_OP_NO_SSLv2 | require('constants').SSL_OP_NO_SSLv3,
     checkServerIdentity: () => undefined,
   }),
