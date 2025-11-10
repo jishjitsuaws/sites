@@ -19,15 +19,24 @@ const axiosInstance = axios.create({
   httpsAgent: new https.Agent({
     ca,
     rejectUnauthorized: false,
-    servername: undefined,
+    servername: undefined, // <- you have this line already
     requestCert: false,
-    secureProtocol: 'TLSv1_2_method', // Force TLS 1.2
+    secureProtocol: 'TLSv1_2_method',
     secureOptions: require('constants').SSL_OP_NO_SSLv2 | require('constants').SSL_OP_NO_SSLv3,
-    checkServerIdentity: () => undefined, // Disable server identity check
+    checkServerIdentity: () => undefined,
   }),
   timeout: 15000,
   maxRedirects: 5,
 });
+
+// Force-disable SNI (Server Name Indication) before each request.
+axiosInstance.interceptors.request.use((config) => {
+  if (config.httpsAgent && config.httpsAgent.options) {
+    config.httpsAgent.options.servername = undefined;  // critical: disables SNI
+  }
+  return config;
+});
+
 
 // Add request/response interceptors for debugging
 axiosInstance.interceptors.request.use(
