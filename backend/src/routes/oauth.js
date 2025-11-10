@@ -7,16 +7,57 @@ const router = express.Router();
 const OAUTH_BASE_URL = process.env.OAUTH_BASE_URL || 'https://ivp.isea.in/backend';
 const CLIENT_ID = process.env.OAUTH_CLIENT_ID || 'owl';
 
-// Create axios instance with relaxed SSL verification for OAuth provider
-// Note: This is needed because the IVP ISEA OAuth provider has SSL certificate issues
+// Set Node.js to accept unauthorized certificates globally for OAuth requests
+// This is required because IVP ISEA OAuth provider has SSL/TLS certificate issues
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+// Create axios instance with comprehensive SSL bypass for OAuth provider
 const axiosInstance = axios.create({
   httpsAgent: new https.Agent({
-    rejectUnauthorized: false, // Accept self-signed certificates
-    minVersion: 'TLSv1.2',
-    maxVersion: 'TLSv1.3',
+    rejectUnauthorized: false,
+    requestCert: false,
+    secureProtocol: 'TLSv1_2_method', // Force TLS 1.2
+    secureOptions: require('constants').SSL_OP_NO_SSLv2 | require('constants').SSL_OP_NO_SSLv3,
+    checkServerIdentity: () => undefined, // Disable server identity check
   }),
-  timeout: 15000, // 15 second timeout
+  timeout: 15000,
+  maxRedirects: 5,
 });
+
+// Add request/response interceptors for debugging
+axiosInstance.interceptors.request.use(
+  (config) => {
+    console.log('[OAuth Axios] Request:', {
+      method: config.method,
+      url: config.url,
+      baseURL: config.baseURL,
+      headers: config.headers,
+    });
+    return config;
+  },
+  (error) => {
+    console.error('[OAuth Axios] Request error:', error.message);
+    return Promise.reject(error);
+  }
+);
+
+axiosInstance.interceptors.response.use(
+  (response) => {
+    console.log('[OAuth Axios] Response:', {
+      status: response.status,
+      statusText: response.statusText,
+    });
+    return response;
+  },
+  (error) => {
+    console.error('[OAuth Axios] Response error:', {
+      message: error.message,
+      code: error.code,
+      status: error.response?.status,
+    });
+    return Promise.reject(error);
+  }
+);
 
 // Health check endpoint to test OAuth provider connectivity
 router.get('/health', async (req, res) => {
