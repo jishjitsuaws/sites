@@ -152,19 +152,10 @@ function DashboardContent() {
           const userInfoData = await fetchUserInfo(accessToken, uid);
           console.log('[Home] User info received:', userInfoData);
 
-          // Fetch user profile
-          const userProfileData = await fetchUserProfile(accessToken, userInfoData.uid);
-
-          if (!userProfileData) {
-            console.log('[Home] No profile found, redirecting to complete profile');
-            authStorage.setAuth(accessToken, userInfoData);
-            window.location.href = '/auth/complete-profile';
-            return;
-          }
-
-          // Store auth data
-          console.log('[Home] Profile found, storing auth data...');
-          authStorage.setAuth(accessToken, userInfoData, userProfileData);
+          // The JWT token and userinfo contain all necessary user data
+          // No need to fetch separate profile - just use userinfo directly
+          console.log('[Home] User authenticated successfully, storing auth data...');
+          authStorage.setAuth(accessToken, userInfoData);
           
           toast.success('Successfully logged in!');
           
