@@ -267,6 +267,36 @@ POST https://ivp.isea.in/backend/updateuserbyid
   "message": "Profile updated successfully"
 }
 ```
+
+### 6. Logout
+
+URL : https://ivp.isea.in/backend/logout
+METHOD : POST
+Headers : None
+Input: {
+"user_id": "user_id"
+}
+Response :
+{
+"status": 1,
+"errors": [],
+"message": "Logout",
+"status_code": 200
+}
+
+Error messages :
+Invalid grant :
+{
+"status": 0,
+"errors": "invalid_grant",
+"status_code": 400
+}
+
+---
+
+## Sites File Structure
+
+```
 Sites File Structure
 
 ├── app
@@ -1158,3 +1188,384 @@ This guide provides:
 Follow this guide to implement OAuth authentication in any Next.js + Express application.
 
 ---
+
+# 🚪 Logout Integration Guide
+
+## Complete Logout Implementation with OAuth Provider
+
+---
+
+## 🔄 Logout Flow
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                         LOGOUT FLOW                                 │
+└────────────────────────────────────────────────────────────────────┘
+
+STEP 1: User Clicks "Logout" Button
+   │
+   └─> Frontend calls logout function
+
+STEP 2: Call Backend Logout Endpoint
+   │
+   ├─> Frontend sends request to backend
+   │   POST http://localhost:4000/api/oauth/logout
+   │   Body: { user_id }
+   │
+   └─> Backend calls OAuth Provider
+       POST https://ivp.isea.in/backend/logout
+       Body: { user_id }
+
+STEP 3: Clear Local Session
+   │
+   ├─> Clear sessionStorage
+   │   - access_token
+   │   - user_info
+   │   - user_profile
+   │   - auth_timestamp
+   │
+   └─> Redirect to Landing Page (/)
+
+RESULT: User Successfully Logged Out
+```
+
+---
+
+## 📁 Implementation Files
+
+### 1. Update Authentication Library
+
+Update auth.ts to add logout function:
+
+```typescript
+// Add to existing file - after other functions
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+
+/**
+ * LOGOUT: Call OAuth provider logout endpoint and clear session
+ * Calls: POST https://ivp.isea.in/backend/logout
+ */
+export async function logout(): Promise<void> {
+  try {
+    const userInfo = authStorage.getUserInfo();
+    
+    if (!userInfo?.uid) {
+      console.warn('[Auth] No user info found, clearing local session only');
+      authStorage.clearAuth();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+      return;
+    }
+
+    console.log('[Auth] Logging out user:', userInfo.uid);
+
+    // Call backend which calls OAuth provider logout
+    // POST http://localhost:4000/api/oauth/logout
+    // Which calls: POST https://ivp.isea.in/backend/logout
+    const response = await fetch(`${BACKEND_URL}/api/oauth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: userInfo.uid,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('[Auth] Logout API call failed:', response.status);
+      // Continue with local logout even if API call fails
+    } else {
+      const data = await response.json();
+      console.log('[Auth] Logout successful:', data.message);
+    }
+
+  } catch (error) {
+    console.error('[Auth] Logout error:', error);
+    // Continue with local logout even if error occurs
+  } finally {
+    // Always clear local session
+    authStorage.clearAuth();
+    
+    // Redirect to home page
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
+  }
+}
+
+// Update authStorage object - replace existing logout function
+export const authStorage = {
+  // ... existing functions ...
+
+  logout: async () => {
+    await logout();
+  },
+};
+```
+
+---
+
+### 2. Update Backend OAuth Routes
+
+Update oauthRoutes.js to add logout endpoint:
+
+```javascript
+// Add to existing file - after other routes
+
+/**
+ * LOGOUT: Call OAuth provider logout endpoint
+ * Calls: POST https://ivp.isea.in/backend/logout
+ */
+router.post('/logout', async (req, res) => {
+  try {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      console.error('[OAuth] Logout request missing user_id');
+      return res.status(400).json({
+        status: 0,
+        error: 'Missing user_id',
+        status_code: 400,
+      });
+    }
+
+    console.log('[OAuth] Logout request received for user:', user_id);
+    console.log('[OAuth] Calling:', `${OAUTH_BASE_URL}/logout`);
+
+    // Call OAuth provider logout endpoint
+    const response = await axios.post(`${OAUTH_BASE_URL}/logout`, {
+      user_id,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('[OAuth] Logout successful');
+    
+    // Return OAuth provider response
+    res.json({
+      status: 1,
+      message: response.data.message || 'Logout successful',
+      status_code: 200,
+    });
+
+  } catch (error) {
+    console.error('[OAuth] Logout error:', error.response?.data || error.message);
+    
+    // Handle specific error cases
+    if (error.response?.status === 400 && error.response?.data?.errors === 'invalid_grant') {
+      return res.status(400).json({
+        status: 0,
+        errors: 'invalid_grant',
+        status_code: 400,
+      });
+    }
+
+    // Generic error response
+    res.status(error.response?.status || 500).json({
+      status: 0,
+      error: 'Logout failed',
+      details: error.response?.data || error.message,
+      status_code: error.response?.status || 500,
+    });
+  }
+});
+
+export default router;
+```
+
+---
+
+### 3. Create Logout Button Component
+
+Create `src/components/LogoutButton.tsx`:
+
+```typescript
+'use client';
+
+import { useState } from 'react';
+import { logout } from '@/lib/auth';
+import { LogOut } from 'lucide-react';
+
+interface LogoutButtonProps {
+  variant?: 'default' | 'icon' | 'text';
+  className?: string;
+}
+
+export default function LogoutButton({ variant = 'default', className = '' }: LogoutButtonProps) {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    const confirmed = window.confirm('Are you sure you want to logout?');
+    if (!confirmed) return;
+
+    setIsLoggingOut(true);
+    
+    try {
+      await logout();
+      // Redirect happens in logout function
+    } catch (error) {
+      console.error('Logout failed:', error);
+      setIsLoggingOut(false);
+      alert('Logout failed. Please try again.');
+    }
+  };
+
+  // Icon-only variant
+  if (variant === 'icon') {
+    return (
+      <button
+        onClick={handleLogout}
+        disabled={isLoggingOut}
+        className={`p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+        title="Logout"
+      >
+        <LogOut className="w-5 h-5" />
+      </button>
+    );
+  }
+
+  // Text-only variant
+  if (variant === 'text') {
+    return (
+      <button
+        onClick={handleLogout}
+        disabled={isLoggingOut}
+        className={`text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      >
+        {isLoggingOut ? 'Logging out...' : 'Logout'}
+      </button>
+    );
+  }
+
+  // Default variant (full button)
+  return (
+    <button
+      onClick={handleLogout}
+      disabled={isLoggingOut}
+      className={`flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    >
+      <LogOut className="w-4 h-4" />
+      <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
+    </button>
+  );
+}
+```
+
+---
+
+### 4. Update Landing Page with Logout, integrate the exit button to call the logout route
+
+## 📊 Complete Logout API Reference
+
+### Backend Endpoint
+
+```
+POST http://localhost:4000/api/oauth/logout
+```
+
+### Request
+
+```json
+{
+  "user_id": "5ed2608a-625c-4403-9bcf-180d5d881366"
+}
+```
+
+### Success Response (200)
+
+```json
+{
+  "status": 1,
+  "errors": [],
+  "message": "Logout",
+  "status_code": 200
+}
+```
+
+### Error Response (400 - Invalid Grant)
+
+```json
+{
+  "status": 0,
+  "errors": "invalid_grant",
+  "status_code": 400
+}
+```
+
+---
+
+## ✅ Testing Checklist
+
+### Test Logout Flow
+
+1. **Login**
+   - [ ] User logs in successfully
+   - [ ] Session data stored in sessionStorage
+
+2. **Click Logout**
+   - [ ] Confirmation dialog appears
+   - [ ] Click "OK" to proceed
+
+3. **Logout API Call**
+   - [ ] Backend receives logout request
+   - [ ] Backend calls OAuth provider
+   - [ ] OAuth provider confirms logout
+
+4. **Session Cleared**
+   - [ ] `access_token` removed from sessionStorage
+   - [ ] `user_info` removed from sessionStorage
+   - [ ] `user_profile` removed from sessionStorage
+
+5. **Redirect**
+   - [ ] User redirected to landing page (/)
+   - [ ] Landing page shows "Login" button
+   - [ ] User is NOT authenticated
+
+6. **Re-login**
+   - [ ] User can login again
+   - [ ] OAuth flow works correctly
+
+---
+
+## 🔍 Debugging Logout
+
+### Check Browser Console
+
+```javascript
+// Before logout
+console.log('Access Token:', sessionStorage.getItem('access_token')); // Should have value
+console.log('User Info:', sessionStorage.getItem('user_info')); // Should have value
+
+// After logout
+console.log('Access Token:', sessionStorage.getItem('access_token')); // Should be null
+console.log('User Info:', sessionStorage.getItem('user_info')); // Should be null
+```
+
+### Check Backend Logs
+
+```bash
+# When logout is called, you should see:
+[OAuth] Logout request received for user: 5ed2608a-625c-4403-9bcf-180d5d881366
+[OAuth] Calling: https://ivp.isea.in/backend/logout
+[OAuth] Logout successful
+```
+
+
+
+This logout integration provides:
+
+1. ✅ **Secure Logout**: Calls OAuth provider to invalidate session
+2. ✅ **Local Cleanup**: Clears all session data from browser
+3. ✅ **Error Handling**: Continues logout even if API call fails
+4. ✅ **User Confirmation**: Shows confirmation dialog before logout
+5. ✅ **Multiple UI Options**: Icon, text, and full button variants
+6. ✅ **Graceful Fallback**: Works even without network connection
+
+**The logout is now fully integrated with the IVP ISEA OAuth provider!**

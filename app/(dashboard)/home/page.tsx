@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/store/authStore';
+import { authStorage, getUserDisplayName } from '@/lib/auth';
 import api from '@/lib/api';
 import Button from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
-import { Plus, Globe, Settings, LogOut, Search, ExternalLink, MoreVertical, Trash2 } from 'lucide-react';
+import { Plus, Globe, Settings, Search, ExternalLink, MoreVertical, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import TemplatesModal from '@/components/modals/TemplatesModal';
+import LogoutButton from '@/components/LogoutButton';
 
 interface Site {
   _id: string;
@@ -22,13 +23,17 @@ interface Site {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, clearAuth } = useAuthStore();
   const [sites, setSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [creating, setCreating] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
+  
+  // Get user info from OAuth
+  const userInfo = authStorage.getUserInfo();
+  const userProfile = authStorage.getUserProfile();
+  const displayName = getUserDisplayName(userInfo, userProfile);
 
   useEffect(() => {
     fetchSites();
@@ -74,19 +79,6 @@ export default function DashboardPage() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await api.post('/auth/logout');
-      clearAuth();
-      router.push('/');
-      toast.success('Logged out successfully');
-    } catch (err) {
-      console.error('Logout error:', err);
-      clearAuth();
-      router.push('/');
-    }
-  };
-
   const handleDeleteSite = async (siteId: string) => {
     if (!confirm('Are you sure you want to delete this site?')) return;
     
@@ -127,14 +119,12 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">
-                {user?.name || user?.email}
+                {displayName}
               </span>
               <Button variant="ghost" size="sm" onClick={() => router.push('/settings')}>
                 <Settings className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <LogoutButton variant="icon" />
             </div>
           </div>
         </div>

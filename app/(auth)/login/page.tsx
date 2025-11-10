@@ -1,44 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuthStore } from '@/lib/store/authStore';
-import api from '@/lib/api';
+import { redirectToLogin, authStorage } from '@/lib/auth';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import { Globe } from 'lucide-react';
-import { toast } from 'sonner';
+import { Globe, Lock } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setUser, setTokens } = useAuthStore();
-  const [username, setUsername] = useState('user');
-  const [password, setPassword] = useState('user123');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    setLoading(true);
-    try {
-      const response = await api.post('/auth/login', {
-        email: 'user@sitebuilder.com',
-        password: password,
-      });
-
-      setUser(response.data.user);
-      setTokens(response.data.accessToken, response.data.refreshToken);
-      
-      toast.success('Welcome back!');
+  // Check if user is already authenticated
+  useEffect(() => {
+    if (authStorage.isAuthenticated()) {
       router.push('/home');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Invalid credentials';
-      toast.error(errorMessage);
-      console.error('Login error:', err.response?.data || err.message);
-    } finally {
-      setLoading(false);
     }
+  }, [router]);
+
+  const handleLogin = () => {
+    // STEP 1: Redirect to OAuth login page
+    // Calls: https://ivp.isea.in/backend/loginRedirect?client_id=owl
+    redirectToLogin();
   };
 
   return (
@@ -49,39 +31,26 @@ export default function LoginPage() {
             <Globe className="h-12 w-12 text-blue-600" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome to SiteBuilder</h1>
-          <p className="text-gray-600">Sign in to continue</p>
+          <p className="text-gray-600">Sign in to continue building amazing websites</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <Input
-            label="Username"
-            name="username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="user"
-            required
-            helperText="Username: user"
-          />
-
-          <Input
-            label="Password"
-            name="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="user123"
-            required
-            helperText="Password: user123"
-          />
+        <div className="mt-8 space-y-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <Lock className="h-5 w-5 text-blue-600 mt-0.5 mr-3 shrink-0" />
+              <div className="text-sm text-blue-800">
+                <p className="font-semibold mb-1">Secure Authentication</p>
+                <p>Sign in using IVP ISEA OAuth for secure and seamless access to your account.</p>
+              </div>
+            </div>
+          </div>
 
           <Button
-            type="submit"
+            onClick={handleLogin}
             className="w-full"
             size="lg"
-            disabled={loading}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            Sign In with IVP ISEA OAuth
           </Button>
 
           <p className="text-center text-sm text-gray-600">
@@ -89,7 +58,13 @@ export default function LoginPage() {
               ← Back to home
             </Link>
           </p>
-        </form>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <p className="text-center text-xs text-gray-500">
+            By signing in, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </div>
       </div>
     </div>
   );

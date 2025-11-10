@@ -15,6 +15,7 @@ const { sanitizeInput } = require('./middleware/validation');
 
 // Import routes
 const authRoutes = require('./routes/auth');
+const oauthRoutes = require('./routes/oauth');
 const siteRoutes = require('./routes/sites');
 const pageRoutes = require('./routes/pages');
 const themeRoutes = require('./routes/themes');
@@ -119,6 +120,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/oauth', oauthRoutes);
 app.use('/api/sites', siteRoutes);
 app.use('/api/sites/:siteId/pages', pageRoutes);
 app.use('/api/pages', pageRoutes);
