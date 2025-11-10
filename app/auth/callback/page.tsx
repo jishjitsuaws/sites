@@ -96,12 +96,24 @@ function CallbackContent() {
 
         // Profile exists, store everything and redirect to home
         console.log('[Callback] Profile found, authentication complete');
+        console.log('[Callback] Storing auth data:', {
+          hasAccessToken: !!accessToken,
+          hasUserInfo: !!userInfo,
+          hasUserProfile: !!userProfile
+        });
+        
         authStorage.setAuth(accessToken, userInfo, userProfile);
         
+        // Verify storage
+        console.log('[Callback] Verification after storage:', {
+          isAuthenticated: authStorage.isAuthenticated(),
+          hasCompleteProfile: authStorage.hasCompleteProfile()
+        });
+        
         setStatus('Authentication successful! Redirecting...');
-        setTimeout(() => {
-          router.push('/home');
-        }, 1000);
+        
+        // Redirect immediately
+        router.push('/home');
 
       } catch (err) {
         console.error('[Callback] Error:', err);
