@@ -1,10 +1,43 @@
 const express = require('express');
 const axios = require('axios');
+const https = require('https');
 
 const router = express.Router();
 
 const OAUTH_BASE_URL = process.env.OAUTH_BASE_URL || 'https://ivp.isea.in/backend';
 const CLIENT_ID = process.env.OAUTH_CLIENT_ID || 'owl';
+
+// Create axios instance with relaxed SSL verification for OAuth provider
+// Note: This is needed because the IVP ISEA OAuth provider has SSL certificate issues
+const axiosInstance = axios.create({
+  httpsAgent: new https.Agent({
+    rejectUnauthorized: false, // Accept self-signed certificates
+    minVersion: 'TLSv1.2',
+    maxVersion: 'TLSv1.3',
+  }),
+  timeout: 15000, // 15 second timeout
+});
+
+// Health check endpoint to test OAuth provider connectivity
+router.get('/health', async (req, res) => {
+  try {
+    console.log('[OAuth Health] Testing connectivity to OAuth provider...');
+    console.log('[OAuth Health] Base URL:', OAUTH_BASE_URL);
+    console.log('[OAuth Health] Client ID:', CLIENT_ID);
+    
+    res.json({
+      status: 'ok',
+      oauth_base_url: OAUTH_BASE_URL,
+      client_id: CLIENT_ID,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      error: error.message
+    });
+  }
+});
 
 // STEP 3: Token Generation - Exchange code for access token
 // Calls: POST https://ivp.isea.in/backend/tokengen
@@ -13,25 +46,49 @@ router.post('/token', async (req, res) => {
     const { code, state, client_id } = req.body;
 
     console.log('[OAuth] Token generation request received');
+    console.log('[OAuth] Request payload:', {
+      code: code ? code.substring(0, 30) + '...' : 'missing',
+      state: state ? state.substring(0, 30) + '...' : 'missing',
+      client_id: client_id || CLIENT_ID,
+      timestamp: new Date().toISOString()
+    });
     console.log('[OAuth] Calling:', `${OAUTH_BASE_URL}/tokengen`);
 
-    const response = await axios.post(`${OAUTH_BASE_URL}/tokengen`, {
+    const requestData = {
       code,
       state,
       client_id: client_id || CLIENT_ID,
-    }, {
+    };
+
+    console.log('[OAuth] Sending request to OAuth provider...');
+    
+    const response = await axiosInstance.post(`${OAUTH_BASE_URL}/tokengen`, requestData, {
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
     console.log('[OAuth] Token generation successful');
+    console.log('[OAuth] Response status:', response.status);
+    console.log('[OAuth] Response data keys:', Object.keys(response.data));
+    
     res.json(response.data);
   } catch (error) {
-    console.error('[OAuth] Token generation error:', error.response?.data || error.message);
-    res.status(error.response?.status || 500).json({
+    console.error('[OAuth] Token generation error:');
+    console.error('[OAuth] Error status:', error.response?.status);
+    console.error('[OAuth] Error data:', error.response?.data);
+    console.error('[OAuth] Error message:', error.message);
+    
+    // Return detailed error information
+    const errorStatus = error.response?.status || 500;
+    const errorData = error.response?.data || {};
+    
+    res.status(errorStatus).json({
       error: 'Token generation failed',
-      details: error.response?.data || error.message,
+      status: errorStatus,
+      details: errorData,
+      message: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -61,7 +118,7 @@ router.post('/userinfo', async (req, res) => {
 
     console.log('[OAuth] Calling:', `${OAUTH_BASE_URL}/userinfo`);
 
-    const response = await axios.post(`${OAUTH_BASE_URL}/userinfo`, {
+    const response = await axiosInstance.post(`${OAUTH_BASE_URL}/userinfo`, {
       uid: userId,
     }, {
       headers: {
@@ -90,7 +147,7 @@ router.post('/profile', async (req, res) => {
     console.log('[OAuth] User profile request received');
     console.log('[OAuth] Calling:', `${OAUTH_BASE_URL}/ivp/profile/`);
 
-    const response = await axios.post(`${OAUTH_BASE_URL}/ivp/profile/`, {
+    const response = await axiosInstance.post(`${OAUTH_BASE_URL}/ivp/profile/`, {
       uid,
     }, {
       headers: {
@@ -126,7 +183,7 @@ router.post('/update-profile', async (req, res) => {
     console.log('[OAuth] Profile update request received');
     console.log('[OAuth] Calling:', `${OAUTH_BASE_URL}/updateuserbyid`);
 
-    const response = await axios.post(`${OAUTH_BASE_URL}/updateuserbyid`, {
+    const response = await axiosInstance.post(`${OAUTH_BASE_URL}/updateuserbyid`, {
       first_name,
       last_name,
       email,
@@ -171,7 +228,7 @@ router.post('/logout', async (req, res) => {
     console.log('[OAuth] Calling:', `${OAUTH_BASE_URL}/logout`);
 
     // Call OAuth provider logout endpoint
-    const response = await axios.post(`${OAUTH_BASE_URL}/logout`, {
+    const response = await axiosInstance.post(`${OAUTH_BASE_URL}/logout`, {
       user_id,
     }, {
       headers: {

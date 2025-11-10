@@ -135,10 +135,30 @@ function DashboardContent() {
           setLoading(false);
           fetchSites();
 
-        } catch (error) {
+        } catch (error: any) {
           console.error('[Home] OAuth error:', error);
-          toast.error('Authentication failed');
-          router.push('/login');
+          console.error('[Home] Error response:', error.response?.data);
+          
+          const errorMessage = error.response?.data?.details?.error || 
+                              error.response?.data?.message || 
+                              error.message || 
+                              'Authentication failed';
+          
+          const errorDetails = error.response?.data?.details;
+          
+          if (errorDetails) {
+            console.error('[Home] Detailed error from OAuth provider:', errorDetails);
+          }
+          
+          toast.error(`Authentication failed: ${errorMessage}`);
+          
+          // If it's a token error, clear any stored state and retry
+          if (errorMessage.includes('token') || errorMessage.includes('expired')) {
+            sessionStorage.clear();
+            localStorage.clear();
+          }
+          
+          setTimeout(() => router.push('/login'), 2000);
         }
       } else if (!authStorage.isAuthenticated()) {
         // No OAuth callback and not authenticated - redirect to login
