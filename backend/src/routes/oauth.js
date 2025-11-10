@@ -3,7 +3,7 @@ const axios = require('axios');
 const https = require('https');
 const fs = require('fs');
 
-const ca = fs.readFileSync('/etc/haproxy/certs/sites.pem');
+const ca = fs.readFileSync('/etc/haproxy/certs/sitesnew.pem');
 
 const router = express.Router();
 
