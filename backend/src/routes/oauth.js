@@ -43,10 +43,26 @@ router.post('/userinfo', async (req, res) => {
     const { access_token, uid } = req.body;
 
     console.log('[OAuth] User info request received');
+    
+    // If uid is not provided, try to decode it from the access token
+    let userId = uid;
+    if (!userId && access_token) {
+      try {
+        // Decode JWT to extract uid
+        const base64Url = access_token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(Buffer.from(base64, 'base64').toString());
+        userId = payload.uid || payload.sub || payload.user_id || payload.id;
+        console.log('[OAuth] Extracted uid from token:', userId);
+      } catch (decodeError) {
+        console.error('[OAuth] Failed to decode token:', decodeError.message);
+      }
+    }
+
     console.log('[OAuth] Calling:', `${OAUTH_BASE_URL}/userinfo`);
 
     const response = await axios.post(`${OAUTH_BASE_URL}/userinfo`, {
-      uid,
+      uid: userId,
     }, {
       headers: {
         'Content-Type': 'application/json',

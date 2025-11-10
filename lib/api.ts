@@ -14,8 +14,8 @@ const apiClient = axios.create({
 // Request interceptor - add token to requests
 apiClient.interceptors.request.use(
   (config) => {
-    // Get token from localStorage or session
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    // Get OAuth token from sessionStorage (OAuth integration)
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -28,38 +28,22 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle errors and token refresh
+// Response interceptor - handle errors
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // If error is 401 and we haven't tried to refresh token yet
+    // If error is 401, user needs to re-authenticate with OAuth
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      try {
-        const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
-        
-        if (refreshToken) {
-          const response = await axios.post(`${API_URL}/auth/refresh-token`, {
-            refreshToken,
-          });
-
-          const { accessToken } = response.data;
-          localStorage.setItem('accessToken', accessToken);
-
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return apiClient(originalRequest);
-        }
-      } catch (refreshError) {
-        // Refresh token failed, redirect to login
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          window.location.href = '/login';
-        }
-        return Promise.reject(refreshError);
+      // Clear OAuth session and redirect to login
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('user_info');
+        sessionStorage.removeItem('user_profile');
+        window.location.href = '/login';
       }
     }
 

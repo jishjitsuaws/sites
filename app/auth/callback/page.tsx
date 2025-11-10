@@ -46,15 +46,30 @@ function CallbackContent() {
         console.log('[Callback] Access token received');
         setStatus('Fetching user information...');
 
-        // Extract uid from token response
-        // The OAuth provider may return uid in the token response
-        // If not, we'll need to decode the JWT or call another endpoint
-        const uid = tokenData.uid || '';
+        // Extract uid from token response or decode JWT
+        // The IVP ISEA OAuth provider should return uid in the token or we need to decode it
+        let uid = tokenData.uid;
         
         if (!uid) {
-          // If uid is not in token response, we might need to decode the JWT
-          // For now, we'll try to proceed and handle errors
-          setError('User ID not found in token response. Please contact support.');
+          // Try to decode the JWT token to get uid
+          try {
+            const base64Url = accessToken.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            
+            const payload = JSON.parse(jsonPayload);
+            uid = payload.uid || payload.sub || payload.user_id || payload.id;
+            
+            console.log('[Callback] Extracted uid from token:', uid);
+          } catch (decodeError) {
+            console.error('[Callback] Failed to decode token:', decodeError);
+          }
+        }
+        
+        if (!uid) {
+          setError('Unable to extract user ID from authentication response. Please try again or contact support.');
           return;
         }
 
