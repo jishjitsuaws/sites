@@ -133,7 +133,8 @@ function DashboardContent() {
               
               const payload = JSON.parse(jsonPayload);
               console.log('[Home] Manually decoded token payload:', payload);
-              uid = payload.uid || payload.sub || payload.user_id || payload.id || payload.userId || payload.email || payload.preferred_username;
+              // Keycloak uses 'sub' field for user ID
+              uid = payload.sub || payload.uid || payload.user_id || payload.id || payload.userId || payload.preferred_username;
             } catch (e) {
               console.error('[Home] Failed to decode token:', e);
             }
