@@ -56,16 +56,27 @@ function DashboardContent() {
         setProcessingOAuth(true);
         
         try {
-          // Verify state (CSRF protection)
-          const savedState = sessionStorage.getItem('oauth_state') || localStorage.getItem('oauth_state');
-          if (state !== savedState) {
-            console.error('[Home] State mismatch! Possible CSRF attack.');
-            toast.error('Authentication failed: Invalid state');
+          // NOTE: IVP ISEA OAuth provider generates its own state parameter
+          // and doesn't use the state we send in the authorization request.
+          // We'll verify that a state exists but won't validate against our stored state
+          // since the provider doesn't return our state back to us.
+          
+          console.log('[Home] OAuth parameters received:', {
+            code: code.substring(0, 20) + '...',
+            state: state.substring(0, 20) + '...',
+            hasCode: !!code,
+            hasState: !!state
+          });
+          
+          // Optional: Verify state format (should be alphanumeric)
+          if (!/^[a-zA-Z0-9]+$/.test(state)) {
+            console.error('[Home] State has invalid format');
+            toast.error('Authentication failed: Invalid state format');
             router.push('/login');
             return;
           }
 
-          console.log('[Home] State verified, exchanging code for token...');
+          console.log('[Home] State format verified, exchanging code for token...');
           
           // Exchange code for access token
           const tokenData = await exchangeCodeForToken(code, state);

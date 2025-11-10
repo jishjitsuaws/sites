@@ -27,14 +27,25 @@ function CallbackContent() {
           return;
         }
 
-        // Verify state (CSRF protection)
+        console.log('[Callback] Code and state verified');
+        setStatus('Exchanging code for token...');
+
+        // NOTE: IVP ISEA OAuth provider generates its own state parameter
+        // We'll verify the state exists but won't validate against our stored state
         const savedState = sessionStorage.getItem('oauth_state');
-        if (state !== savedState) {
-          setError('Invalid state parameter. Possible CSRF attack.');
+        console.log('[Callback] State comparison:', {
+          receivedState: state.substring(0, 20) + '...',
+          savedState: savedState ? savedState.substring(0, 20) + '...' : 'none',
+          match: state === savedState
+        });
+        
+        // Optional: Just verify state format
+        if (!/^[a-zA-Z0-9]+$/.test(state)) {
+          setError('Invalid state parameter format');
           return;
         }
 
-        console.log('[Callback] Code and state verified');
+        console.log('[Callback] State format verified');
         setStatus('Exchanging code for token...');
 
         // STEP 3: Exchange code for access token

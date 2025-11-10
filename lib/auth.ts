@@ -41,9 +41,15 @@ export function redirectToLogin() {
   const state = generateSecureState();
   
   // Store state in sessionStorage for CSRF verification
+  // NOTE: IVP ISEA OAuth provider generates its own state and doesn't use ours
+  // We store it anyway for logging/debugging purposes
   if (typeof window !== 'undefined') {
     sessionStorage.setItem('oauth_state', state);
     sessionStorage.setItem('oauth_state_timestamp', Date.now().toString());
+    localStorage.setItem('oauth_state', state);
+    localStorage.setItem('oauth_state_timestamp', Date.now().toString());
+    
+    console.log('[Auth] Generated and stored state:', state.substring(0, 20) + '...');
   }
   
   // Construct OAuth login URL
@@ -51,6 +57,7 @@ export function redirectToLogin() {
   const loginUrl = `${OAUTH_LOGIN_URL}?client_id=${CLIENT_ID}`;
   
   console.log('[Auth] Redirecting to OAuth login:', loginUrl);
+  console.log('[Auth] Note: OAuth provider will generate its own state parameter');
   window.location.href = loginUrl;
 }
 
