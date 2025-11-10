@@ -29,13 +29,26 @@ const axiosInstance = axios.create({
   maxRedirects: 5,
 });
 
-// Force-disable SNI (Server Name Indication) before each request.
+// Force-disable SNI at the socket creation level
+axiosInstance.defaults.transport = https;
+
 axiosInstance.interceptors.request.use((config) => {
+  // Override the HTTPS adapter directly before the request
+  config.transport = https;
+  config.beforeRedirect = (options) => {
+    if (options && options.servername) {
+      delete options.servername;  // remove if Axios re-added it
+    }
+  };
+
+  // Ensure the agent's options also lack SNI
   if (config.httpsAgent && config.httpsAgent.options) {
-    config.httpsAgent.options.servername = undefined;  // critical: disables SNI
+    delete config.httpsAgent.options.servername;
   }
+
   return config;
 });
+
 
 
 // Add request/response interceptors for debugging
