@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { authStorage } from '@/lib/auth';
 
 export default function DashboardLayout({
@@ -10,34 +10,46 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Small delay to ensure sessionStorage is populated
+    // Small delay to ensure localStorage/sessionStorage is fully accessible
     const checkAuth = () => {
-      console.log('[Dashboard Layout] Checking authentication...');
+      console.log('[Dashboard Layout] Checking authentication...', {
+        pathname,
+        timestamp: new Date().toISOString()
+      });
       
       // Check if user is authenticated with OAuth
       const isAuthenticated = authStorage.isAuthenticated();
       const userInfo = authStorage.getUserInfo();
       const userProfile = authStorage.getUserProfile();
+      const accessToken = authStorage.getAccessToken();
       
       console.log('[Dashboard Layout] Auth status:', {
         isAuthenticated,
         hasUserInfo: !!userInfo,
         hasUserProfile: !!userProfile,
-        sessionStorage: {
+        hasAccessToken: !!accessToken,
+        accessTokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : null,
+        localStorage: typeof window !== 'undefined' ? {
+          access_token: !!localStorage.getItem('access_token'),
+          user_info: !!localStorage.getItem('user_info'),
+          user_profile: !!localStorage.getItem('user_profile'),
+        } : null,
+        sessionStorage: typeof window !== 'undefined' ? {
           access_token: !!sessionStorage.getItem('access_token'),
           user_info: !!sessionStorage.getItem('user_info'),
           user_profile: !!sessionStorage.getItem('user_profile'),
-        }
+        } : null
       });
       
       if (!isAuthenticated) {
         // Not authenticated, redirect to login
         console.log('[Dashboard Layout] User not authenticated, redirecting to login');
-        router.push('/login');
+        window.location.href = '/login';
         return;
       }
       
@@ -45,7 +57,7 @@ export default function DashboardLayout({
       const hasProfile = authStorage.hasCompleteProfile();
       if (!hasProfile) {
         console.log('[Dashboard Layout] User profile incomplete, redirecting to complete profile');
-        router.push('/auth/complete-profile');
+        window.location.href = '/auth/complete-profile';
         return;
       }
       
@@ -55,19 +67,19 @@ export default function DashboardLayout({
       setLoading(false);
     };
 
-    // Check immediately
-    checkAuth();
-    
-    // Also check after a short delay to handle race conditions
-    const timer = setTimeout(checkAuth, 100);
+    // Run check after a small delay to ensure storage is ready
+    const timer = setTimeout(checkAuth, 50);
     
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [pathname]);
 
   if (loading || !isReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
       </div>
     );
   }

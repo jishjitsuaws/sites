@@ -257,12 +257,20 @@ export const authStorage = {
       userProfile: userProfile
     });
     
+    // Store in BOTH sessionStorage AND localStorage for reliability
     sessionStorage.setItem('access_token', accessToken);
     sessionStorage.setItem('user_info', JSON.stringify(userInfo));
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('user_info', JSON.stringify(userInfo));
+    
     if (userProfile) {
       sessionStorage.setItem('user_profile', JSON.stringify(userProfile));
+      localStorage.setItem('user_profile', JSON.stringify(userProfile));
     }
-    sessionStorage.setItem('auth_timestamp', Date.now().toString());
+    
+    const timestamp = Date.now().toString();
+    sessionStorage.setItem('auth_timestamp', timestamp);
+    localStorage.setItem('auth_timestamp', timestamp);
     
     // Verify it was stored
     const storedToken = sessionStorage.getItem('access_token');
@@ -281,12 +289,12 @@ export const authStorage = {
 
   getAccessToken: (): string | null => {
     if (typeof window === 'undefined') return null;
-    return sessionStorage.getItem('access_token');
+    return sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
   },
 
   getUserInfo: (): UserInfo | null => {
     if (typeof window === 'undefined') return null;
-    const userInfoStr = sessionStorage.getItem('user_info');
+    const userInfoStr = sessionStorage.getItem('user_info') || localStorage.getItem('user_info');
     if (!userInfoStr) return null;
     try {
       return JSON.parse(userInfoStr);
@@ -297,7 +305,7 @@ export const authStorage = {
 
   getUserProfile: (): UserProfile | null => {
     if (typeof window === 'undefined') return null;
-    const userProfileStr = sessionStorage.getItem('user_profile');
+    const userProfileStr = sessionStorage.getItem('user_profile') || localStorage.getItem('user_profile');
     if (!userProfileStr) return null;
     try {
       return JSON.parse(userProfileStr);
@@ -308,22 +316,31 @@ export const authStorage = {
 
   isAuthenticated: (): boolean => {
     if (typeof window === 'undefined') return false;
-    return !!sessionStorage.getItem('access_token') && !!sessionStorage.getItem('user_info');
+    const hasSession = !!(sessionStorage.getItem('access_token') && sessionStorage.getItem('user_info'));
+    const hasLocal = !!(localStorage.getItem('access_token') && localStorage.getItem('user_info'));
+    return hasSession || hasLocal;
   },
 
   hasCompleteProfile: (): boolean => {
     if (typeof window === 'undefined') return false;
-    return !!sessionStorage.getItem('user_profile');
+    return !!(sessionStorage.getItem('user_profile') || localStorage.getItem('user_profile'));
   },
 
   clearAuth: () => {
     if (typeof window === 'undefined') return;
+    // Clear both storages
     sessionStorage.removeItem('access_token');
     sessionStorage.removeItem('user_info');
     sessionStorage.removeItem('user_profile');
     sessionStorage.removeItem('auth_timestamp');
     sessionStorage.removeItem('oauth_state');
     sessionStorage.removeItem('oauth_state_timestamp');
+    
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user_info');
+    localStorage.removeItem('user_profile');
+    localStorage.removeItem('auth_timestamp');
+    
     console.log('[Auth] Authentication data cleared');
   },
 

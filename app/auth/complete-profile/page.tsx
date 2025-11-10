@@ -90,8 +90,8 @@ export default function CompleteProfilePage() {
 
       console.log('[CompleteProfile] Profile completed successfully');
       
-      // Redirect to home
-      router.push('/home');
+      // Use window.location for a full page reload
+      window.location.href = '/home';
     } catch (err) {
       console.error('[CompleteProfile] Error:', err);
       alert('Failed to update profile. Please try again.');

@@ -112,8 +112,9 @@ function CallbackContent() {
         
         setStatus('Authentication successful! Redirecting...');
         
-        // Redirect immediately
-        router.push('/home');
+        // Use window.location for a full page reload to ensure proper state initialization
+        // This prevents race conditions with Next.js client-side navigation
+        window.location.href = '/home';
 
       } catch (err) {
         console.error('[Callback] Error:', err);
