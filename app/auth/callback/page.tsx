@@ -52,14 +52,20 @@ function CallbackContent() {
         // Calls: POST http://sites.isea.in/api/oauth/token
         // Which calls: POST https://ivp.isea.in/backend/tokengen
         const tokenData = await exchangeCodeForToken(code, state);
-        const accessToken = tokenData.access_token;
+        // Handle nested structure: tokenData.data.access_token
+        const accessToken = tokenData.data?.access_token || tokenData.access_token;
+        
+        if (!accessToken) {
+          setError('Failed to get access token from authentication response');
+          return;
+        }
 
         console.log('[Callback] Access token received');
         setStatus('Fetching user information...');
 
         // Extract uid from token response or decode JWT
         // The IVP ISEA OAuth provider should return uid in the token or we need to decode it
-        let uid = tokenData.uid;
+        let uid = tokenData.data?.uid || tokenData.uid;
         
         if (!uid) {
           // Try to decode the JWT token to get uid
