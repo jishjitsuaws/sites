@@ -249,6 +249,14 @@ export const authStorage = {
   setAuth: (accessToken: string, userInfo: UserInfo, userProfile?: UserProfile) => {
     if (typeof window === 'undefined') return;
     
+    console.log('[Auth Storage] Setting auth data:', {
+      hasToken: !!accessToken,
+      hasUserInfo: !!userInfo,
+      hasUserProfile: !!userProfile,
+      userInfo: userInfo,
+      userProfile: userProfile
+    });
+    
     sessionStorage.setItem('access_token', accessToken);
     sessionStorage.setItem('user_info', JSON.stringify(userInfo));
     if (userProfile) {
@@ -256,7 +264,19 @@ export const authStorage = {
     }
     sessionStorage.setItem('auth_timestamp', Date.now().toString());
     
-    console.log('[Auth] Authentication data stored');
+    // Verify it was stored
+    const storedToken = sessionStorage.getItem('access_token');
+    const storedUserInfo = sessionStorage.getItem('user_info');
+    const storedUserProfile = sessionStorage.getItem('user_profile');
+    
+    console.log('[Auth Storage] Verification after storage:', {
+      tokenStored: !!storedToken,
+      userInfoStored: !!storedUserInfo,
+      userProfileStored: !!storedUserProfile,
+      tokenMatches: storedToken === accessToken
+    });
+    
+    console.log('[Auth Storage] Authentication data stored successfully');
   },
 
   getAccessToken: (): string | null => {
