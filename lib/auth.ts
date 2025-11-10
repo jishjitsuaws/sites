@@ -1,7 +1,7 @@
 // OAuth Configuration
 const CLIENT_ID = process.env.NEXT_PUBLIC_OAUTH_CLIENT_ID || 'owl';
 const OAUTH_LOGIN_URL = process.env.NEXT_PUBLIC_OAUTH_LOGIN_URL || 'https://ivp.isea.in/backend/loginRedirect';
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://sites.isea.in';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://sites.isea.in';
 
 export interface UserInfo {
   uid: string;
