@@ -12,7 +12,17 @@ export default function LoginPage() {
 
   // Check if user is already authenticated
   useEffect(() => {
+    // Don't redirect if we're coming from an OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const isOAuthCallback = urlParams.has('code') || urlParams.has('state');
+    
+    if (isOAuthCallback) {
+      console.log('[Login] OAuth callback detected, skipping redirect check');
+      return;
+    }
+    
     if (authStorage.isAuthenticated()) {
+      console.log('[Login] User already authenticated, redirecting to home');
       router.push('/home');
     }
   }, [router]);

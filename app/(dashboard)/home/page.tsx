@@ -52,7 +52,15 @@ function DashboardContent() {
 
       // Only process if we have code and state and we're not already authenticated
       if (code && state && !authStorage.isAuthenticated()) {
+        // Check if we're already processing to prevent duplicate requests
+        const isProcessing = sessionStorage.getItem('oauth_processing');
+        if (isProcessing === 'true') {
+          console.log('[Home] OAuth already being processed, skipping duplicate');
+          return;
+        }
+
         console.log('[Home] OAuth callback detected, processing...');
+        sessionStorage.setItem('oauth_processing', 'true');
         setProcessingOAuth(true);
         
         try {
@@ -157,6 +165,9 @@ function DashboardContent() {
           console.log('[Home] User authenticated successfully, storing auth data...');
           authStorage.setAuth(accessToken, userInfoData);
           
+          // Clear processing flag
+          sessionStorage.removeItem('oauth_processing');
+          
           toast.success('Successfully logged in!');
           
           // Redirect to clean /home URL with full page reload to ensure storage is synced
@@ -164,6 +175,9 @@ function DashboardContent() {
           window.location.href = '/home';
           
         } catch (error: any) {
+          // Clear processing flag on error
+          sessionStorage.removeItem('oauth_processing');
+          
           console.error('[Home] OAuth error:', error);
           console.error('[Home] Error response:', error.response?.data);
           
