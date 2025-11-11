@@ -359,10 +359,13 @@ router.post('/logout', async (req, res) => {
 
     console.log('[OAuth] Logout request received for user:', user_id);
     console.log('[OAuth] Calling:', `${OAUTH_BASE_URL}/logout`);
+    console.log('[OAuth] Logout payload:', { user_id, client_id: CLIENT_ID });
 
     // Call OAuth provider logout endpoint
+    // The provider needs client_id to identify the client context
     const response = await axiosInstance.post(`${OAUTH_BASE_URL}/logout`, {
       user_id,
+      client_id: CLIENT_ID,
     }, {
       headers: {
         'Content-Type': 'application/json',
@@ -380,12 +383,39 @@ router.post('/logout', async (req, res) => {
 
   } catch (error) {
     console.error('[OAuth] Logout error:', error.response?.data || error.message);
+    console.error('[OAuth] Logout error status:', error.response?.status);
+    console.error('[OAuth] Logout error full details:', JSON.stringify(error.response?.data, null, 2));
     
     // Handle specific error cases
-    if (error.response?.status === 400 && error.response?.data?.errors === 'invalid_grant') {
+    if (error.response?.status === 400) {
+      const errorData = error.response.data;
+      
+      // Client does not exist error
+      if (errorData.message === 'Client does not exist') {
+        console.error('[OAuth] Client does not exist - check CLIENT_ID configuration');
+        return res.status(400).json({
+          status: 0,
+          errors: ['client_not_found'],
+          message: 'OAuth client configuration error',
+          status_code: 400,
+        });
+      }
+      
+      // Invalid grant error
+      if (errorData.errors === 'invalid_grant') {
+        return res.status(400).json({
+          status: 0,
+          errors: 'invalid_grant',
+          message: errorData.message || 'Invalid grant',
+          status_code: 400,
+        });
+      }
+      
+      // Other 400 errors
       return res.status(400).json({
         status: 0,
-        errors: 'invalid_grant',
+        errors: errorData.errors || [],
+        message: errorData.message || 'Logout request failed',
         status_code: 400,
       });
     }
