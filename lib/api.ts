@@ -34,12 +34,18 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If error is 401, user needs to re-authenticate with OAuth
+    // If error is 401, avoid instant redirect loop. Try a single silent retry once.
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      // Small delay to allow storage to settle
+      await new Promise((r) => setTimeout(r, 150));
+      return apiClient(originalRequest);
+    }
 
-      // Clear OAuth session and redirect to login
+    // On second 401, then redirect to login
+    if (error.response?.status === 401 && originalRequest._retry) {
       if (typeof window !== 'undefined') {
+        console.warn('[API] Auth failed twice, redirecting to login');
         sessionStorage.removeItem('access_token');
         sessionStorage.removeItem('user_info');
         sessionStorage.removeItem('user_profile');

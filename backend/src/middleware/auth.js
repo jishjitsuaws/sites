@@ -19,6 +19,7 @@ const protect = async (req, res, next) => {
 
     // Check if token exists
     if (!token) {
+      console.warn('[Auth] Missing Authorization token for', req.method, req.originalUrl);
       return res.status(401).json({
         success: false,
         message: 'Not authorized to access this route. Please log in.'
@@ -41,7 +42,7 @@ const protect = async (req, res, next) => {
           if (payload.iss && payload.iss.includes('ivp.isea.in')) {
             decoded = payload;
             isOAuthToken = true;
-            console.log('[Auth] OAuth token detected from IVP ISEA');
+            console.log('[Auth] OAuth token detected from IVP ISEA, sub:', payload.sub);
           }
         }
       } catch (oauthError) {
@@ -83,6 +84,7 @@ const protect = async (req, res, next) => {
 
       next();
     } catch (error) {
+      console.error('[Auth] Token validation failed:', error.message);
       if (error.name === 'TokenExpiredError') {
         return res.status(401).json({
           success: false,

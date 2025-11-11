@@ -45,6 +45,10 @@ function DashboardContent() {
   const displayName = getUserDisplayName(userInfo, userProfile);
 
   // Handle OAuth callback if code and state are present in URL
+  // Prevent multiple site fetches
+  const hasFetchedSitesRef = (globalThis as any).__hasFetchedSitesRef || { current: false };
+  (globalThis as any).__hasFetchedSitesRef = hasFetchedSitesRef;
+
   useEffect(() => {
     const handleOAuthCallback = async () => {
       const code = searchParams.get('code');
@@ -156,7 +160,7 @@ function DashboardContent() {
             return;
           }
 
-          // Fetch user info
+          // Fetch user info (single request)
           const userInfoData = await fetchUserInfo(accessToken, uid);
           console.log('[Home] User info received:', userInfoData);
 
@@ -172,7 +176,16 @@ function DashboardContent() {
           
           // Redirect to clean /home URL with full page reload to ensure storage is synced
           console.log('[Home] Redirecting to home...');
-          window.location.href = '/home';
+          // Instead of full redirect (causes another cycle) just clean URL and proceed
+          window.history.replaceState({}, '', '/home');
+          setProcessingOAuth(false);
+          setLoading(false);
+          // Fetch sites once
+          if (!hasFetchedSitesRef.current) {
+            hasFetchedSitesRef.current = true;
+            fetchSites();
+          }
+          return;
           
         } catch (error: any) {
           // Clear processing flag on error
@@ -202,13 +215,19 @@ function DashboardContent() {
           
           setTimeout(() => router.push('/login'), 2000);
         }
-      } else if (!authStorage.isAuthenticated()) {
-        // No OAuth callback and not authenticated - redirect to login
-        console.log('[Home] Not authenticated, redirecting to login');
-        router.push('/login');
       } else {
-        // Already authenticated, just load sites
-        setLoading(false);
+        // No OAuth params. If authenticated, load sites once else redirect.
+        if (authStorage.isAuthenticated()) {
+          setProcessingOAuth(false);
+          setLoading(false);
+          if (!hasFetchedSitesRef.current) {
+            hasFetchedSitesRef.current = true;
+            fetchSites();
+          }
+        } else {
+          console.log('[Home] Not authenticated and no OAuth params → redirect to login');
+          router.push('/login');
+        }
       }
     };
 
