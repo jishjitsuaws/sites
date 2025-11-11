@@ -6,9 +6,14 @@ const { uploadToLocalStorage, deleteFromLocalStorage } = require('../config/clou
 /**
  * @desc    Upload asset
  * @route   POST /api/assets/upload
- * @access  Private
+ * @access  Private (requires OAuth token)
  */
 exports.uploadAsset = asyncHandler(async (req, res, next) => {
+  // Require authentication to upload assets
+  if (!req.user || !req.user._id) {
+    throw new ApiError('Please log in to upload assets', 401);
+  }
+
   if (!req.file) {
     throw new ApiError('Please upload a file', 400);
   }
@@ -88,13 +93,19 @@ exports.uploadAsset = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @desc    Get all assets for user
+ * @desc    Get all assets for authenticated user
  * @route   GET /api/assets
- * @access  Private
+ * @access  Private (requires OAuth token)
  */
 exports.getAssets = asyncHandler(async (req, res, next) => {
+  // Require authentication to view assets
+  if (!req.user || !req.user._id) {
+    throw new ApiError('Please log in to view assets', 401);
+  }
+
   const { page = 1, limit = 20, type, siteId, search } = req.query;
 
+  // Filter by user's OAuth sub field
   const query = { userId: req.user._id };
 
   if (type) {

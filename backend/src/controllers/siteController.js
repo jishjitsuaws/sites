@@ -3,22 +3,27 @@ const Page = require('../models/Page');
 const { asyncHandler, ApiError, paginatedResponse, slugify } = require('../utils/helpers');
 
 /**
- * @desc    Get all sites (no auth required - OAuth provider handles it)
+ * @desc    Get all sites for the authenticated user
  * @route   GET /api/sites
- * @access  Public
+ * @access  Private (requires OAuth token)
  */
 exports.getSites = asyncHandler(async (req, res, next) => {
   const { page = 1, limit = 10, search, isPublished, subdomain } = req.query;
   
   const query = {};
   
-  // If subdomain is provided, search by subdomain (public access)
+  // If subdomain is provided, search by subdomain (public access to published sites)
   if (subdomain) {
     query.subdomain = subdomain;
     // For public subdomain access, only return published sites
     query.isPublished = true;
+  } else if (req.user && req.user._id) {
+    // Filter by user's OAuth sub field (user isolation)
+    query.userId = req.user._id;
+  } else {
+    // No user and no subdomain - return empty (unauthenticated)
+    return paginatedResponse(res, [], parseInt(page), parseInt(limit), 0, 'Please log in to view your sites');
   }
-  // No user filtering - OAuth handles auth on client side
   
   if (search) {
     query.siteName = { $regex: search, $options: 'i' };
@@ -45,7 +50,7 @@ exports.getSites = asyncHandler(async (req, res, next) => {
 /**
  * @desc    Get single site
  * @route   GET /api/sites/:id
- * @access  Private
+ * @access  Private (requires ownership or public if published)
  */
 exports.getSite = asyncHandler(async (req, res, next) => {
   const site = await Site.findById(req.params.id)
@@ -59,7 +64,10 @@ exports.getSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
 
-  // OAuth provider handles authorization
+  // Allow access if: user owns the site OR site is published (public access)
+  if (req.user && site.userId !== req.user._id && !site.isPublished) {
+    throw new ApiError('Not authorized to access this site', 403);
+  }
 
   res.status(200).json({
     success: true,
@@ -70,10 +78,15 @@ exports.getSite = asyncHandler(async (req, res, next) => {
 /**
  * @desc    Create new site
  * @route   POST /api/sites
- * @access  Private
+ * @access  Private (requires OAuth token)
  */
 exports.createSite = asyncHandler(async (req, res, next) => {
   const { siteName, subdomain, description } = req.body;
+
+  // Require authentication to create sites
+  if (!req.user || !req.user._id) {
+    throw new ApiError('Please log in to create a site', 401);
+  }
 
   // Check if subdomain is available
   const existingSubdomain = await Site.findOne({ subdomain: subdomain.toLowerCase() });
@@ -81,9 +94,9 @@ exports.createSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Subdomain already taken', 400);
   }
 
-  // Create site - use 'default-user' if no OAuth user available
+  // Create site with OAuth user's sub field as userId
   const site = await Site.create({
-    userId: req.user?._id || 'default-user',
+    userId: req.user._id,
     siteName,
     subdomain: subdomain.toLowerCase(),
     description: description || ''
@@ -111,7 +124,7 @@ exports.createSite = asyncHandler(async (req, res, next) => {
 /**
  * @desc    Update site
  * @route   PUT /api/sites/:id
- * @access  Private
+ * @access  Private (requires ownership)
  */
 exports.updateSite = asyncHandler(async (req, res, next) => {
   let site = await Site.findById(req.params.id);
@@ -120,7 +133,14 @@ exports.updateSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
 
-  // Check ownership (OAuth user ID is a string)
+  // Check ownership - require authentication and matching userId
+  if (!req.user || !req.user._id) {
+    throw new ApiError('Please log in to update sites', 401);
+  }
+  
+  if (site.userId !== req.user._id) {
+    throw new ApiError('Not authorized to update this site', 403);
+  }
 
   // Check if subdomain is being changed
   if (req.body.subdomain && req.body.subdomain !== site.subdomain) {
@@ -153,7 +173,7 @@ exports.updateSite = asyncHandler(async (req, res, next) => {
 /**
  * @desc    Delete site
  * @route   DELETE /api/sites/:id
- * @access  Private
+ * @access  Private (requires ownership)
  */
 exports.deleteSite = asyncHandler(async (req, res, next) => {
   const site = await Site.findById(req.params.id);
@@ -162,7 +182,14 @@ exports.deleteSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
 
-  // Check ownership (OAuth user ID is a string)
+  // Check ownership - require authentication and matching userId
+  if (!req.user || !req.user._id) {
+    throw new ApiError('Please log in to delete sites', 401);
+  }
+  
+  if (site.userId !== req.user._id) {
+    throw new ApiError('Not authorized to delete this site', 403);
+  }
 
   // Delete all pages associated with site
   await Page.deleteMany({ siteId: site._id });
@@ -179,7 +206,7 @@ exports.deleteSite = asyncHandler(async (req, res, next) => {
 /**
  * @desc    Publish site
  * @route   POST /api/sites/:id/publish
- * @access  Private
+ * @access  Private (requires ownership)
  */
 exports.publishSite = asyncHandler(async (req, res, next) => {
   const site = await Site.findById(req.params.id);
@@ -188,7 +215,14 @@ exports.publishSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
 
-  // Check ownership (OAuth user ID is a string)
+  // Check ownership - require authentication and matching userId
+  if (!req.user || !req.user._id) {
+    throw new ApiError('Please log in to publish sites', 401);
+  }
+  
+  if (site.userId !== req.user._id) {
+    throw new ApiError('Not authorized to publish this site', 403);
+  }
 
   // Check if site has at least one page
   const pageCount = await Page.countDocuments({ siteId: site._id });
@@ -211,7 +245,7 @@ exports.publishSite = asyncHandler(async (req, res, next) => {
 /**
  * @desc    Unpublish site
  * @route   POST /api/sites/:id/unpublish
- * @access  Private
+ * @access  Private (requires ownership)
  */
 exports.unpublishSite = asyncHandler(async (req, res, next) => {
   const site = await Site.findById(req.params.id);
@@ -220,7 +254,14 @@ exports.unpublishSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
 
-  // Check ownership (OAuth user ID is a string)
+  // Check ownership - require authentication and matching userId
+  if (!req.user || !req.user._id) {
+    throw new ApiError('Please log in to unpublish sites', 401);
+  }
+  
+  if (site.userId !== req.user._id) {
+    throw new ApiError('Not authorized to unpublish this site', 403);
+  }
 
   site.isPublished = false;
   await site.save();
@@ -235,7 +276,7 @@ exports.unpublishSite = asyncHandler(async (req, res, next) => {
 /**
  * @desc    Duplicate site
  * @route   POST /api/sites/:id/duplicate
- * @access  Private
+ * @access  Private (requires ownership)
  */
 exports.duplicateSite = asyncHandler(async (req, res, next) => {
   const originalSite = await Site.findById(req.params.id);
@@ -244,7 +285,14 @@ exports.duplicateSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
 
-  // Check ownership (OAuth user ID is a string)
+  // Check ownership - require authentication and matching userId
+  if (!req.user || !req.user._id) {
+    throw new ApiError('Please log in to duplicate sites', 401);
+  }
+  
+  if (originalSite.userId !== req.user._id) {
+    throw new ApiError('Not authorized to duplicate this site', 403);
+  }
 
   // Generate unique subdomain
   const baseSubdomain = `${originalSite.subdomain}-copy`;

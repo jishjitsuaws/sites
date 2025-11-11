@@ -35,19 +35,19 @@ const createThemeValidation = [
     .notEmpty().withMessage('Body font is required')
 ];
 
-// Routes - No authentication middleware
+// Routes - Themes are mostly public (read), but create/update/delete require auth
 router.route('/')
-  .get(getThemes)
-  .post(createThemeValidation, handleValidationErrors, createTheme);
+  .get(getThemes)  // Public: anyone can browse themes
+  .post(protect, createThemeValidation, handleValidationErrors, createTheme);
 
-router.get('/my-themes', getMyThemes);
-router.get('/category/:category', getThemesByCategory);
+router.get('/my-themes', protect, getMyThemes);
+router.get('/category/:category', getThemesByCategory);  // Public
 
 router.route('/:id')
-  .get(validateObjectId('id'), getTheme)
-  .put(validateObjectId('id'), updateTheme)
-  .delete(validateObjectId('id'), deleteTheme);
+  .get(validateObjectId('id'), getTheme)  // Public: can view any theme
+  .put(protect, validateObjectId('id'), updateTheme)
+  .delete(protect, validateObjectId('id'), deleteTheme);
 
-router.post('/:id/use', validateObjectId('id'), useTheme);
+router.post('/:id/use', protect, validateObjectId('id'), useTheme);
 
 module.exports = router;

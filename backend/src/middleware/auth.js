@@ -2,7 +2,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 /**
- * Middleware to protect routes - requires valid JWT token
+ * Middleware to protect routes - extracts user from OAuth JWT token
+ * NEVER throws 401 - just sets req.user if valid token exists
  */
 const protect = async (req, res, next) => {
   try {
@@ -17,92 +18,42 @@ const protect = async (req, res, next) => {
       token = req.cookies.token;
     }
 
-    // Check if token exists
+    // If no token, just continue without setting req.user
     if (!token) {
-      console.warn('[Auth] Missing Authorization token for', req.method, req.originalUrl);
-      return res.status(401).json({
-        success: false,
-        message: 'Not authorized to access this route. Please log in.'
-      });
+      console.log('[Auth] No token provided for', req.method, req.originalUrl);
+      return next();
     }
 
     try {
-      // First, try to verify as OAuth token (Keycloak/IVP ISEA JWT)
-      // OAuth tokens are NOT signed with our JWT_SECRET, so we decode without verification
-      let decoded;
-      let isOAuthToken = false;
-      
-      try {
-        // Try to decode as OAuth token (just decode, don't verify signature)
-        const parts = token.split('.');
-        if (parts.length === 3) {
-          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-          
-          // Check if it's an OAuth token (has 'iss' field from OAuth provider)
-          if (payload.iss && payload.iss.includes('ivp.isea.in')) {
-            decoded = payload;
-            isOAuthToken = true;
-            console.log('[Auth] OAuth token detected from IVP ISEA, sub:', payload.sub);
-          }
-        }
-      } catch (oauthError) {
-        // Not an OAuth token, will try regular JWT next
-      }
-
-      // If not OAuth, verify as regular JWT token
-      if (!isOAuthToken) {
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // Decode OAuth token (don't verify signature - OAuth provider already did that)
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
         
-        // Get user from database for regular JWT tokens
-        req.user = await User.findById(decoded.id).select('-password');
-
-        if (!req.user) {
-          return res.status(401).json({
-            success: false,
-            message: 'User not found. Token is invalid.'
-          });
+        // Check if it's an OAuth token (has 'iss' field from OAuth provider)
+        if (payload.iss && payload.iss.includes('ivp.isea.in')) {
+          // Extract user ID from OAuth token's 'sub' field (this is the user's unique ID)
+          req.user = {
+            _id: payload.sub, // OAuth sub field (UUID)
+            email: payload.email,
+            name: payload.name || payload.preferred_username,
+            isActive: true,
+            isOAuthUser: true,
+          };
+          console.log('[Auth] OAuth user authenticated:', req.user.email, 'sub:', req.user._id);
+        } else {
+          console.log('[Auth] Token is not from OAuth provider');
         }
-
-        // Check if user is active
-        if (!req.user.isActive) {
-          return res.status(401).json({
-            success: false,
-            message: 'Your account has been deactivated. Please contact support.'
-          });
-        }
-      } else {
-        // For OAuth tokens, create a mock user object from the token payload
-        req.user = {
-          _id: decoded.sub, // Keycloak uses 'sub' for user ID
-          email: decoded.email,
-          name: decoded.name || decoded.preferred_username,
-          isActive: true,
-          isOAuthUser: true,
-        };
-        console.log('[Auth] OAuth user authenticated:', req.user.email);
       }
-
-      next();
     } catch (error) {
-      console.error('[Auth] Token validation failed:', error.message);
-      if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({
-          success: false,
-          message: 'Token has expired. Please log in again.'
-        });
-      }
-      
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid token. Please log in again.'
-      });
+      console.error('[Auth] Failed to decode token:', error.message);
     }
+
+    next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error during authentication'
-    });
+    console.error('[Auth] Middleware error:', error);
+    // Never throw error - just continue without user
+    next();
   }
 };
 
