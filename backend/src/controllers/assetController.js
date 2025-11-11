@@ -78,8 +78,8 @@ exports.uploadAsset = asyncHandler(async (req, res, next) => {
       folder: (folder || 'uploads').replace(/[^a-zA-Z0-9_-]/g, '_')
     });
 
-    // Update user storage
-    user.storageUsed = currentStorage + req.file.size;
+    // Note: Storage tracking is done via Asset.calculateUserStorage()
+    // OAuth users don't have a User model record to update
 
     res.status(201).json({
       success: true,
