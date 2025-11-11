@@ -217,17 +217,35 @@ export async function updateUserProfile(profileData: UserProfile): Promise<void>
 export async function logout(): Promise<void> {
   try {
     const userInfo = authStorage.getUserInfo();
+    const accessToken = authStorage.getAccessToken();
     
-    if (!userInfo?.uid) {
-      console.warn('[Auth] No user info found, clearing local session only');
+    // Try to get user_id from multiple sources
+    let userId = (userInfo as any)?.uid || (userInfo as any)?.sub;
+    
+    // If not in userInfo, decode from access token
+    if (!userId && accessToken) {
+      try {
+        const parts = accessToken.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+          userId = payload.sub || payload.uid || payload.user_id;
+          console.log('[Auth] Extracted user_id from token for logout:', userId);
+        }
+      } catch (decodeError) {
+        console.error('[Auth] Failed to decode token for logout:', decodeError);
+      }
+    }
+    
+    if (!userId) {
+      console.warn('[Auth] No user ID found, clearing local session only');
       authStorage.clearAuth();
       if (typeof window !== 'undefined') {
-        window.location.href = '/';
+        window.location.href = '/login';
       }
       return;
     }
 
-    console.log('[Auth] Logging out user:', userInfo.uid);
+    console.log('[Auth] Logging out user:', userId);
 
     // Call backend which calls OAuth provider logout
     // POST http://sites.isea.in/api/oauth/logout
@@ -238,12 +256,14 @@ export async function logout(): Promise<void> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        user_id: userInfo.uid,
+        user_id: userId,
       }),
     });
 
     if (!response.ok) {
       console.error('[Auth] Logout API call failed:', response.status);
+      const errorData = await response.json().catch(() => ({}));
+      console.error('[Auth] Logout error details:', errorData);
       // Continue with local logout even if API call fails
     } else {
       const data = await response.json();
@@ -257,9 +277,9 @@ export async function logout(): Promise<void> {
     // Always clear local session
     authStorage.clearAuth();
     
-    // Redirect to home page
+    // Redirect to login page (not home page)
     if (typeof window !== 'undefined') {
-      window.location.href = '/';
+      window.location.href = '/login';
     }
   }
 }
@@ -377,17 +397,42 @@ export function isAdmin(userInfo: UserInfo | null): boolean {
 
 // Get user display name
 export function getUserDisplayName(userInfo: UserInfo | null, userProfile: UserProfile | null): string {
+  // Check userProfile first (if available)
   if (userProfile?.first_name && userProfile?.last_name) {
     return `${userProfile.first_name} ${userProfile.last_name}`;
   }
+  
+  // Check userInfo for name fields
   if (userInfo?.first_name && userInfo?.last_name) {
     return `${userInfo.first_name} ${userInfo.last_name}`;
   }
+  
+  // OAuth token fields: Try 'name' field from JWT (Keycloak standard)
+  const userInfoAny = userInfo as any;
+  if (userInfoAny?.name) {
+    return userInfoAny.name;
+  }
+  
+  // Try given_name + family_name (Keycloak fields)
+  if (userInfoAny?.given_name && userInfoAny?.family_name) {
+    return `${userInfoAny.given_name} ${userInfoAny.family_name}`;
+  }
+  
+  // Try preferred_username (Keycloak field)
+  if (userInfoAny?.preferred_username) {
+    return userInfoAny.preferred_username;
+  }
+  
+  // Try username field
   if (userInfo?.username) {
     return userInfo.username;
   }
+  
+  // Fallback to email username
   if (userInfo?.email) {
     return userInfo.email.split('@')[0];
   }
+  
+  // Last resort
   return 'User';
 }
