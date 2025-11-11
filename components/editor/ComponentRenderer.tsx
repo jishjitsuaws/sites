@@ -204,7 +204,6 @@ interface ComponentRendererProps {
   onCopyComponent: () => void;
   onDeleteComponent: () => void;
   onShowImageModal: () => void;
-  onShowButtonModal: () => void;
   onShowTextToolbar: (rect: DOMRect) => void;
   setSelectedComponent: (component: ComponentData) => void;
   onOpenCardGridModal?: () => void;
@@ -220,7 +219,6 @@ export default function ComponentRenderer({
   onCopyComponent,
   onDeleteComponent,
   onShowImageModal,
-  onShowButtonModal,
   onShowTextToolbar,
   setSelectedComponent,
   onOpenCardGridModal,
@@ -659,17 +657,53 @@ export default function ComponentRenderer({
           position: 'relative'
         }}>
           <div className="inline-block relative" style={{ zIndex: isSelected ? 10 : 'auto' }}>
-            {/* Inline Button Controls */}
+            {/* Inline Button Controls with Text and Color Editing */}
             {isSelected && (
               <div 
-                className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
+                className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-2 items-center flex-wrap"
                 style={{
-                  top: '-56px',
-                  left: '0',
+                  top: '-68px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
                   zIndex: 1000,
-                  minWidth: 'max-content',
+                  minWidth: '600px',
                 }}
+                onClick={(e) => e.stopPropagation()}
               >
+                {/* Button Text Input */}
+                <input
+                  type="text"
+                  value={component.props.text || 'Button'}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onUpdateComponent(component.id, {
+                      ...component,
+                      props: { ...component.props, text: e.target.value }
+                    });
+                  }}
+                  placeholder="Button text"
+                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-24"
+                  onClick={(e) => e.stopPropagation()}
+                />
+                
+                {/* Link Input */}
+                <input
+                  type="text"
+                  value={component.props.href || '#'}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onUpdateComponent(component.id, {
+                      ...component,
+                      props: { ...component.props, href: e.target.value }
+                    });
+                  }}
+                  placeholder="Link URL"
+                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-32"
+                  onClick={(e) => e.stopPropagation()}
+                />
+                
+                <div className="w-px bg-gray-300 h-6"></div>
+                
                 <select
                   value={component.props.variant || 'primary'}
                   onChange={(e) => {
@@ -688,7 +722,47 @@ export default function ComponentRenderer({
                   <option value="text">Text</option>
                 </select>
                 
-                <div className="w-px bg-gray-300"></div>
+                <div className="w-px bg-gray-300 h-6"></div>
+                
+                {/* Text Color Picker */}
+                <div className="flex items-center gap-1">
+                  <label className="text-xs text-gray-600 font-medium" title="Text Color">Text</label>
+                  <input
+                    type="color"
+                    value={component.props.textColor || '#ffffff'}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, textColor: e.target.value }
+                      });
+                    }}
+                    className="w-8 h-6 border border-gray-300 rounded cursor-pointer"
+                    title="Text Color"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+                
+                {/* Button Background Color Picker */}
+                <div className="flex items-center gap-1">
+                  <label className="text-xs text-gray-600 font-medium" title="Button Color">Bg</label>
+                  <input
+                    type="color"
+                    value={component.props.buttonColor || themeColors.primary}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, buttonColor: e.target.value }
+                      });
+                    }}
+                    className="w-8 h-6 border border-gray-300 rounded cursor-pointer"
+                    title="Button Background Color"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+                
+                <div className="w-px bg-gray-300 h-6"></div>
                 
                 {/* Alignment Icons */}
                 <button
@@ -731,18 +805,8 @@ export default function ComponentRenderer({
                   <AlignRight className="h-4 w-4" />
                 </button>
                 
-                <div className="w-px bg-gray-300"></div>
+                <div className="w-px bg-gray-300 h-6"></div>
                 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShowButtonModal();
-                  }}
-                  className="p-1.5 hover:bg-gray-100 rounded transition-colors text-gray-900"
-                  title="Edit"
-                >
-                  <Settings className="h-4 w-4" />
-                </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -769,15 +833,19 @@ export default function ComponentRenderer({
             <button 
               className="px-6 py-2 rounded-lg font-medium transition-colors"
               style={{
-                backgroundColor: component.props.variant === 'primary' 
-                  ? themeColors.primary 
-                  : component.props.variant === 'secondary'
-                  ? themeColors.secondary
-                  : 'transparent',
-                color: component.props.variant === 'outline' || component.props.variant === 'text' 
-                  ? themeColors.primary 
-                  : '#ffffff',
-                border: component.props.variant === 'outline' ? `2px solid ${themeColors.primary}` : 'none',
+                backgroundColor: component.props.buttonColor || (
+                  component.props.variant === 'primary' 
+                    ? themeColors.primary 
+                    : component.props.variant === 'secondary'
+                    ? themeColors.secondary
+                    : 'transparent'
+                ),
+                color: component.props.textColor || (
+                  component.props.variant === 'outline' || component.props.variant === 'text' 
+                    ? themeColors.primary 
+                    : '#ffffff'
+                ),
+                border: component.props.variant === 'outline' ? `2px solid ${component.props.buttonColor || themeColors.primary}` : 'none',
               }}
             >
               {component.props.text}

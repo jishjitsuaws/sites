@@ -12,14 +12,25 @@ exports.getSites = asyncHandler(async (req, res, next) => {
   
   const query = {};
   
-  // If subdomain is provided, search by subdomain
+  // If subdomain is provided, search by subdomain (public access for published sites)
   if (subdomain) {
     query.subdomain = subdomain;
-  }
-  
-  // Filter by user ID for privacy - each user sees only their sites
-  if (req.user && req.user._id) {
-    query.userId = req.user._id;
+    // For public access via subdomain, only return published sites
+    if (!req.user) {
+      query.isPublished = true;
+    }
+  } else {
+    // Without subdomain, filter by user ID for privacy - each user sees only their sites
+    // If no user (public access), return empty array
+    if (req.user && req.user._id) {
+      query.userId = req.user._id;
+    } else {
+      // No user and no subdomain = unauthorized
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
   }
   
   if (search) {

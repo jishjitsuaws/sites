@@ -41,7 +41,6 @@ interface SectionWrapperProps {
   onCopyComponent: (componentId: string) => void;
   onComponentClick: (component: Component, e: React.MouseEvent) => void;
   onShowImageModal: (componentId: string) => void;
-  onShowButtonModal: (componentId: string) => void;
   onShowTextToolbar: (componentId: string, rect: DOMRect) => void;
   setSelectedComponent: (component: Component) => void;
   selectedComponentId: string | null;
@@ -75,7 +74,6 @@ export default function SectionWrapper({
   onCopyComponent,
   onComponentClick,
   onShowImageModal,
-  onShowButtonModal,
   onShowTextToolbar,
   setSelectedComponent,
   selectedComponentId,
@@ -449,7 +447,6 @@ export default function SectionWrapper({
                 onCopyComponent={() => onCopyComponent(component.id)}
                 onDeleteComponent={() => onDeleteComponent(component.id)}
                 onShowImageModal={() => onShowImageModal(component.id)}
-                onShowButtonModal={() => onShowButtonModal(component.id)}
                 onShowTextToolbar={(rect) => onShowTextToolbar(component.id, rect)}
                 setSelectedComponent={setSelectedComponent}
                 onOpenCardGridModal={onOpenCardGridModal ? () => onOpenCardGridModal(section.id) : undefined}

@@ -9,16 +9,17 @@ const {
   unpublishSite,
   duplicateSite
 } = require('../controllers/siteController');
-const { protect } = require('../middleware/auth');
+const { protect, optionalAuth } = require('../middleware/auth');
 const { handleValidationErrors, validateObjectId } = require('../middleware/validation');
 const { siteValidation, commonValidation } = require('../middleware/validationRules');
 
 const router = express.Router();
 
 // OAuth authentication via protect middleware
+// GET routes use optionalAuth to allow public access for published sites by subdomain
 // Routes
 router.route('/')
-  .get(protect, siteValidation.query, handleValidationErrors, getSites)
+  .get(optionalAuth, siteValidation.query, handleValidationErrors, getSites)
   .post(protect, siteValidation.create, handleValidationErrors, createSite);
 
 router.route('/:id')

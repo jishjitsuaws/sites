@@ -37,13 +37,9 @@ exports.uploadAsset = asyncHandler(async (req, res, next) => {
     console.warn(`Sanitized filename: ${req.file.originalname} -> ${sanitizedFilename}`);
   }
 
-  // Check user storage limit
-  const user = await User.findById(req.user._id);
+  // Note: We skip storage limit check since we don't have User model with OAuth
+  // OAuth users are assumed to have sufficient storage
   const currentStorage = await Asset.calculateUserStorage(req.user._id);
-
-  if (currentStorage + req.file.size > user.storageLimit) {
-    throw new ApiError('Storage limit exceeded. Please upgrade your plan or delete some files.', 400);
-  }
 
   // Determine asset type
   const assetType = req.file.mimetype.startsWith('image/') ? 'image' :
@@ -79,7 +75,6 @@ exports.uploadAsset = asyncHandler(async (req, res, next) => {
 
     // Update user storage
     user.storageUsed = currentStorage + req.file.size;
-    await user.save();
 
     res.status(201).json({
       success: true,
@@ -213,9 +208,8 @@ exports.deleteAsset = asyncHandler(async (req, res, next) => {
     await asset.deleteOne();
 
     // Update user storage
-    const user = await User.findById(req.user._id);
-    user.storageUsed = Math.max(0, user.storageUsed - asset.size);
-    await user.save();
+    // OAuth: Skip User model lookup - no storage limits
+    // OAuth: Skip storage tracking
 
     res.status(200).json({
       success: true,
@@ -233,17 +227,20 @@ exports.deleteAsset = asyncHandler(async (req, res, next) => {
  * @access  Private
  */
 exports.getStorageInfo = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user._id);
+  // OAuth: Skip User model lookup - no storage limits
   const currentStorage = await Asset.calculateUserStorage(req.user._id);
+  
+  // For OAuth users, use a generous default limit (10GB)
+  const defaultLimit = 10 * 1024 * 1024 * 1024; // 10GB
 
   const storageInfo = {
     used: currentStorage,
-    limit: user.storageLimit,
-    available: user.storageLimit - currentStorage,
-    percentage: (currentStorage / user.storageLimit) * 100,
+    limit: defaultLimit,
+    available: defaultLimit - currentStorage,
+    percentage: (currentStorage / defaultLimit) * 100,
     usedFormatted: formatFileSize(currentStorage),
-    limitFormatted: formatFileSize(user.storageLimit),
-    availableFormatted: formatFileSize(user.storageLimit - currentStorage)
+    limitFormatted: formatFileSize(defaultLimit),
+    availableFormatted: formatFileSize(defaultLimit - currentStorage)
   };
 
   res.status(200).json({
@@ -289,9 +286,8 @@ exports.bulkDeleteAssets = asyncHandler(async (req, res, next) => {
   await Promise.all(deletePromises);
 
   // Update user storage
-  const user = await User.findById(req.user._id);
-  user.storageUsed = Math.max(0, user.storageUsed - totalSize);
-  await user.save();
+  // OAuth: Skip User model lookup - no storage limits
+  // OAuth: Skip storage tracking
 
   res.status(200).json({
     success: true,

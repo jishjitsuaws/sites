@@ -1335,7 +1335,7 @@ export default function EditorPage() {
       case 'image':
         return { src: '', alt: '', width: '400px', height: '300px', objectFit: 'cover', align: 'center', link: '', layout: 'single' };
       case 'button':
-        return { text: 'Click me', href: '#', variant: 'primary', align: 'center' };
+        return { text: 'Button', href: '#', variant: 'primary', align: 'left', textColor: '#ffffff', buttonColor: getThemeColors().primary };
       case 'video':
         return { url: '', autoplay: false };
       case 'divider':
@@ -1789,13 +1789,6 @@ export default function EditorPage() {
                         if (component) {
                           setSelectedComponent(component);
                           setShowImageModal(true);
-                        }
-                      }}
-                      onShowButtonModal={(componentId) => {
-                        const component = section.components.find(c => c.id === componentId);
-                        if (component) {
-                          setSelectedComponent(component);
-                          setShowButtonModal(true);
                         }
                       }}
                       onShowTextToolbar={(componentId, rect) => {
