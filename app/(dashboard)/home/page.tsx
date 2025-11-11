@@ -159,14 +159,10 @@ function DashboardContent() {
           
           toast.success('Successfully logged in!');
           
-          // Clean URL by removing query parameters
-          window.history.replaceState({}, '', '/home');
+          // Redirect to clean /home URL with full page reload to ensure storage is synced
+          console.log('[Home] Redirecting to home...');
+          window.location.href = '/home';
           
-          // Reload to show dashboard
-          setProcessingOAuth(false);
-          setLoading(false);
-          fetchSites();
-
         } catch (error: any) {
           console.error('[Home] OAuth error:', error);
           console.error('[Home] Error response:', error.response?.data);
