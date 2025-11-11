@@ -58,11 +58,12 @@ exports.uploadAsset = asyncHandler(async (req, res, next) => {
       folder: folder || 'cms-uploads'
     });
 
-    // Use full backend URL for assets since they're served directly from backend
-    // HAProxy routes https://sites.isea.in/api/* to backend, but /uploads/* needs direct backend access
-    const assetUrl = process.env.BACKEND_URL 
-      ? `${process.env.BACKEND_URL}/uploads/${result.public_id}`
-      : result.secure_url;
+    // Construct backend URL for assets
+    // Backend serves uploads at http://10.244.0.147:5000/uploads/
+    const backendUrl = process.env.BACKEND_URL ;
+    const assetUrl = `${backendUrl}/uploads/${result.public_id}`;
+
+    console.log('[Asset Upload] File saved:', result.public_id, 'URL:', assetUrl);
 
     // Create asset record with sanitized data
     const asset = await Asset.create({
