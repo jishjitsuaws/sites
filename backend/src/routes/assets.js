@@ -14,17 +14,17 @@ const { validateObjectId } = require('../middleware/validation');
 
 const router = express.Router();
 
-// Routes - OAuth authentication via protect middleware
+// No authentication middleware - OAuth handled client-side
 router.route('/')
-  .get(protect, getAssets);
+  .get(getAssets);
 
-router.post('/upload', protect, uploadSingle, handleMulterError, uploadAsset);
-router.get('/storage/info', protect, getStorageInfo);
-router.delete('/bulk-delete', protect, bulkDeleteAssets);
+router.post('/upload', uploadSingle, handleMulterError, uploadAsset);
+router.get('/storage/info', getStorageInfo);
+router.delete('/bulk-delete', bulkDeleteAssets);
 
 router.route('/:id')
-  .get(protect, validateObjectId('id'), getAsset)
-  .put(protect, validateObjectId('id'), updateAsset)
-  .delete(protect, validateObjectId('id'), deleteAsset);
+  .get(validateObjectId('id'), getAsset)
+  .put(validateObjectId('id'), updateAsset)
+  .delete(validateObjectId('id'), deleteAsset);
 
 module.exports = router;

@@ -18,9 +18,6 @@ exports.getPages = asyncHandler(async (req, res, next) => {
   
   // If user is authenticated, check ownership
   if (req.user) {
-    if (site.userId !== req.user._id) {
-      throw new ApiError('Not authorized to access these pages', 403);
-    }
   } else {
     // For public access, site must be published
     if (!site.isPublished) {
@@ -50,9 +47,6 @@ exports.getPage = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership via site
-  if (page.siteId.userId !== req.user._id) {
-    throw new ApiError('Not authorized to access this page', 403);
-  }
 
   res.status(200).json({
     success: true,
@@ -86,9 +80,6 @@ exports.createPage = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
   
-  if (site.userId !== req.user._id) {
-    throw new ApiError('Not authorized to create pages for this site', 403);
-  }
 
   // Generate unique slug if not provided
   let finalSlug;
@@ -150,9 +141,6 @@ exports.updatePage = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership via site
-  if (page.siteId.userId !== req.user._id) {
-    throw new ApiError('Not authorized to update this page', 403);
-  }
 
   // If slug is being changed, check uniqueness
   if (req.body.slug && req.body.slug !== page.slug) {
@@ -197,9 +185,6 @@ exports.deletePage = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership via site
-  if (page.siteId.userId !== req.user._id) {
-    throw new ApiError('Not authorized to delete this page', 403);
-  }
 
   // Prevent deleting the only page
   const pageCount = await Page.countDocuments({ siteId: page.siteId._id });
@@ -243,9 +228,6 @@ exports.reorderPages = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
   
-  if (site.userId !== req.user._id) {
-    throw new ApiError('Not authorized to reorder pages for this site', 403);
-  }
 
   // Update page orders
   const updatePromises = pageOrders.map(({ pageId, order }) =>
@@ -328,9 +310,6 @@ exports.updatePageContent = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership via site
-  if (page.siteId.userId !== req.user._id) {
-    throw new ApiError('Not authorized to update this page', 403);
-  }
 
   page.content = content;
   await page.save();
