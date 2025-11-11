@@ -49,7 +49,7 @@ exports.getTheme = asyncHandler(async (req, res, next) => {
     throw new ApiError('Theme not found', 404);
   }
 
-  if (!theme.isPublic && (!req.user || theme.createdBy.toString() !== req.user._id.toString())) {
+  if (!theme.isPublic && (!req.user || theme.createdBy !== req.user._id)) {
     throw new ApiError('Not authorized to access this theme', 403);
   }
 
@@ -92,7 +92,7 @@ exports.updateTheme = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership
-  if (theme.createdBy && theme.createdBy.toString() !== req.user._id.toString()) {
+  if (theme.createdBy && theme.createdBy !== req.user._id) {
     throw new ApiError('Not authorized to update this theme', 403);
   }
 
@@ -122,7 +122,7 @@ exports.deleteTheme = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership
-  if (theme.createdBy && theme.createdBy.toString() !== req.user._id.toString()) {
+  if (theme.createdBy && theme.createdBy !== req.user._id) {
     throw new ApiError('Not authorized to delete this theme', 403);
   }
 

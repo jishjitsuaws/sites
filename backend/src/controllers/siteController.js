@@ -16,7 +16,11 @@ exports.getSites = asyncHandler(async (req, res, next) => {
   if (subdomain) {
     query.subdomain = subdomain;
   }
-  // No user filtering - return all sites (OAuth provider handles auth)
+  
+  // Filter by user ID for privacy - each user sees only their sites
+  if (req.user && req.user._id) {
+    query.userId = req.user._id;
+  }
   
   if (search) {
     query.siteName = { $regex: search, $options: 'i' };
@@ -79,9 +83,9 @@ exports.createSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Subdomain already taken', 400);
   }
 
-  // Create site (use a default userId since OAuth doesn't provide it)
+  // Create site with OAuth user ID
   const site = await Site.create({
-    userId: 'oauth-user', // OAuth provider handles auth, userId not needed
+    userId: req.user._id, // OAuth sub field (UUID)
     siteName,
     subdomain: subdomain.toLowerCase(),
     description: description || ''
@@ -118,7 +122,10 @@ exports.updateSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
 
-  // Check ownership
+  // Check ownership (OAuth user ID is a string)
+  if (site.userId !== req.user._id) {
+    throw new ApiError('Not authorized to update this site', 403);
+  }
 
   // Check if subdomain is being changed
   if (req.body.subdomain && req.body.subdomain !== site.subdomain) {
@@ -160,7 +167,10 @@ exports.deleteSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
 
-  // Check ownership
+  // Check ownership (OAuth user ID is a string)
+  if (site.userId !== req.user._id) {
+    throw new ApiError('Not authorized to delete this site', 403);
+  }
 
   // Delete all pages associated with site
   await Page.deleteMany({ siteId: site._id });
@@ -186,7 +196,10 @@ exports.publishSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
 
-  // Check ownership
+  // Check ownership (OAuth user ID is a string)
+  if (site.userId !== req.user._id) {
+    throw new ApiError('Not authorized to publish this site', 403);
+  }
 
   // Check if site has at least one page
   const pageCount = await Page.countDocuments({ siteId: site._id });
@@ -218,7 +231,10 @@ exports.unpublishSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
 
-  // Check ownership
+  // Check ownership (OAuth user ID is a string)
+  if (site.userId !== req.user._id) {
+    throw new ApiError('Not authorized to unpublish this site', 403);
+  }
 
   site.isPublished = false;
   await site.save();
@@ -242,7 +258,10 @@ exports.duplicateSite = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
 
-  // Check ownership
+  // Check ownership (OAuth user ID is a string)
+  if (originalSite.userId !== req.user._id) {
+    throw new ApiError('Not authorized to duplicate this site', 403);
+  }
 
   // Generate unique subdomain
   const baseSubdomain = `${originalSite.subdomain}-copy`;

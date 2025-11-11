@@ -143,7 +143,7 @@ exports.getAsset = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership
-  if (asset.userId.toString() !== req.user._id.toString()) {
+  if (asset.userId !== req.user._id) {
     throw new ApiError('Not authorized to access this asset', 403);
   }
 
@@ -166,7 +166,7 @@ exports.updateAsset = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership
-  if (asset.userId.toString() !== req.user._id.toString()) {
+  if (asset.userId !== req.user._id) {
     throw new ApiError('Not authorized to update this asset', 403);
   }
 
@@ -199,7 +199,7 @@ exports.deleteAsset = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership
-  if (asset.userId.toString() !== req.user._id.toString()) {
+  if (asset.userId !== req.user._id) {
     throw new ApiError('Not authorized to delete this asset', 403);
   }
 

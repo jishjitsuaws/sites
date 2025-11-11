@@ -18,7 +18,7 @@ exports.getPages = asyncHandler(async (req, res, next) => {
   
   // If user is authenticated, check ownership
   if (req.user) {
-    if (site.userId.toString() !== req.user._id.toString()) {
+    if (site.userId !== req.user._id) {
       throw new ApiError('Not authorized to access these pages', 403);
     }
   } else {
@@ -50,7 +50,7 @@ exports.getPage = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership via site
-  if (page.siteId.userId.toString() !== req.user._id.toString()) {
+  if (page.siteId.userId !== req.user._id) {
     throw new ApiError('Not authorized to access this page', 403);
   }
 
@@ -86,7 +86,7 @@ exports.createPage = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
   
-  if (site.userId.toString() !== req.user._id.toString()) {
+  if (site.userId !== req.user._id) {
     throw new ApiError('Not authorized to create pages for this site', 403);
   }
 
@@ -150,7 +150,7 @@ exports.updatePage = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership via site
-  if (page.siteId.userId.toString() !== req.user._id.toString()) {
+  if (page.siteId.userId !== req.user._id) {
     throw new ApiError('Not authorized to update this page', 403);
   }
 
@@ -197,7 +197,7 @@ exports.deletePage = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership via site
-  if (page.siteId.userId.toString() !== req.user._id.toString()) {
+  if (page.siteId.userId !== req.user._id) {
     throw new ApiError('Not authorized to delete this page', 403);
   }
 
@@ -243,7 +243,7 @@ exports.reorderPages = asyncHandler(async (req, res, next) => {
     throw new ApiError('Site not found', 404);
   }
   
-  if (site.userId.toString() !== req.user._id.toString()) {
+  if (site.userId !== req.user._id) {
     throw new ApiError('Not authorized to reorder pages for this site', 403);
   }
 
@@ -328,7 +328,7 @@ exports.updatePageContent = asyncHandler(async (req, res, next) => {
   }
 
   // Check ownership via site
-  if (page.siteId.userId.toString() !== req.user._id.toString()) {
+  if (page.siteId.userId !== req.user._id) {
     throw new ApiError('Not authorized to update this page', 403);
   }
 
