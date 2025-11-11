@@ -15,31 +15,22 @@ const { pageValidation, commonValidation } = require('../middleware/validationRu
 
 const router = express.Router({ mergeParams: true });
 
-// Middleware to conditionally apply authentication
-const optionalAuth = (req, res, next) => {
-  // If accessing pages without authentication (public site viewing), skip authentication
-  // The controller will verify if the site is published
-  if (req.headers.authorization) {
-    return protect(req, res, next);
-  }
-  // No auth header, skip to controller (will be handled there)
-  return next();
-};
+// OAuth provider handles authentication - no middleware needed
 
 // Routes for pages within a site
 router.route('/')
-  .get(optionalAuth, getPages)
-  .post(protect, pageValidation.create, handleValidationErrors, createPage);
+  .get(getPages)
+  .post(pageValidation.create, handleValidationErrors, createPage);
 
-router.put('/reorder', protect, pageValidation.reorder, handleValidationErrors, reorderPages);
+router.put('/reorder', pageValidation.reorder, handleValidationErrors, reorderPages);
 
 // Routes for individual pages
 router.route('/:id')
-  .get(protect, ...commonValidation.objectId('id'), handleValidationErrors, getPage)
-  .put(protect, ...commonValidation.objectId('id'), pageValidation.update, handleValidationErrors, updatePage)
-  .delete(protect, ...commonValidation.objectId('id'), handleValidationErrors, deletePage);
+  .get(...commonValidation.objectId('id'), handleValidationErrors, getPage)
+  .put(...commonValidation.objectId('id'), pageValidation.update, handleValidationErrors, updatePage)
+  .delete(...commonValidation.objectId('id'), handleValidationErrors, deletePage);
 
-router.post('/:id/duplicate', protect, ...commonValidation.objectId('id'), handleValidationErrors, duplicatePage);
-router.patch('/:id/content', protect, ...commonValidation.objectId('id'), pageValidation.update, handleValidationErrors, updatePageContent);
+router.post('/:id/duplicate', ...commonValidation.objectId('id'), handleValidationErrors, duplicatePage);
+router.patch('/:id/content', ...commonValidation.objectId('id'), pageValidation.update, handleValidationErrors, updatePageContent);
 
 module.exports = router;

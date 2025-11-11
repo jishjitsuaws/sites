@@ -15,28 +15,19 @@ const { siteValidation, commonValidation } = require('../middleware/validationRu
 
 const router = express.Router();
 
-// Middleware to conditionally apply authentication
-const optionalAuth = (req, res, next) => {
-  // If subdomain query param exists, skip authentication (public access)
-  if (req.query.subdomain) {
-    return next();
-  }
-  // Otherwise require authentication
-  return protect(req, res, next);
-};
-
+// OAuth provider handles authentication - no middleware needed
 // Routes
 router.route('/')
-  .get(optionalAuth, siteValidation.query, handleValidationErrors, getSites)
-  .post(protect, siteValidation.create, handleValidationErrors, createSite);
+  .get(siteValidation.query, handleValidationErrors, getSites)
+  .post(siteValidation.create, handleValidationErrors, createSite);
 
 router.route('/:id')
-  .get(protect, ...commonValidation.objectId('id'), handleValidationErrors, getSite)
-  .put(protect, ...commonValidation.objectId('id'), siteValidation.update, handleValidationErrors, updateSite)
-  .delete(protect, ...commonValidation.objectId('id'), handleValidationErrors, deleteSite);
+  .get(...commonValidation.objectId('id'), handleValidationErrors, getSite)
+  .put(...commonValidation.objectId('id'), siteValidation.update, handleValidationErrors, updateSite)
+  .delete(...commonValidation.objectId('id'), handleValidationErrors, deleteSite);
 
-router.post('/:id/publish', protect, ...commonValidation.objectId('id'), siteValidation.publish, handleValidationErrors, publishSite);
-router.post('/:id/unpublish', protect, ...commonValidation.objectId('id'), handleValidationErrors, unpublishSite);
-router.post('/:id/duplicate', protect, ...commonValidation.objectId('id'), handleValidationErrors, duplicateSite);
+router.post('/:id/publish', ...commonValidation.objectId('id'), siteValidation.publish, handleValidationErrors, publishSite);
+router.post('/:id/unpublish', ...commonValidation.objectId('id'), handleValidationErrors, unpublishSite);
+router.post('/:id/duplicate', ...commonValidation.objectId('id'), handleValidationErrors, duplicateSite);
 
 module.exports = router;

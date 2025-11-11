@@ -35,19 +35,19 @@ const createThemeValidation = [
     .notEmpty().withMessage('Body font is required')
 ];
 
-// Routes
+// Routes - OAuth provider handles authentication
 router.route('/')
-  .get(optionalAuth, getThemes)
-  .post(protect, createThemeValidation, handleValidationErrors, createTheme);
+  .get(getThemes)
+  .post(createThemeValidation, handleValidationErrors, createTheme);
 
-router.get('/my-themes', protect, getMyThemes);
+router.get('/my-themes', getMyThemes);
 router.get('/category/:category', getThemesByCategory);
 
 router.route('/:id')
-  .get(optionalAuth, validateObjectId('id'), getTheme)
-  .put(protect, validateObjectId('id'), updateTheme)
-  .delete(protect, validateObjectId('id'), deleteTheme);
+  .get(validateObjectId('id'), getTheme)
+  .put(validateObjectId('id'), updateTheme)
+  .delete(validateObjectId('id'), deleteTheme);
 
-router.post('/:id/use', protect, validateObjectId('id'), useTheme);
+router.post('/:id/use', validateObjectId('id'), useTheme);
 
 module.exports = router;
