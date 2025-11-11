@@ -26,25 +26,59 @@ const protect = async (req, res, next) => {
     }
 
     try {
-      // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // Get user from token
-      req.user = await User.findById(decoded.id).select('-password');
-
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          message: 'User not found. Token is invalid.'
-        });
+      // First, try to verify as OAuth token (Keycloak/IVP ISEA JWT)
+      // OAuth tokens are NOT signed with our JWT_SECRET, so we decode without verification
+      let decoded;
+      let isOAuthToken = false;
+      
+      try {
+        // Try to decode as OAuth token (just decode, don't verify signature)
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+          
+          // Check if it's an OAuth token (has 'iss' field from OAuth provider)
+          if (payload.iss && payload.iss.includes('ivp.isea.in')) {
+            decoded = payload;
+            isOAuthToken = true;
+            console.log('[Auth] OAuth token detected from IVP ISEA');
+          }
+        }
+      } catch (oauthError) {
+        // Not an OAuth token, will try regular JWT next
       }
 
-      // Check if user is active
-      if (!req.user.isActive) {
-        return res.status(401).json({
-          success: false,
-          message: 'Your account has been deactivated. Please contact support.'
-        });
+      // If not OAuth, verify as regular JWT token
+      if (!isOAuthToken) {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Get user from database for regular JWT tokens
+        req.user = await User.findById(decoded.id).select('-password');
+
+        if (!req.user) {
+          return res.status(401).json({
+            success: false,
+            message: 'User not found. Token is invalid.'
+          });
+        }
+
+        // Check if user is active
+        if (!req.user.isActive) {
+          return res.status(401).json({
+            success: false,
+            message: 'Your account has been deactivated. Please contact support.'
+          });
+        }
+      } else {
+        // For OAuth tokens, create a mock user object from the token payload
+        req.user = {
+          _id: decoded.sub, // Keycloak uses 'sub' for user ID
+          email: decoded.email,
+          name: decoded.name || decoded.preferred_username,
+          isActive: true,
+          isOAuthUser: true,
+        };
+        console.log('[Auth] OAuth user authenticated:', req.user.email);
       }
 
       next();
