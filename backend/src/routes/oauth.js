@@ -358,14 +358,13 @@ router.post('/logout', async (req, res) => {
     }
 
     console.log('[OAuth] Logout request received for user:', user_id);
-    console.log('[OAuth] Calling:', `${OAUTH_BASE_URL}/logout`);
-    console.log('[OAuth] Logout payload:', { user_id, client_id: CLIENT_ID });
+    // Use /ivplogout endpoint per provider change; only user_id required
+    console.log('[OAuth] Calling:', `${OAUTH_BASE_URL}/ivplogout`);
+    console.log('[OAuth] Logout payload:', { user_id });
 
-    // Call OAuth provider logout endpoint
-    // The provider needs client_id to identify the client context
-    const response = await axiosInstance.post(`${OAUTH_BASE_URL}/logout`, {
+    // Call OAuth provider logout endpoint (ivplogout expects only user_id)
+    const response = await axiosInstance.post(`${OAUTH_BASE_URL}/ivplogout`, {
       user_id,
-      client_id: CLIENT_ID,
     }, {
       headers: {
         'Content-Type': 'application/json',
