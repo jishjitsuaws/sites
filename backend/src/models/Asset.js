@@ -86,8 +86,9 @@ assetSchema.virtual('isImage').get(function() {
 
 // Static method to calculate total storage used by user
 assetSchema.statics.calculateUserStorage = async function(userId) {
+  // userId is now a String (OAuth UUID), not ObjectId
   const result = await this.aggregate([
-    { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+    { $match: { userId: userId } },
     { $group: { _id: null, totalSize: { $sum: '$size' } } }
   ]);
   
