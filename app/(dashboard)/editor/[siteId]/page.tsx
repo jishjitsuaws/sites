@@ -240,7 +240,9 @@ export default function EditorPage() {
           // ALWAYS prioritize sections if they exist
           if (firstPage.sections && firstPage.sections.length > 0) {
             const sectionsWithFooter = ensureFooterExists(firstPage.sections);
-            setSections(sectionsWithFooter);
+            // Sort sections by order to maintain proper sequence
+            const sortedSections = sectionsWithFooter.sort((a, b) => a.order - b.order);
+            setSections(sortedSections);
             setComponents([]); // Don't use content when sections exist
           } else {
             const sectionsWithFooter = ensureFooterExists([]);
@@ -487,7 +489,8 @@ export default function EditorPage() {
     if (page.sections && page.sections.length > 0) {
       console.log('Loading sections from page:', page.sections.length);
       const sectionsWithFooter = ensureFooterExists(page.sections);
-      setSections(sectionsWithFooter);
+      const sortedSections = sectionsWithFooter.sort((a, b) => a.order - b.order);
+      setSections(sortedSections);
       setComponents([]);
     } else if (page.content && page.content.length > 0) {
       console.log('Converting content to sections:', page.content.length);
@@ -504,7 +507,8 @@ export default function EditorPage() {
         order: index,
       }));
       const sectionsWithFooter = ensureFooterExists(convertedSections);
-      setSections(sectionsWithFooter);
+      const sortedSections = sectionsWithFooter.sort((a, b) => a.order - b.order);
+      setSections(sortedSections);
       setComponents(page.content);
     } else {
       console.log('Empty page, adding footer');
@@ -542,7 +546,8 @@ export default function EditorPage() {
         // Prioritize sections over content
         if (nextPage.sections && nextPage.sections.length > 0) {
           const sectionsWithFooter = ensureFooterExists(nextPage.sections);
-          setSections(sectionsWithFooter);
+          const sortedSections = sectionsWithFooter.sort((a, b) => a.order - b.order);
+          setSections(sortedSections);
           setComponents([]); // Clear components when using sections
         } else if (nextPage.content && nextPage.content.length > 0) {
           const convertedSections = nextPage.content.map((component: any, index: number) => ({
@@ -558,7 +563,8 @@ export default function EditorPage() {
             order: index,
           }));
           const sectionsWithFooter = ensureFooterExists(convertedSections);
-          setSections(sectionsWithFooter);
+          const sortedSections = sectionsWithFooter.sort((a, b) => a.order - b.order);
+          setSections(sortedSections);
           setComponents(nextPage.content);
         } else {
           const sectionsWithFooter = ensureFooterExists([]);
@@ -1384,7 +1390,7 @@ export default function EditorPage() {
       case 'button':
         return { text: 'Button', href: '#', variant: 'primary', align: 'left', textColor: '#ffffff', buttonColor: getThemeColors().primary };
       case 'video':
-        return { url: '', autoplay: false };
+        return { url: '', autoplay: false, height: 400 };
       case 'divider':
         return { style: 'solid', color: '#e5e7eb', height: '40px' };
       case 'social':

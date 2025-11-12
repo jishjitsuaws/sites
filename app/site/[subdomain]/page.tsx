@@ -515,7 +515,7 @@ export default function PublishedSitePage() {
 
       case 'video':
         return component.props.url ? (
-          <div className="aspect-video">
+          <div style={{ height: `${component.props.height || 400}px`, width: '100%' }}>
             <iframe
               src={getYouTubeEmbedUrl(component.props.url)}
               title="Embedded video"
@@ -983,7 +983,7 @@ export default function PublishedSitePage() {
     <>
       <link rel="stylesheet" href={googleFontsUrl} />
       <div 
-        className="min-h-screen"
+        className="min-h-screen flex flex-col"
         style={{ 
           backgroundColor: themeColors.background,
           color: themeColors.text,
@@ -1174,10 +1174,10 @@ export default function PublishedSitePage() {
       </header>
 
       {/* Page Content */}
-      <main className="container mx-auto p-4 md:p-8 pb-0" style={{ overflow: 'visible' }}>
+      <main className="flex-1 container mx-auto" style={{ overflow: 'visible', padding: '1rem 2rem 0 2rem' }}>
         {currentPage.sections && currentPage.sections.length > 0 ? (
           // Render sections with flexbox layout
-          <div className="space-y-6">
+          <div style={{ marginBottom: 0 }}>
             {currentPage.sections.map((section, index) => {
               // Check if this is a card section
               const cardCount = section.components?.filter((c: any) => c.type === 'card').length || 0;
@@ -1193,6 +1193,9 @@ export default function PublishedSitePage() {
               const hasFullWidthComponent = section.components?.some((c: any) => 
                 c.type === 'banner' || c.type === 'footer'
               );
+              
+              // Check if this is the last section
+              const isLastSection = index === currentPage.sections.length - 1;
               
               // For cards on mobile, use centered justification
               const mobileJustify = isCardSection && direction === 'row' ? 'center' : justify;
@@ -1214,6 +1217,7 @@ export default function PublishedSitePage() {
                     marginLeft: hasFullWidthComponent ? '-32px' : '0',
                     marginRight: hasFullWidthComponent ? '-32px' : '0',
                     marginTop: hasFullWidthComponent && index === 0 ? '-16px' : undefined,
+                    marginBottom: isLastSection ? '0' : '24px', // No margin on last section
                     width: hasFullWidthComponent ? 'calc(100% + 64px)' : 'auto',
                   }}
                 >
@@ -1271,13 +1275,13 @@ export default function PublishedSitePage() {
           </div>
         ) : currentPage.content && currentPage.content.length > 0 ? (
           // Legacy: Render flat components (backward compatibility)
-          <div className="space-y-6">
+          <div className="space-y-6" style={{ marginBottom: 0 }}>
             {currentPage.content.map((component) => (
               <div key={component.id}>{renderComponent(component)}</div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12" style={{ color: themeColors.text, opacity: 0.6 }}>
+          <div className="text-center py-12" style={{ color: themeColors.text, opacity: 0.6, marginBottom: 0 }}>
             <p>This page has no content yet.</p>
           </div>
         )}

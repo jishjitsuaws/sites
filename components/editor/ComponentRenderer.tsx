@@ -1186,6 +1186,25 @@ export default function ComponentRenderer({
                 {component.props.url ? 'Change URL' : 'Add URL'}
               </button>
               <div className="w-px bg-gray-300"></div>
+              <div className="px-2 py-1.5 flex items-center gap-2">
+                <label className="text-xs text-gray-700 whitespace-nowrap">Height:</label>
+                <input
+                  type="number"
+                  value={parseInt(component.props.height) || 400}
+                  onChange={(e) => {
+                    onUpdateComponent(component.id, {
+                      ...component,
+                      props: { ...component.props, height: e.target.value }
+                    });
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-20 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
+                  min="200"
+                  max="800"
+                  step="50"
+                />
+              </div>
+              <div className="w-px bg-gray-300"></div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1213,7 +1232,7 @@ export default function ComponentRenderer({
           )}
           
           {component.props.url ? (
-            <div className="aspect-video">
+            <div style={{ height: `${component.props.height || 400}px`, width: '100%' }}>
               <iframe
                 src={getYouTubeEmbedUrl(component.props.url)}
                 title="Embedded video"

@@ -159,7 +159,28 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   addSection: (section) => {
     const { sections, history, historyIndex } = get();
-    const newSections = [...sections, section];
+    
+    // Find footer section (if exists)
+    const footerIndex = sections.findIndex(s => 
+      s.components.some(c => c.type === 'footer')
+    );
+    
+    let newSections: Section[];
+    if (footerIndex !== -1) {
+      // Insert before footer
+      newSections = [
+        ...sections.slice(0, footerIndex),
+        section,
+        ...sections.slice(footerIndex)
+      ];
+    } else {
+      // No footer, add to end
+      newSections = [...sections, section];
+    }
+    
+    // Update order property for all sections
+    newSections = newSections.map((s, idx) => ({ ...s, order: idx }));
+    
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push(newSections);
     
