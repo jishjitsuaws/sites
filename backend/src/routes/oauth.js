@@ -255,7 +255,7 @@ router.post('/token', async (req, res) => {
       res.cookie('access_token', actualAccessToken, {
         httpOnly: true,        // JavaScript CANNOT access this cookie (XSS protection)
         secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-        sameSite: 'lax',       // CSRF protection
+        sameSite: 'strict',    // Strict: Cookie not sent on cross-site requests (prevents cross-tab/incognito sharing)
         maxAge: expiresIn * 1000, // Convert seconds to milliseconds
         path: '/'
       });
@@ -268,7 +268,7 @@ router.post('/token', async (req, res) => {
       res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'strict',    // Strict: Cookie not sent on cross-site requests (prevents cross-tab/incognito sharing)
         maxAge: (tokenData.refresh_expires_in || 86400) * 1000, // Default 24 hours
         path: '/'
       });
@@ -473,13 +473,13 @@ router.post('/logout', async (req, res) => {
     res.clearCookie('access_token', { 
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict',
       path: '/'
     });
     res.clearCookie('refresh_token', { 
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict',
       path: '/'
     });
     console.log('[OAuth] HttpOnly cookies cleared');

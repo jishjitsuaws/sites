@@ -222,8 +222,18 @@ export async function logout(): Promise<void> {
   try {
     const userInfo = authStorage.getUserInfo();
     
+    console.log('[Auth] Logout called with userInfo:', userInfo);
+    console.log('[Auth] UserInfo keys:', userInfo ? Object.keys(userInfo) : 'null');
+    console.log('[Auth] UserInfo full:', JSON.stringify(userInfo, null, 2));
+    
     // Try to get user_id from multiple sources
-    let userId = (userInfo as any)?.uid || (userInfo as any)?.sub;
+    let userId = (userInfo as any)?.uid || 
+                 (userInfo as any)?.sub || 
+                 (userInfo as any)?.user_id ||
+                 (userInfo as any)?.id ||
+                 (userInfo as any)?.userId;
+    
+    console.log('[Auth] Extracted userId:', userId);
     
     if (!userId) {
       console.warn('[Auth] No user ID found, clearing local session only');
@@ -249,6 +259,8 @@ export async function logout(): Promise<void> {
         user_id: userId,
       }),
     });
+
+    console.log('[Auth] Logout response status:', response.status);
 
     if (!response.ok) {
       console.error('[Auth] Logout API call failed:', response.status);
