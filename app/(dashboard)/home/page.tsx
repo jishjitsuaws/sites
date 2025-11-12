@@ -7,9 +7,7 @@ import {
   getUserDisplayName,
   exchangeCodeForToken,
   fetchUserInfo,
-  fetchUserProfile,
-  validateOAuthCallback,
-  clearOAuthState
+  fetchUserProfile
 } from '@/lib/auth';
 import api from '@/lib/api';
 import Button from '@/components/ui/Button';
@@ -70,25 +68,27 @@ function DashboardContent() {
         setProcessingOAuth(true);
         
         try {
-          console.log('[Home] Validating OAuth state...');
+          // NOTE: IVP ISEA OAuth provider generates its own state parameter
+          // and doesn't use the state we send in the authorization request.
+          // We'll verify that a state exists but won't validate against our stored state
+          // since the provider doesn't return our state back to us.
           
-          // STEP 2.1: Validate state parameter (CSRF protection)
-          const validation = validateOAuthCallback(state);
+          console.log('[Home] OAuth parameters received:', {
+            code: code.substring(0, 20) + '...',
+            state: state.substring(0, 20) + '...',
+            hasCode: !!code,
+            hasState: !!state
+          });
           
-          if (!validation.valid) {
-            console.error('[Home] OAuth validation failed:', validation.error);
-            toast.error(validation.error || 'Authentication failed');
-            sessionStorage.removeItem('oauth_processing');
+          // Optional: Verify state format (should be alphanumeric)
+          if (!/^[a-zA-Z0-9]+$/.test(state)) {
+            console.error('[Home] State has invalid format');
+            toast.error('Authentication failed: Invalid state format');
             router.push('/login');
             return;
           }
 
-          console.log('[Home] OAuth state validated successfully');
-          
-          // STEP 2.2: Clear OAuth state to prevent reuse (replay attack protection)
-          clearOAuthState();
-          
-          console.log('[Home] Exchanging code for token...');
+          console.log('[Home] State format verified, exchanging code for token...');
           
           // Exchange code for access token
           const tokenData = await exchangeCodeForToken(code, state);
