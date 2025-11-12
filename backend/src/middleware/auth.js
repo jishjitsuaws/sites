@@ -9,13 +9,20 @@ const protect = async (req, res, next) => {
   try {
     let token;
 
-    // Check for token in Authorization header
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
+    // SECURITY FIX (CVE-002): Check for token in HttpOnly cookie first
+    if (req.cookies && req.cookies.access_token) {
+      token = req.cookies.access_token;
+      console.log('[Auth] Token found in HttpOnly cookie');
     }
-    // Check for token in cookies
+    // Fallback: Check for token in Authorization header (for backwards compatibility)
+    else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+      console.log('[Auth] Token found in Authorization header');
+    }
+    // Legacy: Check for old cookie name
     else if (req.cookies && req.cookies.token) {
       token = req.cookies.token;
+      console.log('[Auth] Token found in legacy cookie');
     }
 
     // If no token, just continue without setting req.user

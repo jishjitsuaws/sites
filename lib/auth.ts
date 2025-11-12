@@ -84,11 +84,13 @@ export async function exchangeCodeForToken(
     
     // Call backend proxy which calls:
     // POST https://ivp.isea.in/backend/tokengen
+    // SECURITY FIX (CVE-002): Backend will set HttpOnly cookie, we don't store token in localStorage
     const response = await fetch(`${BACKEND_URL}/api/oauth/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Important: Include cookies in request
       body: JSON.stringify({
         code,
         state,
@@ -103,7 +105,7 @@ export async function exchangeCodeForToken(
     }
 
     const data = await response.json();
-    console.log('[Auth] Token received successfully');
+    console.log('[Auth] Token exchange successful - token stored in HttpOnly cookie');
     return data;
   } catch (error) {
     console.error('[Auth] Error exchanging code for token:', error);
@@ -118,14 +120,15 @@ export async function fetchUserInfo(accessToken: string, uid: string): Promise<U
     
     // Call backend proxy which calls:
     // POST https://ivp.isea.in/backend/userinfo
+    // SECURITY FIX (CVE-002): Token is sent via HttpOnly cookie, not in body
     const response = await fetch(`${BACKEND_URL}/api/oauth/userinfo`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Important: Include cookies
       body: JSON.stringify({
-        access_token: accessToken,
-        uid,
+        uid, // Still send uid in body
       }),
     });
 
@@ -151,14 +154,15 @@ export async function fetchUserProfile(accessToken: string, uid: string): Promis
     
     // Call backend proxy which calls:
     // POST https://ivp.isea.in/backend/ivp/profile/
+    // SECURITY FIX (CVE-002): Token is sent via HttpOnly cookie, not in body
     const response = await fetch(`${BACKEND_URL}/api/oauth/profile`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Important: Include cookies
       body: JSON.stringify({
-        access_token: accessToken,
-        uid,
+        uid, // Still send uid in body
       }),
     });
 
@@ -217,24 +221,9 @@ export async function updateUserProfile(profileData: UserProfile): Promise<void>
 export async function logout(): Promise<void> {
   try {
     const userInfo = authStorage.getUserInfo();
-    const accessToken = authStorage.getAccessToken();
     
     // Try to get user_id from multiple sources
     let userId = (userInfo as any)?.uid || (userInfo as any)?.sub;
-    
-    // If not in userInfo, decode from access token
-    if (!userId && accessToken) {
-      try {
-        const parts = accessToken.split('.');
-        if (parts.length === 3) {
-          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-          userId = payload.sub || payload.uid || payload.user_id;
-          console.log('[Auth] Extracted user_id from token for logout:', userId);
-        }
-      } catch (decodeError) {
-        console.error('[Auth] Failed to decode token for logout:', decodeError);
-      }
-    }
     
     if (!userId) {
       console.warn('[Auth] No user ID found, clearing local session only');
@@ -247,14 +236,15 @@ export async function logout(): Promise<void> {
 
     console.log('[Auth] Logging out user:', userId);
 
-    // Call backend which calls OAuth provider logout
+    // Call backend which calls OAuth provider logout and clears HttpOnly cookies
     // POST http://sites.isea.in/api/oauth/logout
-    // Which calls: POST https://ivp.isea.in/backend/logout
+    // Which calls: POST https://ivp.isea.in/backend/ivplogout
     const response = await fetch(`${BACKEND_URL}/api/oauth/logout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Important: Send cookies to be cleared
       body: JSON.stringify({
         user_id: userId,
       }),
@@ -285,22 +275,24 @@ export async function logout(): Promise<void> {
 }
 
 // Auth storage utilities
+// SECURITY FIX (CVE-002): Do NOT store access tokens in sessionStorage/localStorage
+// Tokens are now stored in HttpOnly cookies managed by the backend
 export const authStorage = {
   setAuth: (accessToken: string, userInfo: UserInfo, userProfile?: UserProfile) => {
     if (typeof window === 'undefined') return;
     
-    console.log('[Auth Storage] Setting auth data:', {
-      hasToken: !!accessToken,
+    console.log('[Auth Storage] Setting auth data (token stored in HttpOnly cookie):', {
       hasUserInfo: !!userInfo,
       hasUserProfile: !!userProfile,
       userInfo: userInfo,
       userProfile: userProfile
     });
     
-    // Store in BOTH sessionStorage AND localStorage for reliability
-    sessionStorage.setItem('access_token', accessToken);
+    // SECURITY: Do NOT store access_token in sessionStorage or localStorage
+    // It's already stored in an HttpOnly cookie by the backend (CVE-002 fix)
+    
+    // Only store non-sensitive user information
     sessionStorage.setItem('user_info', JSON.stringify(userInfo));
-    localStorage.setItem('access_token', accessToken);
     localStorage.setItem('user_info', JSON.stringify(userInfo));
     
     if (userProfile) {
@@ -312,24 +304,14 @@ export const authStorage = {
     sessionStorage.setItem('auth_timestamp', timestamp);
     localStorage.setItem('auth_timestamp', timestamp);
     
-    // Verify it was stored
-    const storedToken = sessionStorage.getItem('access_token');
-    const storedUserInfo = sessionStorage.getItem('user_info');
-    const storedUserProfile = sessionStorage.getItem('user_profile');
-    
-    console.log('[Auth Storage] Verification after storage:', {
-      tokenStored: !!storedToken,
-      userInfoStored: !!storedUserInfo,
-      userProfileStored: !!storedUserProfile,
-      tokenMatches: storedToken === accessToken
-    });
-    
-    console.log('[Auth Storage] Authentication data stored successfully');
+    console.log('[Auth Storage] User info stored successfully (no token in storage)');
   },
 
   getAccessToken: (): string | null => {
-    if (typeof window === 'undefined') return null;
-    return sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+    // SECURITY FIX (CVE-002): Access token is in HttpOnly cookie, not accessible to JavaScript
+    // Return null here - backend will automatically send cookie with requests
+    console.log('[Auth Storage] Access token is in HttpOnly cookie (not accessible to JavaScript)');
+    return null;
   },
 
   getUserInfo: (): UserInfo | null => {
@@ -356,8 +338,10 @@ export const authStorage = {
 
   isAuthenticated: (): boolean => {
     if (typeof window === 'undefined') return false;
-    const hasSession = !!(sessionStorage.getItem('access_token') && sessionStorage.getItem('user_info'));
-    const hasLocal = !!(localStorage.getItem('access_token') && localStorage.getItem('user_info'));
+    // SECURITY FIX (CVE-002): Check for user_info instead of access_token
+    // Access token is in HttpOnly cookie, so we check if user info exists
+    const hasSession = !!sessionStorage.getItem('user_info');
+    const hasLocal = !!localStorage.getItem('user_info');
     return hasSession || hasLocal;
   },
 
@@ -368,20 +352,18 @@ export const authStorage = {
 
   clearAuth: () => {
     if (typeof window === 'undefined') return;
-    // Clear both storages
-    sessionStorage.removeItem('access_token');
+    // Clear user info from storage (access token is in HttpOnly cookie, cleared by backend)
     sessionStorage.removeItem('user_info');
     sessionStorage.removeItem('user_profile');
     sessionStorage.removeItem('auth_timestamp');
     sessionStorage.removeItem('oauth_state');
     sessionStorage.removeItem('oauth_state_timestamp');
     
-    localStorage.removeItem('access_token');
     localStorage.removeItem('user_info');
     localStorage.removeItem('user_profile');
     localStorage.removeItem('auth_timestamp');
     
-    console.log('[Auth] Authentication data cleared');
+    console.log('[Auth] User data cleared (HttpOnly cookies cleared by backend)');
   },
 
   logout: async () => {

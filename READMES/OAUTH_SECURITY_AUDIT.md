@@ -1109,23 +1109,8 @@ export async function logout() {
 
 ---
 
-## 📞 **CONTACT & ESCALATION**
-
-**Security Team:** security@sites.isea.in  
-**Incident Response:** incident@sites.isea.in  
-**Emergency Hotline:** [REDACTED]
-
 **Report Generated:** November 12, 2025  
 **Next Audit:** Scheduled after critical fixes implementation (est. December 2025)  
 **Document Version:** 1.0  
 **Classification:** Internal - Security Sensitive
-
----
-
-**Audit Conducted By:**  
-Senior Application Security Auditor  
-OWASP Certified Security Professional  
-OAuth 2.0 Security Specialist
-
-**Signature:** _[AI-Generated Security Assessment]_
 

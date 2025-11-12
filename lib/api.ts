@@ -8,19 +8,16 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true,
+  withCredentials: true, // SECURITY FIX (CVE-002): Send HttpOnly cookies with requests
 });
 
-// Request interceptor - add token to requests
+// Request interceptor
+// SECURITY FIX (CVE-002): Token is in HttpOnly cookie, no need to add to headers
 apiClient.interceptors.request.use(
   (config) => {
-    // Get OAuth token from sessionStorage (OAuth integration)
-    const token = typeof window !== 'undefined' ? sessionStorage.getItem('access_token') : null;
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    
+    // HttpOnly cookie is automatically sent by browser
+    // No need to manually add Authorization header
+    console.log('[API] Request to:', config.url, '(token in HttpOnly cookie)');
     return config;
   },
   (error) => {
@@ -46,9 +43,11 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && originalRequest._retry) {
       if (typeof window !== 'undefined') {
         console.warn('[API] Auth failed twice, redirecting to login');
-        sessionStorage.removeItem('access_token');
+        // SECURITY FIX (CVE-002): Only clear user info, token is in HttpOnly cookie
         sessionStorage.removeItem('user_info');
         sessionStorage.removeItem('user_profile');
+        localStorage.removeItem('user_info');
+        localStorage.removeItem('user_profile');
         window.location.href = '/login';
       }
     }

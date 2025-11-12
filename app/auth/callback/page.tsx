@@ -49,78 +49,54 @@ function CallbackContent() {
         setStatus('Exchanging code for token...');
 
         // STEP 3: Exchange code for access token
+        // SECURITY FIX (CVE-002): Backend stores token in HttpOnly cookie
         // Calls: POST http://sites.isea.in/api/oauth/token
         // Which calls: POST https://ivp.isea.in/backend/tokengen
         const tokenData = await exchangeCodeForToken(code, state);
-        // Handle nested structure: tokenData.data.access_token
-        const accessToken = tokenData.data?.access_token || tokenData.access_token;
         
-        if (!accessToken) {
-          setError('Failed to get access token from authentication response');
+        // SECURITY FIX (CVE-002): Token is now in HttpOnly cookie, response only contains uid
+        const uid = tokenData.uid;
+        
+        if (!uid) {
+          setError('Failed to get user ID from authentication response');
           return;
         }
 
-        console.log('[Callback] Access token received');
+        console.log('[Callback] Authentication successful, token in HttpOnly cookie');
+        console.log('[Callback] User ID:', uid);
         setStatus('Fetching user information...');
 
-        // Extract uid from token response or decode JWT
-        // The IVP ISEA OAuth provider should return uid in the token or we need to decode it
-        let uid = tokenData.data?.uid || tokenData.uid;
-        
-        if (!uid) {
-          // Try to decode the JWT token to get uid (Keycloak uses 'sub' field)
-          try {
-            const base64Url = accessToken.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            
-            const payload = JSON.parse(jsonPayload);
-            // Keycloak standard: 'sub' contains the user ID
-            uid = payload.sub || payload.uid || payload.user_id || payload.id || payload.preferred_username;
-            
-            console.log('[Callback] Extracted uid from token:', uid);
-          } catch (decodeError) {
-            console.error('[Callback] Failed to decode token:', decodeError);
-          }
-        }
-        
-        if (!uid) {
-          setError('Unable to extract user ID from authentication response. Please try again or contact support.');
-          return;
-        }
-
         // STEP 4: Fetch user info
+        // SECURITY FIX (CVE-002): Token is sent via HttpOnly cookie, not passed as parameter
         // Calls: POST http://sites.isea.in/api/oauth/userinfo
         // Which calls: POST https://ivp.isea.in/backend/userinfo
-        const userInfo = await fetchUserInfo(accessToken, uid);
+        const userInfo = await fetchUserInfo('', uid); // Empty string for accessToken (not used)
         
         console.log('[Callback] User info received:', userInfo);
         setStatus('Checking user profile...');
 
         // STEP 5: Check if user profile exists
+        // SECURITY FIX (CVE-002): Token is sent via HttpOnly cookie
         // Calls: POST http://sites.isea.in/api/oauth/profile
         // Which calls: POST https://ivp.isea.in/backend/ivp/profile/
-        const userProfile = await fetchUserProfile(accessToken, userInfo.uid);
+        const userProfile = await fetchUserProfile('', userInfo.uid); // Empty string for accessToken
 
         if (!userProfile) {
           // Profile doesn't exist, redirect to complete profile
           console.log('[Callback] No profile found, redirecting to complete profile');
-          authStorage.setAuth(accessToken, userInfo);
+          authStorage.setAuth('', userInfo); // Empty string for accessToken (not stored)
           router.push('/auth/complete-profile');
           return;
         }
 
         // Profile exists, store everything and redirect to home
         console.log('[Callback] Profile found, authentication complete');
-        console.log('[Callback] Storing auth data:', {
-          hasAccessToken: !!accessToken,
+        console.log('[Callback] Storing auth data (token in HttpOnly cookie):', {
           hasUserInfo: !!userInfo,
           hasUserProfile: !!userProfile
         });
         
-        authStorage.setAuth(accessToken, userInfo, userProfile);
+        authStorage.setAuth('', userInfo, userProfile); // Empty string for accessToken (not stored)
         
         // Verify storage
         console.log('[Callback] Verification after storage:', {

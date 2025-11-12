@@ -205,7 +205,42 @@ router.post('/token', async (req, res) => {
     const tokenData = response.data.data || response.data;
     console.log('[OAuth] Extracted token data:', JSON.stringify(tokenData, null, 2));
     
-    res.json(tokenData);
+    // SECURITY FIX (CVE-002): Store access token in HttpOnly cookie
+    // This prevents XSS attacks from stealing the token via JavaScript
+    const accessToken = tokenData.access_token;
+    const refreshToken = tokenData.refresh_token;
+    const expiresIn = tokenData.expires_in || 3600; // Default 1 hour
+    
+    if (accessToken) {
+      res.cookie('access_token', accessToken, {
+        httpOnly: true,        // JavaScript CANNOT access this cookie (XSS protection)
+        secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+        sameSite: 'lax',       // CSRF protection
+        maxAge: expiresIn * 1000, // Convert seconds to milliseconds
+        path: '/'
+      });
+      console.log('[OAuth] Access token stored in HttpOnly cookie');
+    }
+    
+    if (refreshToken) {
+      res.cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: (tokenData.refresh_expires_in || 86400) * 1000, // Default 24 hours
+        path: '/'
+      });
+      console.log('[OAuth] Refresh token stored in HttpOnly cookie');
+    }
+    
+    // Return non-sensitive data only (no tokens)
+    res.json({
+      success: true,
+      uid: tokenData.uid,
+      expires_in: expiresIn,
+      token_type: tokenData.token_type,
+      scope: tokenData.scope
+    });
   } catch (error) {
     console.error('[OAuth] Token generation error:');
     console.error('[OAuth] Error status:', error.response?.status);
@@ -230,7 +265,16 @@ router.post('/token', async (req, res) => {
 // Calls: POST https://ivp.isea.in/backend/userinfo
 router.post('/userinfo', async (req, res) => {
   try {
-    const { access_token, uid } = req.body;
+    // SECURITY FIX (CVE-002): Get access token from HttpOnly cookie
+    const access_token = req.cookies.access_token || req.body.access_token;
+    const uid = req.body.uid;
+
+    if (!access_token) {
+      return res.status(401).json({
+        error: 'No access token found',
+        message: 'Authentication required'
+      });
+    }
 
     console.log('[OAuth] User info request received');
     
@@ -275,7 +319,16 @@ router.post('/userinfo', async (req, res) => {
 // Calls: POST https://ivp.isea.in/backend/ivp/profile/
 router.post('/profile', async (req, res) => {
   try {
-    const { access_token, uid } = req.body;
+    // SECURITY FIX (CVE-002): Get access token from HttpOnly cookie
+    const access_token = req.cookies.access_token || req.body.access_token;
+    const uid = req.body.uid;
+
+    if (!access_token) {
+      return res.status(401).json({
+        error: 'No access token found',
+        message: 'Authentication required'
+      });
+    }
 
     console.log('[OAuth] User profile request received');
     console.log('[OAuth] Calling:', `${OAUTH_BASE_URL}/ivp/profile/`);
@@ -372,6 +425,21 @@ router.post('/logout', async (req, res) => {
     });
 
     console.log('[OAuth] Logout successful');
+    
+    // SECURITY FIX (CVE-002): Clear HttpOnly cookies
+    res.clearCookie('access_token', { 
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/'
+    });
+    res.clearCookie('refresh_token', { 
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/'
+    });
+    console.log('[OAuth] HttpOnly cookies cleared');
     
     // Return OAuth provider response
     res.json({
