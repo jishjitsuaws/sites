@@ -562,7 +562,6 @@ export default function ComponentRenderer({
                 style={{
                   width: component.props.width || '400px',
                   maxWidth: '100%',
-                  height: component.props.height || 'auto',
                 }}
               >
                 <img
@@ -570,38 +569,34 @@ export default function ComponentRenderer({
                   alt={component.props.alt || ''}
                   className="w-full rounded"
                   style={{
-                    objectFit: component.props.objectFit || 'contain',
-                    height: component.props.height || 'auto',
+                    objectFit: 'contain',
                     width: '100%',
+                    height: 'auto',
                   }}
                 />
                 
-                {/* Resize Handles - All four corners for free-form resizing */}
+                {/* Resize Handles - Use only width-based resizing to maintain aspect ratio */}
                 {isSelected && (
                   <>
-                    {/* Bottom-right resize handle - resize both width and height */}
+                    {/* Bottom-right resize handle - resize width only, height auto-scales */}
                     <div
                       className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform shadow-lg"
                       onMouseDown={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
                         const startX = e.clientX;
-                        const startY = e.clientY;
                         const startWidth = parseInt(component.props.width) || 400;
-                        const startHeight = parseInt(component.props.height) || 300;
                         
                         const handleMouseMove = (moveEvent: MouseEvent) => {
                           const deltaX = moveEvent.clientX - startX;
-                          const deltaY = moveEvent.clientY - startY;
                           const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
-                          const newHeight = Math.max(100, Math.min(1000, startHeight + deltaY));
                           onUpdateComponent(component.id, {
                             ...component,
                             props: { 
                               ...component.props, 
                               width: `${newWidth}px`,
-                              height: `${newHeight}px`,
-                              objectFit: 'cover' // Use cover for better results with custom dimensions
+                              height: undefined, // Remove height to maintain aspect ratio
+                              objectFit: 'contain'
                             }
                           });
                         };
@@ -623,22 +618,18 @@ export default function ComponentRenderer({
                         e.stopPropagation();
                         e.preventDefault();
                         const startX = e.clientX;
-                        const startY = e.clientY;
                         const startWidth = parseInt(component.props.width) || 400;
-                        const startHeight = parseInt(component.props.height) || 300;
                         
                         const handleMouseMove = (moveEvent: MouseEvent) => {
                           const deltaX = startX - moveEvent.clientX;
-                          const deltaY = moveEvent.clientY - startY;
                           const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
-                          const newHeight = Math.max(100, Math.min(1000, startHeight + deltaY));
                           onUpdateComponent(component.id, {
                             ...component,
                             props: { 
                               ...component.props, 
                               width: `${newWidth}px`,
-                              height: `${newHeight}px`,
-                              objectFit: 'cover'
+                              height: undefined, // Remove height to maintain aspect ratio
+                              objectFit: 'contain'
                             }
                           });
                         };
@@ -660,22 +651,18 @@ export default function ComponentRenderer({
                         e.stopPropagation();
                         e.preventDefault();
                         const startX = e.clientX;
-                        const startY = e.clientY;
                         const startWidth = parseInt(component.props.width) || 400;
-                        const startHeight = parseInt(component.props.height) || 300;
                         
                         const handleMouseMove = (moveEvent: MouseEvent) => {
                           const deltaX = moveEvent.clientX - startX;
-                          const deltaY = startY - moveEvent.clientY;
                           const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
-                          const newHeight = Math.max(100, Math.min(1000, startHeight + deltaY));
                           onUpdateComponent(component.id, {
                             ...component,
                             props: { 
                               ...component.props, 
                               width: `${newWidth}px`,
-                              height: `${newHeight}px`,
-                              objectFit: 'cover'
+                              height: undefined, // Remove height to maintain aspect ratio
+                              objectFit: 'contain'
                             }
                           });
                         };
@@ -697,22 +684,18 @@ export default function ComponentRenderer({
                         e.stopPropagation();
                         e.preventDefault();
                         const startX = e.clientX;
-                        const startY = e.clientY;
                         const startWidth = parseInt(component.props.width) || 400;
-                        const startHeight = parseInt(component.props.height) || 300;
                         
                         const handleMouseMove = (moveEvent: MouseEvent) => {
                           const deltaX = startX - moveEvent.clientX;
-                          const deltaY = startY - moveEvent.clientY;
                           const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
-                          const newHeight = Math.max(100, Math.min(1000, startHeight + deltaY));
                           onUpdateComponent(component.id, {
                             ...component,
                             props: { 
                               ...component.props, 
                               width: `${newWidth}px`,
-                              height: `${newHeight}px`,
-                              objectFit: 'cover'
+                              height: undefined, // Remove height to maintain aspect ratio
+                              objectFit: 'contain'
                             }
                           });
                         };

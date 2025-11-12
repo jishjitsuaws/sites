@@ -1525,21 +1525,22 @@ export default function EditorPage() {
           // Deselect section/component when clicking outside the editor canvas
           const target = e.target as HTMLElement;
           
-          // Check if clicked on navbar, sidebar, or other areas outside editor
+          // Check if click is within the canvas area
           const clickedOnCanvas = target.closest('.bg-gray-100.p-4.overflow-y-auto');
-          const clickedOnComponent = target.closest('[data-component-id]');
-          const clickedOnSection = target.closest('[data-section-id]');
-          const clickedOnToolbar = target.closest('.absolute') || target.closest('[role="toolbar"]');
-          const clickedOnButton = target.closest('button');
-          const clickedOnModal = target.closest('[role="dialog"]') || target.closest('.modal');
           
-          // If clicked outside canvas and not on interactive elements, deselect
-          if (!clickedOnCanvas && !clickedOnToolbar && !clickedOnButton && !clickedOnModal) {
-            setSelectedComponent(null);
-            setSelectedSection(null);
-            setShowTextToolbar(false);
-            setShowImageModal(false);
-            setShowButtonModal(false);
+          // If clicked outside canvas (on header, sidebars, etc.), deselect everything
+          if (!clickedOnCanvas) {
+            // But don't deselect if clicking on component toolbars or modals
+            const clickedOnToolbar = target.closest('.absolute.bg-white.rounded-lg.shadow-xl');
+            const clickedOnModal = target.closest('[role="dialog"]') || target.closest('.modal');
+            
+            if (!clickedOnToolbar && !clickedOnModal) {
+              setSelectedComponent(null);
+              setSelectedSection(null);
+              setShowTextToolbar(false);
+              setShowImageModal(false);
+              setShowButtonModal(false);
+            }
           }
         }}
       >

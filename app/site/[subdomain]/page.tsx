@@ -484,8 +484,8 @@ export default function PublishedSitePage() {
               style={{
                 width: component.props.width || 'auto',
                 maxWidth: '100%',
-                height: component.props.height || 'auto',
-                objectFit: component.props.objectFit || 'contain',
+                height: 'auto', // Always auto to maintain aspect ratio
+                objectFit: 'contain',
                 float: (component.props.float && component.props.float !== 'none') ? component.props.float : 'none',
                 marginRight: (component.props.float === 'left') ? '20px' : '0',
                 marginLeft: (component.props.float === 'right') ? '20px' : '0',
