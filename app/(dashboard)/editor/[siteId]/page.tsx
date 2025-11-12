@@ -162,15 +162,18 @@ export default function EditorPage() {
   // Helper function to ensure footer exists in sections
   const ensureFooterExists = (sectionsArray: any[]) => {
     // Check if footer already exists
-    const hasFooter = sectionsArray.some(section => 
+    const footerIndex = sectionsArray.findIndex(section => 
       section.components.some((c: any) => c.type === 'footer')
     );
     
-    if (hasFooter) {
-      return sectionsArray; // Footer already exists, return as is
+    if (footerIndex !== -1) {
+      // Footer exists - ensure it's at the end
+      const footer = sectionsArray[footerIndex];
+      const withoutFooter = sectionsArray.filter((_, idx) => idx !== footerIndex);
+      return [...withoutFooter, { ...footer, order: withoutFooter.length }];
     }
     
-    // Create default footer section
+    // Create default footer section at the end
     const footerSection = {
       id: `section-footer-${Date.now()}`,
       components: [{

@@ -48,13 +48,10 @@ export default function ComponentsPanel({
             <button
               key={component.id}
               onClick={() => onInsertComponent(component.id)}
-              className="flex flex-col items-center gap-2 p-2.5 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all text-center"
+              className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all text-center"
             >
               <component.icon className="h-5 w-5 text-gray-600 shrink-0" />
-              <div className="min-w-0 w-full">
-                <div className="font-medium text-xs text-gray-900 truncate">{component.name}</div>
-                <div className="text-xs text-gray-500 truncate">{component.description}</div>
-              </div>
+              <div className="font-medium text-xs text-gray-900">{component.name}</div>
             </button>
           ))}
         </div>

@@ -187,14 +187,24 @@ export function getYouTubeEmbedUrl(url: string): string {
     else if (urlObj.hostname.includes('youtube.com') && urlObj.pathname.includes('/embed/')) {
       return url;
     }
+    
+    // If we found a video ID, return embed URL
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
   } catch (e) {
-    // If URL parsing fails, return original
-    return url;
-  }
-  
-  // If we found a video ID, return embed URL
-  if (videoId) {
-    return `https://www.youtube.com/embed/${videoId}`;
+    // If URL parsing fails, try to extract video ID from the URL string
+    const patterns = [
+      /[?&]v=([^&]+)/,  // ?v=VIDEO_ID
+      /youtu\.be\/([^?]+)/, // youtu.be/VIDEO_ID
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return `https://www.youtube.com/embed/${match[1]}`;
+      }
+    }
   }
   
   // For other video platforms (Vimeo, etc.), return as is
