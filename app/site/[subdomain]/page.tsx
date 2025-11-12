@@ -1176,10 +1176,10 @@ export default function PublishedSitePage() {
       {/* Page Content */}
       <main className="flex-1 container mx-auto flex flex-col" style={{ overflow: 'visible', padding: '1rem 2rem 0 2rem' }}>
         {currentPage.sections && currentPage.sections.length > 0 ? (
-          // Render sections with flexbox layout
+          // Render sections with flexbox layout (excluding footer sections)
           <>
             <div style={{ marginBottom: 0 }}>
-            {currentPage.sections.map((section, index) => {
+            {currentPage.sections.filter(section => !section.components?.some((c: any) => c.type === 'footer')).map((section, index) => {
               // Check if this is a card section
               const cardCount = section.components?.filter((c: any) => c.type === 'card').length || 0;
               const isCardSection = cardCount >= 1; // Any section with cards
@@ -1298,6 +1298,43 @@ export default function PublishedSitePage() {
           </>
         )}
       </main>
+
+      {/* Fixed Footer */}
+      <footer 
+        style={{
+          backgroundColor: '#1f2937',
+          color: '#ffffff',
+          padding: '3rem 0',
+        }}
+      >
+        <div className="container mx-auto px-4 md:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-xl font-bold mb-4">Your Company</h3>
+              <p className="text-gray-300">Building amazing experiences for our customers.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-2 text-gray-300">
+                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Services</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Connect</h4>
+              <ul className="space-y-2 text-gray-300">
+                <li><a href="#" className="hover:text-white transition-colors">Twitter</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">LinkedIn</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Facebook</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+            <p>© 2024 Your Company. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
       </div>
     </>
   );
