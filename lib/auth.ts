@@ -219,6 +219,9 @@ export async function updateUserProfile(profileData: UserProfile): Promise<void>
  * Calls: POST https://ivp.isea.in/backend/logout
  */
 export async function logout(): Promise<void> {
+  console.log('[Auth] ========== LOGOUT STARTED ==========');
+  console.log('[Auth] BACKEND_URL:', BACKEND_URL);
+  
   try {
     const userInfo = authStorage.getUserInfo();
     
@@ -227,24 +230,40 @@ export async function logout(): Promise<void> {
     console.log('[Auth] UserInfo full:', JSON.stringify(userInfo, null, 2));
     
     // Try to get user_id from multiple sources
-    let userId = (userInfo as any)?.uid || 
-                 (userInfo as any)?.sub || 
-                 (userInfo as any)?.user_id ||
-                 (userInfo as any)?.id ||
-                 (userInfo as any)?.userId;
+    let userId = null;
+    
+    if (userInfo) {
+      userId = (userInfo as any)?.uid || 
+               (userInfo as any)?.sub || 
+               (userInfo as any)?.user_id ||
+               (userInfo as any)?.id ||
+               (userInfo as any)?.userId;
+      
+      console.log('[Auth] Tried extracting from:', {
+        uid: (userInfo as any)?.uid,
+        sub: (userInfo as any)?.sub,
+        user_id: (userInfo as any)?.user_id,
+        id: (userInfo as any)?.id,
+        userId: (userInfo as any)?.userId
+      });
+    }
     
     console.log('[Auth] Extracted userId:', userId);
     
     if (!userId) {
-      console.warn('[Auth] No user ID found, clearing local session only');
+      console.warn('[Auth] ⚠️  No user ID found in userInfo, clearing local session only');
+      console.warn('[Auth] This means logout API will NOT be called!');
       authStorage.clearAuth();
       if (typeof window !== 'undefined') {
+        alert('Logout: No user ID found. Clearing local session only.');
         window.location.href = '/login';
       }
       return;
     }
 
-    console.log('[Auth] Logging out user:', userId);
+    console.log('[Auth] ✓ User ID found, calling logout API...');
+    console.log('[Auth] Logout URL:', `${BACKEND_URL}/api/oauth/logout`);
+    console.log('[Auth] Logout payload:', { user_id: userId });
 
     // Call backend which calls OAuth provider logout and clears HttpOnly cookies
     // POST http://sites.isea.in/api/oauth/logout
@@ -261,29 +280,37 @@ export async function logout(): Promise<void> {
     });
 
     console.log('[Auth] Logout response status:', response.status);
+    console.log('[Auth] Logout response ok:', response.ok);
 
     if (!response.ok) {
-      console.error('[Auth] Logout API call failed:', response.status);
+      console.error('[Auth] ❌ Logout API call failed:', response.status);
       const errorData = await response.json().catch(() => ({}));
       console.error('[Auth] Logout error details:', errorData);
+      alert(`Logout API failed: ${response.status} - ${JSON.stringify(errorData)}`);
       // Continue with local logout even if API call fails
     } else {
       const data = await response.json();
-      console.log('[Auth] Logout successful:', data.message);
+      console.log('[Auth] ✓ Logout API successful:', data);
+      console.log('[Auth] Logout message:', data.message);
     }
 
   } catch (error) {
-    console.error('[Auth] Logout error:', error);
+    console.error('[Auth] ❌ Logout exception:', error);
+    alert(`Logout exception: ${error}`);
     // Continue with local logout even if error occurs
   } finally {
+    console.log('[Auth] Finally block: Clearing local auth and redirecting...');
     // Always clear local session
     authStorage.clearAuth();
     
     // Redirect to login page (not home page)
     if (typeof window !== 'undefined') {
+      console.log('[Auth] Redirecting to /login...');
       window.location.href = '/login';
     }
   }
+  
+  console.log('[Auth] ========== LOGOUT COMPLETED ==========');
 }
 
 // Auth storage utilities

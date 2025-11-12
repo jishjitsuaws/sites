@@ -348,7 +348,17 @@ router.post('/userinfo', async (req, res) => {
     });
 
     console.log('[OAuth] User info fetch successful');
-    res.json(response.data);
+    console.log('[OAuth] User info response keys:', Object.keys(response.data));
+    console.log('[OAuth] User info response:', JSON.stringify(response.data, null, 2));
+    
+    // IMPORTANT: Ensure uid is included in the response for logout
+    const userInfoResponse = response.data;
+    if (userId && !userInfoResponse.uid) {
+      console.log('[OAuth] Adding uid to userinfo response for logout:', userId);
+      userInfoResponse.uid = userId;
+    }
+    
+    res.json(userInfoResponse);
   } catch (error) {
     console.error('[OAuth] User info error:', error.response?.data || error.message);
     res.status(error.response?.status || 500).json({
