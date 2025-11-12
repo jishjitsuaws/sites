@@ -90,84 +90,28 @@ function DashboardContent() {
 
           console.log('[Home] State format verified, exchanging code for token...');
           
-          // Exchange code for access token
+          // Exchange code for token. Backend sets token in HttpOnly cookie and returns uid.
           const tokenData = await exchangeCodeForToken(code, state);
-          console.log('[Home] Token data received:', tokenData);
-          
-          // Handle nested structure: tokenData.data.access_token
-          const accessToken = tokenData.data?.access_token || tokenData.access_token;
-          
-          if (!accessToken) {
-            console.error('[Home] No access token in response:', tokenData);
-            toast.error('Failed to get access token');
-            router.push('/login');
-            return;
-          }
+          console.log('[Home] Token exchange response:', tokenData);
 
-          console.log('[Home] Access token extracted, debugging token structure...');
-
-          // Debug token structure to identify UID field
-          let uid = tokenData.data?.uid || tokenData.uid;
-          try {
-            const debugResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/oauth/debug-token`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ access_token: accessToken }),
-            });
-            
-            if (debugResponse.ok) {
-              const debugData = await debugResponse.json();
-              console.log('[Home] Token debug info:', debugData);
-              
-              // Extract UID from debug data
-              if (debugData.possible_uid_fields) {
-                uid = debugData.possible_uid_fields.uid || 
-                      debugData.possible_uid_fields.sub || 
-                      debugData.possible_uid_fields.user_id || 
-                      debugData.possible_uid_fields.id ||
-                      debugData.possible_uid_fields.userId ||
-                      debugData.possible_uid_fields.email ||
-                      debugData.possible_uid_fields.preferred_username;
-              }
-            }
-          } catch (debugError) {
-            console.error('[Home] Token debug failed:', debugError);
-            
-            // Fallback: manual JWT decode
-            try {
-              const base64Url = accessToken.split('.')[1];
-              const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-              const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-              }).join(''));
-              
-              const payload = JSON.parse(jsonPayload);
-              console.log('[Home] Manually decoded token payload:', payload);
-              // Keycloak uses 'sub' field for user ID
-              uid = payload.sub || payload.uid || payload.user_id || payload.id || payload.userId || payload.preferred_username;
-            } catch (e) {
-              console.error('[Home] Failed to decode token:', e);
-            }
-          }
-          
-          console.log('[Home] Extracted UID:', uid);
+          // Backend now returns uid (token stored in HttpOnly cookie). Prefer tokenData.uid.
+          const uid = tokenData.uid || tokenData.data?.uid;
 
           if (!uid) {
-            toast.error('Unable to extract user ID from token');
+            console.error('[Home] No uid returned from token exchange:', tokenData);
+            toast.error('Failed to authenticate (missing user id)');
             router.push('/login');
             return;
           }
 
-          // Fetch user info (single request)
-          const userInfoData = await fetchUserInfo(accessToken, uid);
+          console.log('[Home] UID obtained from token exchange:', uid);
+
+          // Fetch user info using cookie-based auth; token is sent automatically via cookie
+          const userInfoData = await fetchUserInfo('', uid);
           console.log('[Home] User info received:', userInfoData);
 
-          // The JWT token and userinfo contain all necessary user data
-          // No need to fetch separate profile - just use userinfo directly
-          console.log('[Home] User authenticated successfully, storing auth data...');
-          authStorage.setAuth(accessToken, userInfoData);
+          // Store auth (no access token stored in JS) and continue
+          authStorage.setAuth('', userInfoData);
           
           // Clear processing flag
           sessionStorage.removeItem('oauth_processing');
