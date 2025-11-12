@@ -787,7 +787,18 @@ export default function PublishedSitePage() {
 
       case 'social':
         return (
-          <div className="flex gap-4 items-center justify-center py-4">
+          <div className="flex gap-4 items-center justify-center py-8 min-w-[400px]">
+            {/* Show placeholder if no URLs are set */}
+            {!component.props.instagramUrl && 
+             !component.props.facebookUrl && 
+             !component.props.twitterUrl && 
+             !component.props.linkedinUrl && 
+             !component.props.youtubeUrl && (
+              <div className="text-gray-400 text-sm text-center py-4 px-6 border-2 border-dashed border-gray-300 rounded-lg">
+                Click here to add social media links for icons to appear
+              </div>
+            )}
+            
             {/* Instagram Icon */}
             {component.props.instagramUrl && (
               <a
@@ -901,8 +912,8 @@ export default function PublishedSitePage() {
                 </div>
 
                 {/* Links - Right */}
-                <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 md:gap-12 items-start sm:items-start md:items-start text-left sm:text-right">
-                  <div>
+                <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 md:gap-12 items-start sm:items-start md:items-start">
+                  <div className="text-left sm:text-right">
                     <h4 className="text-sm md:text-base font-semibold mb-2">Quick Links</h4>
                     <ul className="space-y-1 text-xs md:text-sm opacity-80">
                       <li><a href={component.props.link1Url || '#'} className="hover:opacity-100">{component.props.link1Text || 'About'}</a></li>
@@ -910,7 +921,7 @@ export default function PublishedSitePage() {
                       <li><a href={component.props.link3Url || '#'} className="hover:opacity-100">{component.props.link3Text || 'Contact'}</a></li>
                     </ul>
                   </div>
-                  <div>
+                  <div className="text-left sm:text-right">
                     <h4 className="text-sm md:text-base font-semibold mb-2">Connect</h4>
                     <ul className="space-y-1 text-xs md:text-sm opacity-80">
                       <li><a href={component.props.social1Url || '#'} className="hover:opacity-100">{component.props.social1Text || 'Twitter'}</a></li>

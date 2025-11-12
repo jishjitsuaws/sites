@@ -1180,7 +1180,18 @@ export default function ComponentRenderer({
           )}
 
           {/* Social Icons Grid */}
-          <div className="flex gap-4 items-center justify-center py-4">
+          <div className="flex gap-4 items-center justify-center py-8 min-w-[400px]">
+            {/* Show placeholder if no URLs are set */}
+            {!component.props.instagramUrl && 
+             !component.props.facebookUrl && 
+             !component.props.twitterUrl && 
+             !component.props.linkedinUrl && 
+             !component.props.youtubeUrl && (
+              <div className="text-gray-400 text-sm text-center py-4 px-6 border-2 border-dashed border-gray-300 rounded-lg">
+                Click above to add social media links for icons to appear
+              </div>
+            )}
+            
             {/* Instagram Icon */}
             {component.props.instagramUrl && (
               <a
@@ -2979,8 +2990,8 @@ export default function ComponentRenderer({
               </div>
 
               {/* Links - Right */}
-              <div className="flex gap-12 items-start text-right">
-                <div>
+              <div className="flex gap-12 items-start">
+                <div className="text-right">
                   <h4 className="font-semibold mb-2">Quick Links</h4>
                   <ul className="space-y-1 text-sm opacity-80">
                     <li><a href={component.props.link1Url || '#'} className="hover:opacity-100">{component.props.link1Text || 'About'}</a></li>
@@ -2988,7 +2999,7 @@ export default function ComponentRenderer({
                     <li><a href={component.props.link3Url || '#'} className="hover:opacity-100">{component.props.link3Text || 'Contact'}</a></li>
                   </ul>
                 </div>
-                <div>
+                <div className="text-right">
                   <h4 className="font-semibold mb-2">Connect</h4>
                   <ul className="space-y-1 text-sm opacity-80">
                     <li><a href={component.props.social1Url || '#'} className="hover:opacity-100">{component.props.social1Text || 'Twitter'}</a></li>
