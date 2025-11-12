@@ -43,16 +43,16 @@ export default function ComponentsPanel({
       {/* Individual Components Section */}
       <div className="pb-4">
         <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Components</h3>
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-2">
           {insertComponentTypes.map((component) => (
             <button
               key={component.id}
               onClick={() => onInsertComponent(component.id)}
-              className="w-full flex items-start gap-3 p-2.5 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all text-left"
+              className="flex flex-col items-center gap-2 p-2.5 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all text-center"
             >
-              <component.icon className="h-4 w-4 text-gray-600 shrink-0 mt-0.5" />
-              <div className="min-w-0">
-                <div className="font-medium text-sm text-gray-900">{component.name}</div>
+              <component.icon className="h-5 w-5 text-gray-600 shrink-0" />
+              <div className="min-w-0 w-full">
+                <div className="font-medium text-xs text-gray-900 truncate">{component.name}</div>
                 <div className="text-xs text-gray-500 truncate">{component.description}</div>
               </div>
             </button>

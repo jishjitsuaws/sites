@@ -110,6 +110,7 @@ export default function SectionWrapper({
 
   // Check if this section contains a footer or banner component
   const hasFooterOrBanner = section.components.some(c => c.type === 'footer' || c.type === 'banner');
+  const hasFooter = section.components.some(c => c.type === 'footer');
 
   // Close settings when clicking outside
   useEffect(() => {
@@ -171,7 +172,7 @@ export default function SectionWrapper({
         <div className="absolute -top-12 left-0 right-0 flex justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl border-2 border-blue-500 p-2 flex gap-2 items-center">
             {/* Move Up Button */}
-            {!isFirstSection && onMoveUp && (
+            {!isFirstSection && !hasFooter && onMoveUp && (
               <>
                 <button
                   onClick={(e) => {
@@ -188,7 +189,7 @@ export default function SectionWrapper({
             )}
             
             {/* Move Down Button */}
-            {!isLastSection && onMoveDown && (
+            {!isLastSection && !hasFooter && onMoveDown && (
               <>
                 <button
                   onClick={(e) => {
@@ -217,16 +218,18 @@ export default function SectionWrapper({
 
             <div className="w-px h-6 bg-gray-300"></div>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              className="p-2 hover:bg-red-100 rounded text-red-600"
-              title="Delete Section"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            {!hasFooter && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                className="p-2 hover:bg-red-100 rounded text-red-600"
+                title="Delete Section"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       )}

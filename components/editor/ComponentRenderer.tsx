@@ -4,7 +4,7 @@ import { Copy, Trash2, AlignLeft, AlignCenter, AlignRight, Settings, Link as Lin
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { sanitizeText, sanitizeHtml, sanitizeUrl } from '@/lib/sanitize';
-import { getImageUrl } from '@/lib/utils';
+import { getImageUrl, getYouTubeEmbedUrl } from '@/lib/utils';
 
 // Timer Component with real-time countdown
 function TimerComponent({ component, themeColors, themeFonts, isSelected, onUpdateComponent, onDeleteComponent }: any) {
@@ -1215,7 +1215,7 @@ export default function ComponentRenderer({
           {component.props.url ? (
             <div className="aspect-video">
               <iframe
-                src={component.props.url}
+                src={getYouTubeEmbedUrl(component.props.url)}
                 title="Embedded video"
                 className="w-full h-full rounded"
                 allowFullScreen

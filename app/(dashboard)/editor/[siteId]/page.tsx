@@ -159,6 +159,40 @@ export default function EditorPage() {
     }
   }, [siteId]);
 
+  // Helper function to ensure footer exists in sections
+  const ensureFooterExists = (sectionsArray: any[]) => {
+    // Check if footer already exists
+    const hasFooter = sectionsArray.some(section => 
+      section.components.some((c: any) => c.type === 'footer')
+    );
+    
+    if (hasFooter) {
+      return sectionsArray; // Footer already exists, return as is
+    }
+    
+    // Create default footer section
+    const footerSection = {
+      id: `section-footer-${Date.now()}`,
+      components: [{
+        id: `footer-${Date.now()}`,
+        type: 'footer',
+        props: getDefaultProps('footer'),
+      }],
+      layout: {
+        direction: 'column' as const,
+        justifyContent: 'center' as const,
+        alignItems: 'center' as const,
+        gap: 16,
+        padding: 0,
+        backgroundColor: '#1f2937',
+      },
+      order: sectionsArray.length,
+      isFooter: true, // Mark this as the footer section
+    };
+    
+    return [...sectionsArray, footerSection];
+  };
+
   const fetchThemes = async () => {
     try {
       const response = await api.get('/themes');
@@ -202,10 +236,12 @@ export default function EditorPage() {
           
           // ALWAYS prioritize sections if they exist
           if (firstPage.sections && firstPage.sections.length > 0) {
-            setSections(firstPage.sections);
+            const sectionsWithFooter = ensureFooterExists(firstPage.sections);
+            setSections(sectionsWithFooter);
             setComponents([]); // Don't use content when sections exist
           } else {
-            setSections([]);
+            const sectionsWithFooter = ensureFooterExists([]);
+            setSections(sectionsWithFooter);
             setComponents([]);
           }
         } else {
@@ -219,7 +255,8 @@ export default function EditorPage() {
           setPages([newPage]);
           setCurrentPage(newPage);
           setComponents([]);
-          setSections([]);
+          const sectionsWithFooter = ensureFooterExists([]);
+          setSections(sectionsWithFooter);
         }
       } catch (pageErr: any) {
         console.error('Error fetching pages:', pageErr);
@@ -235,7 +272,8 @@ export default function EditorPage() {
             setPages([newPage]);
             setCurrentPage(newPage);
             setComponents([]);
-            setSections([]);
+            const sectionsWithFooter = ensureFooterExists([]);
+            setSections(sectionsWithFooter);
           } catch (createErr) {
             console.error('Error creating default page:', createErr);
             // Continue anyway with empty pages
@@ -413,8 +451,9 @@ export default function EditorPage() {
       const newPage = response.data.data;
       setPages([...pages, newPage]);
       setCurrentPage(newPage);
-      // Initialize empty state for new page
-      setSections([]);
+      // Initialize empty state for new page with footer
+      const sectionsWithFooter = ensureFooterExists([]);
+      setSections(sectionsWithFooter);
       setComponents([]);
       setNewPageName('');
       setShowAddPageForm(false);
@@ -444,7 +483,8 @@ export default function EditorPage() {
     setCurrentPage(page);
     if (page.sections && page.sections.length > 0) {
       console.log('Loading sections from page:', page.sections.length);
-      setSections(page.sections);
+      const sectionsWithFooter = ensureFooterExists(page.sections);
+      setSections(sectionsWithFooter);
       setComponents([]);
     } else if (page.content && page.content.length > 0) {
       console.log('Converting content to sections:', page.content.length);
@@ -460,11 +500,13 @@ export default function EditorPage() {
         },
         order: index,
       }));
-      setSections(convertedSections);
+      const sectionsWithFooter = ensureFooterExists(convertedSections);
+      setSections(sectionsWithFooter);
       setComponents(page.content);
     } else {
-      console.log('Empty page, clearing state');
-      setSections([]);
+      console.log('Empty page, adding footer');
+      const sectionsWithFooter = ensureFooterExists([]);
+      setSections(sectionsWithFooter);
       setComponents([]);
     }
     
@@ -496,7 +538,8 @@ export default function EditorPage() {
         setCurrentPage(nextPage);
         // Prioritize sections over content
         if (nextPage.sections && nextPage.sections.length > 0) {
-          setSections(nextPage.sections);
+          const sectionsWithFooter = ensureFooterExists(nextPage.sections);
+          setSections(sectionsWithFooter);
           setComponents([]); // Clear components when using sections
         } else if (nextPage.content && nextPage.content.length > 0) {
           const convertedSections = nextPage.content.map((component: any, index: number) => ({
@@ -511,10 +554,12 @@ export default function EditorPage() {
             },
             order: index,
           }));
-          setSections(convertedSections);
+          const sectionsWithFooter = ensureFooterExists(convertedSections);
+          setSections(sectionsWithFooter);
           setComponents(nextPage.content);
         } else {
-          setSections([]);
+          const sectionsWithFooter = ensureFooterExists([]);
+          setSections(sectionsWithFooter);
           setComponents([]);
         }
       }
@@ -535,7 +580,6 @@ export default function EditorPage() {
     { id: 'video', name: 'Video', icon: Video, description: 'Embed a video' },
     { id: 'divider', name: 'Divider', icon: Minus, description: 'Add a horizontal line' },
     { id: 'social', name: 'Social Links', icon: LinkIcon, description: 'Instagram, Facebook, Twitter icons' },
-    { id: 'footer', name: 'Footer', icon: Layout, description: 'Site footer with links and info' },
     { id: 'timer', name: 'Countdown Timer', icon: Layout, description: 'Countdown to a specific date' },
     { id: 'card-grid', name: 'Card Grid', icon: Layout, description: 'Add 1-5 cards in a row' },
     { id: 'carousel', name: 'Carousel', icon: ImageIcon, description: 'Image carousel (1–5, 16:9)' },

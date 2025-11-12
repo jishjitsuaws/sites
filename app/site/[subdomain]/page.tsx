@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { notFound } from 'next/navigation';
+import { getYouTubeEmbedUrl } from '@/lib/utils';
 
 // Timer Component with real-time countdown for published site
 function PublishedTimerComponent({ component, themeColors, themeFonts }: any) {
@@ -516,7 +517,7 @@ export default function PublishedSitePage() {
         return component.props.url ? (
           <div className="aspect-video">
             <iframe
-              src={component.props.url}
+              src={getYouTubeEmbedUrl(component.props.url)}
               title="Embedded video"
               className="w-full h-full"
               allowFullScreen

@@ -156,3 +156,47 @@ export function getErrorMessage(error: any): string {
   
   return 'An unexpected error occurred';
 }
+
+/**
+ * Converts a YouTube URL to embed format
+ * Supports: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/embed/ID
+ */
+export function getYouTubeEmbedUrl(url: string): string {
+  if (!url) return '';
+  
+  // If it's already an embed URL, return as is
+  if (url.includes('/embed/')) {
+    return url;
+  }
+  
+  // Extract video ID from various YouTube URL formats
+  let videoId = '';
+  
+  try {
+    const urlObj = new URL(url);
+    
+    // youtube.com/watch?v=VIDEO_ID
+    if (urlObj.hostname.includes('youtube.com') && urlObj.searchParams.has('v')) {
+      videoId = urlObj.searchParams.get('v') || '';
+    }
+    // youtu.be/VIDEO_ID
+    else if (urlObj.hostname.includes('youtu.be')) {
+      videoId = urlObj.pathname.slice(1); // Remove leading slash
+    }
+    // youtube.com/embed/VIDEO_ID (already embed format)
+    else if (urlObj.hostname.includes('youtube.com') && urlObj.pathname.includes('/embed/')) {
+      return url;
+    }
+  } catch (e) {
+    // If URL parsing fails, return original
+    return url;
+  }
+  
+  // If we found a video ID, return embed URL
+  if (videoId) {
+    return `https://www.youtube.com/embed/${videoId}`;
+  }
+  
+  // For other video platforms (Vimeo, etc.), return as is
+  return url;
+}
