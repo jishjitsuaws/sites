@@ -200,10 +200,15 @@ router.post('/token', async (req, res) => {
     console.log('[OAuth] Response data keys:', Object.keys(response.data));
     console.log('[OAuth] Full response data:', JSON.stringify(response.data, null, 2));
     
-    // The IVP ISEA OAuth provider returns data in a nested structure
-    // Extract the actual token data from response.data.data
-    const tokenData = response.data.data || response.data;
+    // The IVP ISEA OAuth provider returns data in a deeply nested structure:
+    // response.data.data.data.access_token (3 levels of 'data')
+    const outerData = response.data.data || response.data;
+    const tokenData = outerData.data || outerData;
     console.log('[OAuth] Extracted token data:', JSON.stringify(tokenData, null, 2));
+    
+    // Also extract media_token and other fields from outer level
+    const mediaToken = outerData.media_token;
+    console.log('[OAuth] Media token present:', !!mediaToken);
     
     // SECURITY FIX (CVE-002): Store access token in HttpOnly cookie
     // This prevents XSS attacks from stealing the token via JavaScript
@@ -211,8 +216,43 @@ router.post('/token', async (req, res) => {
     const refreshToken = tokenData.refresh_token;
     const expiresIn = tokenData.expires_in || 3600; // Default 1 hour
     
-    if (accessToken) {
-      res.cookie('access_token', accessToken, {
+    console.log('[OAuth] Access token present:', !!accessToken);
+    console.log('[OAuth] Access token length:', accessToken ? accessToken.length : 0);
+    console.log('[OAuth] Refresh token present:', !!refreshToken);
+    
+    // IVP ISEA may return empty access_token and use media_token instead
+    // Use media_token as access_token if access_token is empty
+    const actualAccessToken = (accessToken && accessToken.length > 0) ? accessToken : mediaToken;
+    console.log('[OAuth] Using token:', actualAccessToken === mediaToken ? 'media_token as access_token' : 'access_token');
+    
+    // Extract uid from refresh_token JWT (it's in the 'sub' field)
+    let uid = null;
+    if (refreshToken) {
+      try {
+        // Decode JWT without verification (we trust the OAuth provider)
+        const base64Payload = refreshToken.split('.')[1];
+        const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString());
+        uid = payload.sub || payload.user;
+        console.log('[OAuth] Extracted uid from refresh_token:', uid);
+      } catch (jwtError) {
+        console.error('[OAuth] Failed to decode refresh_token:', jwtError.message);
+      }
+    }
+    
+    // Also check if media_token has the uid
+    if (!uid && mediaToken) {
+      try {
+        const base64Payload = mediaToken.split('.')[1];
+        const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString());
+        uid = payload.user || payload.sub;
+        console.log('[OAuth] Extracted uid from media_token:', uid);
+      } catch (jwtError) {
+        console.error('[OAuth] Failed to decode media_token:', jwtError.message);
+      }
+    }
+    
+    if (actualAccessToken) {
+      res.cookie('access_token', actualAccessToken, {
         httpOnly: true,        // JavaScript CANNOT access this cookie (XSS protection)
         secure: process.env.NODE_ENV === 'production', // HTTPS only in production
         sameSite: 'lax',       // CSRF protection
@@ -220,6 +260,8 @@ router.post('/token', async (req, res) => {
         path: '/'
       });
       console.log('[OAuth] Access token stored in HttpOnly cookie');
+    } else {
+      console.warn('[OAuth] WARNING: No access token or media token available!');
     }
     
     if (refreshToken) {
@@ -234,12 +276,13 @@ router.post('/token', async (req, res) => {
     }
     
     // Return non-sensitive data only (no tokens)
+    // uid is extracted from refresh_token or media_token JWT
     res.json({
       success: true,
-      uid: tokenData.uid,
+      uid: uid,
       expires_in: expiresIn,
-      token_type: tokenData.token_type,
-      scope: tokenData.scope
+      token_type: tokenData.token_type || 'Bearer',
+      scope: tokenData.scope || 'email profile'
     });
   } catch (error) {
     console.error('[OAuth] Token generation error:');
