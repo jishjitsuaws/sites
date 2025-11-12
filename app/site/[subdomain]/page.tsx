@@ -1174,10 +1174,11 @@ export default function PublishedSitePage() {
       </header>
 
       {/* Page Content */}
-      <main className="flex-1 container mx-auto" style={{ overflow: 'visible', padding: '1rem 2rem 0 2rem' }}>
+      <main className="flex-1 container mx-auto flex flex-col" style={{ overflow: 'visible', padding: '1rem 2rem 0 2rem' }}>
         {currentPage.sections && currentPage.sections.length > 0 ? (
           // Render sections with flexbox layout
-          <div style={{ marginBottom: 0 }}>
+          <>
+            <div style={{ marginBottom: 0 }}>
             {currentPage.sections.map((section, index) => {
               // Check if this is a card section
               const cardCount = section.components?.filter((c: any) => c.type === 'card').length || 0;
@@ -1270,20 +1271,31 @@ export default function PublishedSitePage() {
                   );
                 })}
               </div>
-              );
+            );
             })}
           </div>
+          {/* Dynamic spacer that fills remaining space */}
+          <div style={{ flex: 1, minHeight: '2rem' }}></div>
+          </>
         ) : currentPage.content && currentPage.content.length > 0 ? (
           // Legacy: Render flat components (backward compatibility)
-          <div className="space-y-6" style={{ marginBottom: 0 }}>
-            {currentPage.content.map((component) => (
-              <div key={component.id}>{renderComponent(component)}</div>
-            ))}
-          </div>
+          <>
+            <div className="space-y-6" style={{ marginBottom: 0 }}>
+              {currentPage.content.map((component) => (
+                <div key={component.id}>{renderComponent(component)}</div>
+              ))}
+            </div>
+            {/* Dynamic spacer that fills remaining space */}
+            <div style={{ flex: 1, minHeight: '2rem' }}></div>
+          </>
         ) : (
-          <div className="text-center py-12" style={{ color: themeColors.text, opacity: 0.6, marginBottom: 0 }}>
-            <p>This page has no content yet.</p>
-          </div>
+          <>
+            <div className="text-center py-12" style={{ color: themeColors.text, opacity: 0.6, marginBottom: 0 }}>
+              <p>This page has no content yet.</p>
+            </div>
+            {/* Dynamic spacer that fills remaining space */}
+            <div style={{ flex: 1, minHeight: '2rem' }}></div>
+          </>
         )}
       </main>
       </div>
