@@ -189,11 +189,14 @@ function DashboardContent() {
         }
       } else {
         // No OAuth params. If authenticated, load sites once else redirect.
+        console.log('[Home] No OAuth params in URL');
         if (authStorage.isAuthenticated()) {
+          console.log('[Home] User is authenticated, setting loading to false');
           setProcessingOAuth(false);
           setLoading(false);
           if (!hasFetchedSitesRef.current) {
             hasFetchedSitesRef.current = true;
+            console.log('[Home] Fetching sites...');
             fetchSites();
           }
         } else {
@@ -207,10 +210,17 @@ function DashboardContent() {
   }, [searchParams, router]);
 
   useEffect(() => {
-    if (authStorage.isAuthenticated() && !processingOAuth) {
+    console.log('[Home] Second useEffect - processingOAuth:', processingOAuth, 'isAuthenticated:', authStorage.isAuthenticated());
+    if (authStorage.isAuthenticated() && !processingOAuth && loading) {
+      console.log('[Home] Setting loading to false in second useEffect');
+      setLoading(false);
+    }
+    if (authStorage.isAuthenticated() && !processingOAuth && !hasFetchedSitesRef.current) {
+      hasFetchedSitesRef.current = true;
+      console.log('[Home] Fetching sites from second useEffect...');
       fetchSites();
     }
-  }, [processingOAuth]);
+  }, [processingOAuth, loading]);
 
   useEffect(() => {
     const handleClickOutside = () => setOpenDropdown(null);
@@ -269,12 +279,14 @@ function DashboardContent() {
     site.subdomain.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (loading) {
+  console.log('[Home] Render state:', { loading, processingOAuth, isAuthenticated: authStorage.isAuthenticated(), sitesCount: sites.length });
+
+  if (loading || processingOAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your websites...</p>
+          <p className="text-gray-600">{processingOAuth ? 'Authenticating...' : 'Loading your websites...'}</p>
         </div>
       </div>
     );
