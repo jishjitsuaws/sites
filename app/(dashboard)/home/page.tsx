@@ -51,20 +51,39 @@ function DashboardContent() {
 
   useEffect(() => {
     const handleOAuthCallback = async () => {
+      console.log('[Home] useEffect OAuth handler called');
       const code = searchParams.get('code');
       const state = searchParams.get('state');
+      
+      console.log('[Home] OAuth params check:', {
+        hasCode: !!code,
+        hasState: !!state,
+        isAuthenticated: authStorage.isAuthenticated(),
+        shouldProcess: !!(code && state && !authStorage.isAuthenticated())
+      });
 
       // Only process if we have code and state and we're not already authenticated
       if (code && state && !authStorage.isAuthenticated()) {
         // Check if we're already processing to prevent duplicate requests
         const isProcessing = sessionStorage.getItem('oauth_processing');
-        if (isProcessing === 'true') {
-          console.log('[Home] OAuth already being processed, skipping duplicate');
-          return;
+        const processingTimestamp = sessionStorage.getItem('oauth_processing_timestamp');
+        
+        // If processing flag is set, check if it's been more than 30 seconds (stale)
+        if (isProcessing === 'true' && processingTimestamp) {
+          const elapsed = Date.now() - parseInt(processingTimestamp);
+          if (elapsed < 30000) { // 30 seconds
+            console.log('[Home] OAuth already being processed, skipping duplicate');
+            return;
+          } else {
+            console.log('[Home] OAuth processing flag is stale, clearing and retrying');
+            sessionStorage.removeItem('oauth_processing');
+            sessionStorage.removeItem('oauth_processing_timestamp');
+          }
         }
 
         console.log('[Home] OAuth callback detected, processing...');
         sessionStorage.setItem('oauth_processing', 'true');
+        sessionStorage.setItem('oauth_processing_timestamp', Date.now().toString());
         setProcessingOAuth(true);
         
         try {
@@ -93,13 +112,20 @@ function DashboardContent() {
           // Exchange code for token. Backend sets token in HttpOnly cookie and returns uid.
           const tokenData = await exchangeCodeForToken(code, state);
           console.log('[Home] Token exchange response:', tokenData);
+          console.log('[Home] Token exchange response keys:', Object.keys(tokenData));
+          console.log('[Home] Token data full:', JSON.stringify(tokenData, null, 2));
 
           // Backend now returns uid (token stored in HttpOnly cookie). Prefer tokenData.uid.
           const uid = tokenData.uid || tokenData.data?.uid;
 
           if (!uid) {
             console.error('[Home] No uid returned from token exchange:', tokenData);
+            console.error('[Home] tokenData.uid:', tokenData.uid);
+            console.error('[Home] tokenData.data:', tokenData.data);
+            console.error('[Home] tokenData.data?.uid:', tokenData.data?.uid);
             toast.error('Failed to authenticate (missing user id)');
+            sessionStorage.removeItem('oauth_processing');
+            sessionStorage.removeItem('oauth_processing_timestamp');
             router.push('/login');
             return;
           }
@@ -115,6 +141,7 @@ function DashboardContent() {
           
           // Clear processing flag
           sessionStorage.removeItem('oauth_processing');
+          sessionStorage.removeItem('oauth_processing_timestamp');
           
           toast.success('Successfully logged in!');
           
@@ -134,6 +161,7 @@ function DashboardContent() {
         } catch (error: any) {
           // Clear processing flag on error
           sessionStorage.removeItem('oauth_processing');
+          sessionStorage.removeItem('oauth_processing_timestamp');
           
           console.error('[Home] OAuth error:', error);
           console.error('[Home] Error response:', error.response?.data);
