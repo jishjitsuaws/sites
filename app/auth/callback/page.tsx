@@ -6,7 +6,9 @@ import {
   exchangeCodeForToken, 
   fetchUserInfo, 
   fetchUserProfile,
-  authStorage 
+  authStorage,
+  validateOAuthCallback,
+  clearOAuthState
 } from '@/lib/auth';
 
 function CallbackContent() {
@@ -22,30 +24,31 @@ function CallbackContent() {
         const code = searchParams.get('code');
         const state = searchParams.get('state');
 
-        if (!code || !state) {
-          setError('Missing authorization code or state');
+        if (!code) {
+          setError('Missing authorization code');
           return;
         }
 
-        console.log('[Callback] Code and state verified');
-        setStatus('Exchanging code for token...');
+        if (!state) {
+          setError('Missing state parameter - possible CSRF attack');
+          return;
+        }
 
-        // NOTE: IVP ISEA OAuth provider generates its own state parameter
-        // We'll verify the state exists but won't validate against our stored state
-        const savedState = sessionStorage.getItem('oauth_state');
-        console.log('[Callback] State comparison:', {
-          receivedState: state.substring(0, 20) + '...',
-          savedState: savedState ? savedState.substring(0, 20) + '...' : 'none',
-          match: state === savedState
-        });
+        console.log('[Callback] Code and state received from OAuth provider');
+        setStatus('Validating OAuth state...');
+
+        // STEP 2.1: Validate state parameter (CSRF protection)
+        const validation = validateOAuthCallback(state);
         
-        // Optional: Just verify state format
-        if (!/^[a-zA-Z0-9]+$/.test(state)) {
-          setError('Invalid state parameter format');
+        if (!validation.valid) {
+          setError(validation.error || 'OAuth state validation failed');
           return;
         }
 
-        console.log('[Callback] State format verified');
+        console.log('[Callback] OAuth state validated successfully');
+        
+        // STEP 2.2: Clear OAuth state to prevent reuse (replay attack protection)
+        clearOAuthState();
         setStatus('Exchanging code for token...');
 
         // STEP 3: Exchange code for access token

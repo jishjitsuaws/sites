@@ -1021,17 +1021,17 @@ export default function ComponentRenderer({
           {/* Social Media Toolbar */}
           {isSelected && (
             <div 
-              className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
+              className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex flex-col gap-2 whitespace-nowrap"
               style={{
-                top: '-60px',
+                top: '-220px',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 zIndex: 1000,
                 minWidth: 'max-content',
               }}
             >
-              <div className="px-2 py-1.5 flex items-center gap-2">
-                <label className="text-xs text-gray-700 whitespace-nowrap">Instagram:</label>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-700 whitespace-nowrap w-20">Instagram:</label>
                 <input
                   type="text"
                   value={component.props.instagramUrl || ''}
@@ -1043,12 +1043,11 @@ export default function ComponentRenderer({
                   }}
                   onClick={(e) => e.stopPropagation()}
                   placeholder="Instagram URL"
-                  className="w-32 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
+                  className="w-64 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
                 />
               </div>
-              <div className="w-px bg-gray-300"></div>
-              <div className="px-2 py-1.5 flex items-center gap-2">
-                <label className="text-xs text-gray-700 whitespace-nowrap">Facebook:</label>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-700 whitespace-nowrap w-20">Facebook:</label>
                 <input
                   type="text"
                   value={component.props.facebookUrl || ''}
@@ -1060,12 +1059,11 @@ export default function ComponentRenderer({
                   }}
                   onClick={(e) => e.stopPropagation()}
                   placeholder="Facebook URL"
-                  className="w-32 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
+                  className="w-64 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
                 />
               </div>
-              <div className="w-px bg-gray-300"></div>
-              <div className="px-2 py-1.5 flex items-center gap-2">
-                <label className="text-xs text-gray-700 whitespace-nowrap">Twitter:</label>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-700 whitespace-nowrap w-20">Twitter:</label>
                 <input
                   type="text"
                   value={component.props.twitterUrl || ''}
@@ -1077,12 +1075,11 @@ export default function ComponentRenderer({
                   }}
                   onClick={(e) => e.stopPropagation()}
                   placeholder="Twitter URL"
-                  className="w-32 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
+                  className="w-64 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
                 />
               </div>
-              <div className="w-px bg-gray-300"></div>
-              <div className="px-2 py-1.5 flex items-center gap-2">
-                <label className="text-xs text-gray-700 whitespace-nowrap">LinkedIn:</label>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-700 whitespace-nowrap w-20">LinkedIn:</label>
                 <input
                   type="text"
                   value={component.props.linkedinUrl || ''}
@@ -1094,12 +1091,11 @@ export default function ComponentRenderer({
                   }}
                   onClick={(e) => e.stopPropagation()}
                   placeholder="LinkedIn URL"
-                  className="w-32 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
+                  className="w-64 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
                 />
               </div>
-              <div className="w-px bg-gray-300"></div>
-              <div className="px-2 py-1.5 flex items-center gap-2">
-                <label className="text-xs text-gray-700 whitespace-nowrap">YouTube:</label>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-700 whitespace-nowrap w-20">YouTube:</label>
                 <input
                   type="text"
                   value={component.props.youtubeUrl || ''}
@@ -1111,82 +1107,82 @@ export default function ComponentRenderer({
                   }}
                   onClick={(e) => e.stopPropagation()}
                   placeholder="YouTube URL"
-                  className="w-32 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
+                  className="w-64 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
                 />
               </div>
-              <div className="w-px bg-gray-300"></div>
-              <div className="px-2 py-1.5 flex items-center gap-1.5">
-                <input
-                  type="color"
-                  value={component.props.iconColor || themeColors.primary}
-                  onChange={(e) => {
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, iconColor: e.target.value }
-                    });
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-6 h-6 rounded cursor-pointer border-none"
-                  title="Icon Color"
-                />
-                <input
-                  type="text"
-                  value={component.props.iconColor || themeColors.primary}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    const newColor = e.target.value;
-                    if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
+              
+              <div className="border-t border-gray-300 pt-2 mt-1 flex items-center gap-2 justify-between">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={component.props.iconColor || themeColors.primary}
+                    onChange={(e) => {
                       onUpdateComponent(component.id, {
                         ...component,
-                        props: { ...component.props, iconColor: newColor }
+                        props: { ...component.props, iconColor: e.target.value }
                       });
-                    }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-6 h-6 rounded cursor-pointer border-none"
+                    title="Icon Color"
+                  />
+                  <input
+                    type="text"
+                    value={component.props.iconColor || themeColors.primary}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      const newColor = e.target.value;
+                      if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, iconColor: newColor }
+                        });
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder="#000000"
+                    className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
+                    title="Hex Color Code"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-gray-700 whitespace-nowrap">Gap:</label>
+                  <input
+                    type="number"
+                    value={component.props.iconGap || 16}
+                    onChange={(e) => {
+                      const gap = Math.max(0, Math.min(100, parseInt(e.target.value) || 16));
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, iconGap: gap }
+                      });
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
+                    min="0"
+                    max="100"
+                    title="Gap between icons (px)"
+                  />
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteComponent();
                   }}
-                  onClick={(e) => e.stopPropagation()}
-                  placeholder="#000000"
-                  className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
-                  title="Hex Color Code"
-                />
+                  className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
+                  title="Delete Social Links"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </button>
               </div>
-              <div className="w-px bg-gray-300"></div>
-              <div className="px-2 py-1.5 flex items-center gap-2">
-                <label className="text-xs text-gray-700 whitespace-nowrap">Gap:</label>
-                <input
-                  type="number"
-                  value={component.props.iconGap || 16}
-                  onChange={(e) => {
-                    const gap = Math.max(0, Math.min(100, parseInt(e.target.value) || 16));
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, iconGap: gap }
-                    });
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
-                  min="0"
-                  max="100"
-                  title="Gap between icons (px)"
-                />
-              </div>
-              <div className="w-px bg-gray-300"></div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteComponent();
-                }}
-                className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
-                title="Delete Social Links"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
             </div>
           )}
 
           {/* Social Icons Grid */}
           <div className="flex gap-4 items-center justify-center py-4">
             {/* Instagram Icon */}
-            {component.props.instagramUrl ? (
+            {component.props.instagramUrl && (
               <a
                 href={component.props.instagramUrl}
                 target="_blank"
@@ -1199,19 +1195,10 @@ export default function ComponentRenderer({
                   <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                 </svg>
               </a>
-            ) : (
-              <div 
-                className="opacity-50 cursor-not-allowed"
-                style={{ color: component.props.iconColor || themeColors.primary }}
-              >
-                <svg width={component.props.iconSize || 32} height={component.props.iconSize || 32} viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-              </div>
             )}
 
             {/* Facebook Icon */}
-            {component.props.facebookUrl ? (
+            {component.props.facebookUrl && (
               <a
                 href={component.props.facebookUrl}
                 target="_blank"
@@ -1224,19 +1211,10 @@ export default function ComponentRenderer({
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>
               </a>
-            ) : (
-              <div 
-                className="opacity-50 cursor-not-allowed"
-                style={{ color: component.props.iconColor || themeColors.primary }}
-              >
-                <svg width={component.props.iconSize || 32} height={component.props.iconSize || 32} viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-              </div>
             )}
 
             {/* Twitter Icon */}
-            {component.props.twitterUrl ? (
+            {component.props.twitterUrl && (
               <a
                 href={component.props.twitterUrl}
                 target="_blank"
@@ -1249,15 +1227,6 @@ export default function ComponentRenderer({
                   <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
                 </svg>
               </a>
-            ) : (
-              <div 
-                className="opacity-50 cursor-not-allowed"
-                style={{ color: component.props.iconColor || themeColors.primary }}
-              >
-                <svg width={component.props.iconSize || 32} height={component.props.iconSize || 32} viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                </svg>
-              </div>
             )}
             
             {/* LinkedIn Icon */}
@@ -3010,7 +2979,7 @@ export default function ComponentRenderer({
               </div>
 
               {/* Links - Right */}
-              <div className="flex gap-12">
+              <div className="flex gap-12 items-start text-right">
                 <div>
                   <h4 className="font-semibold mb-2">Quick Links</h4>
                   <ul className="space-y-1 text-sm opacity-80">

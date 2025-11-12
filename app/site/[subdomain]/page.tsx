@@ -901,7 +901,7 @@ export default function PublishedSitePage() {
                 </div>
 
                 {/* Links - Right */}
-                <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 md:gap-12">
+                <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 md:gap-12 items-start sm:items-start md:items-start text-left sm:text-right">
                   <div>
                     <h4 className="text-sm md:text-base font-semibold mb-2">Quick Links</h4>
                     <ul className="space-y-1 text-xs md:text-sm opacity-80">

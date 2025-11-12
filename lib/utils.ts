@@ -190,13 +190,15 @@ export function getYouTubeEmbedUrl(url: string): string {
     
     // If we found a video ID, return embed URL
     if (videoId) {
+      // Clean the video ID (remove any additional parameters)
+      videoId = videoId.split('&')[0].split('?')[0];
       return `https://www.youtube.com/embed/${videoId}`;
     }
   } catch (e) {
     // If URL parsing fails, try to extract video ID from the URL string
     const patterns = [
-      /[?&]v=([^&]+)/,  // ?v=VIDEO_ID
-      /youtu\.be\/([^?]+)/, // youtu.be/VIDEO_ID
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,  // Match 11-character video ID
+      /[?&]v=([a-zA-Z0-9_-]{11})/, // ?v=VIDEO_ID (11 chars)
     ];
     
     for (const pattern of patterns) {
@@ -207,6 +209,6 @@ export function getYouTubeEmbedUrl(url: string): string {
     }
   }
   
-  // For other video platforms (Vimeo, etc.), return as is
+  // For other video platforms (Vimeo, etc.) or invalid YouTube URLs, return as is
   return url;
 }

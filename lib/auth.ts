@@ -49,29 +49,110 @@ export function generateSecureState(): string {
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
+// Generate secure random nonce for replay attack prevention
+export function generateSecureNonce(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
 // STEP 1: Redirect to OAuth login page
 export function redirectToLogin() {
   const state = generateSecureState();
+  const nonce = generateSecureNonce();
   
-  // Store state in sessionStorage for CSRF verification
-  // NOTE: IVP ISEA OAuth provider generates its own state and doesn't use ours
-  // We store it anyway for logging/debugging purposes
+  // Store state, nonce, and timestamp in sessionStorage for CSRF verification
   if (typeof window !== 'undefined') {
     sessionStorage.setItem('oauth_state', state);
-    sessionStorage.setItem('oauth_state_timestamp', Date.now().toString());
+    sessionStorage.setItem('oauth_nonce', nonce);
+    sessionStorage.setItem('oauth_timestamp', Date.now().toString());
+    
+    // Backup in localStorage
     localStorage.setItem('oauth_state', state);
-    localStorage.setItem('oauth_state_timestamp', Date.now().toString());
+    localStorage.setItem('oauth_nonce', nonce);
+    localStorage.setItem('oauth_timestamp', Date.now().toString());
     
     console.log('[Auth] Generated and stored state:', state.substring(0, 20) + '...');
+    console.log('[Auth] Generated and stored nonce:', nonce.substring(0, 20) + '...');
+    console.log('[Auth] OAuth timestamp:', Date.now());
   }
   
-  // Construct OAuth login URL
-  // EXACT ENDPOINT: https://ivp.isea.in/backend/loginRedirect?client_id=owl
-  const loginUrl = `${OAUTH_LOGIN_URL}?client_id=${CLIENT_ID}`;
+  // Construct OAuth login URL with state and nonce parameters
+  // NOTE: IVP ISEA OAuth provider may generate its own state
+  // We include ours for CSRF protection
+  const loginUrl = `${OAUTH_LOGIN_URL}?client_id=${CLIENT_ID}&state=${state}&nonce=${nonce}`;
   
-  console.log('[Auth] Redirecting to OAuth login:', loginUrl);
-  console.log('[Auth] Note: OAuth provider will generate its own state parameter');
+  console.log('[Auth] Redirecting to OAuth login with state and nonce parameters');
   window.location.href = loginUrl;
+}
+
+// STEP 2: Validate OAuth callback state (CSRF protection)
+export function validateOAuthCallback(returnedState: string): { valid: boolean; error?: string } {
+  if (typeof window === 'undefined') {
+    return { valid: false, error: 'Window not available' };
+  }
+
+  // Get stored state from sessionStorage or fallback to localStorage
+  const storedState = sessionStorage.getItem('oauth_state') || localStorage.getItem('oauth_state');
+  const storedNonce = sessionStorage.getItem('oauth_nonce') || localStorage.getItem('oauth_nonce');
+  const storedTimestamp = sessionStorage.getItem('oauth_timestamp') || localStorage.getItem('oauth_timestamp');
+
+  // Validate returned state exists
+  if (!returnedState) {
+    return { valid: false, error: 'Missing state parameter in OAuth callback' };
+  }
+
+  // Validate state format (should be hex string)
+  if (!/^[a-f0-9]{64}$/.test(returnedState)) {
+    return { valid: false, error: 'Invalid state parameter format - possible CSRF attack' };
+  }
+
+  // Validate stored state exists
+  if (!storedState) {
+    return { valid: false, error: 'No stored state found - OAuth flow may have been tampered with' };
+  }
+
+  // Validate state matches
+  if (returnedState !== storedState) {
+    console.error('[Auth] State mismatch:', {
+      returned: returnedState.substring(0, 20) + '...',
+      stored: storedState.substring(0, 20) + '...'
+    });
+    return { valid: false, error: 'State parameter mismatch - possible CSRF attack' };
+  }
+
+  // Validate nonce exists (additional protection)
+  if (!storedNonce) {
+    return { valid: false, error: 'No stored nonce found - OAuth flow may have been tampered with' };
+  }
+
+  // Validate timestamp to prevent replay attacks
+  if (storedTimestamp) {
+    const timestamp = parseInt(storedTimestamp);
+    const now = Date.now();
+    const maxAge = 10 * 60 * 1000; // 10 minutes
+
+    if (now - timestamp > maxAge) {
+      return { valid: false, error: 'OAuth flow expired - please try again' };
+    }
+  }
+
+  console.log('[Auth] OAuth callback validation successful');
+  return { valid: true };
+}
+
+// STEP 2.5: Clear OAuth state after successful validation (prevent reuse)
+export function clearOAuthState(): void {
+  if (typeof window === 'undefined') return;
+  
+  sessionStorage.removeItem('oauth_state');
+  sessionStorage.removeItem('oauth_nonce');
+  sessionStorage.removeItem('oauth_timestamp');
+  localStorage.removeItem('oauth_state');
+  localStorage.removeItem('oauth_nonce');
+  localStorage.removeItem('oauth_timestamp');
+  
+  console.log('[Auth] OAuth state cleared after successful validation');
 }
 
 // STEP 3: Exchange authorization code for access token
@@ -374,12 +455,16 @@ export const authStorage = {
     sessionStorage.removeItem('user_profile');
     sessionStorage.removeItem('auth_timestamp');
     sessionStorage.removeItem('oauth_state');
-    sessionStorage.removeItem('oauth_state_timestamp');
+    sessionStorage.removeItem('oauth_nonce');
+    sessionStorage.removeItem('oauth_timestamp');
     
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_info');
     localStorage.removeItem('user_profile');
     localStorage.removeItem('auth_timestamp');
+    localStorage.removeItem('oauth_state');
+    localStorage.removeItem('oauth_nonce');
+    localStorage.removeItem('oauth_timestamp');
     
     console.log('[Auth] Authentication data cleared');
   },

@@ -136,7 +136,6 @@ export default function EditorPage() {
   const [showNavbarSettings, setShowNavbarSettings] = useState(false);
   const [isEditingSiteName, setIsEditingSiteName] = useState(false);
   const [editedSiteName, setEditedSiteName] = useState('');
-  const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
   const { 
     components, 
@@ -1627,10 +1626,8 @@ export default function EditorPage() {
           }}
         >
           <div 
-            className="max-w-7xl mx-auto bg-white rounded-lg shadow-sm min-h-[800px] relative transition-all duration-300"
-            style={{ 
-              maxWidth: previewMode === 'desktop' ? '1400px' : previewMode === 'tablet' ? '768px' : '375px',
-            }}
+            className="max-w-7xl mx-auto bg-white rounded-lg shadow-sm min-h-[800px] relative"
+            style={{ maxWidth: '1400px' }}
             onClick={(e) => {
               // Deselect component when clicking on white canvas area (not on a component)
               const target = e.target as HTMLElement;
@@ -1646,54 +1643,6 @@ export default function EditorPage() {
               }
             }}
           >
-            {/* Floating Device Preview Switcher */}
-            <div 
-              className="absolute -top-14 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-xl border border-gray-200 p-1 flex gap-1 z-50"
-            >
-              <button
-                onClick={() => setPreviewMode('desktop')}
-                className={`px-3 py-2 rounded-md flex items-center gap-2 transition-colors ${
-                  previewMode === 'desktop' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-                title="Desktop Preview"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <span className="text-sm font-medium">Desktop</span>
-              </button>
-              <button
-                onClick={() => setPreviewMode('tablet')}
-                className={`px-3 py-2 rounded-md flex items-center gap-2 transition-colors ${
-                  previewMode === 'tablet' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-                title="Tablet Preview"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                <span className="text-sm font-medium">Tablet</span>
-              </button>
-              <button
-                onClick={() => setPreviewMode('mobile')}
-                className={`px-3 py-2 rounded-md flex items-center gap-2 transition-colors ${
-                  previewMode === 'mobile' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-                title="Mobile Preview"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                <span className="text-sm font-medium">Mobile</span>
-              </button>
-            </div>
-
             {/* Fixed Navbar Preview */}
             <div 
               className="border-b px-6 py-4 rounded-t-lg"
