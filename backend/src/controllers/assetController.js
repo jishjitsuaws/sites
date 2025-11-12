@@ -61,7 +61,7 @@ exports.uploadAsset = asyncHandler(async (req, res, next) => {
     // Construct backend URL for assets
     // Use direct backend IP since HAProxy doesn't route /uploads/*
     // HAProxy only routes /api/* to backend, so we must use direct backend URL
-    const backendUrl = 'http://10.244.0.147:5000';
+    const backendUrl = process.env.BACKEND_URL.replace(/\/api\/?$/, '');
     
     const assetUrl = `${backendUrl}/uploads/${result.public_id}`;
 
