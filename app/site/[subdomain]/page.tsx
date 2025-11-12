@@ -482,10 +482,10 @@ export default function PublishedSitePage() {
               alt={component.props.alt || ''} 
               className="inline-block rounded"
               style={{
-                width: component.props.width || '100%',
+                width: component.props.width || 'auto',
                 maxWidth: '100%',
                 height: component.props.height || 'auto',
-                objectFit: component.props.objectFit || (component.props.height ? 'cover' : 'contain'),
+                objectFit: component.props.objectFit || 'contain',
                 float: (component.props.float && component.props.float !== 'none') ? component.props.float : 'none',
                 marginRight: (component.props.float === 'left') ? '20px' : '0',
                 marginLeft: (component.props.float === 'right') ? '20px' : '0',
@@ -515,7 +515,11 @@ export default function PublishedSitePage() {
 
       case 'video':
         return component.props.url ? (
-          <div style={{ height: `${component.props.height || 400}px`, width: '100%' }}>
+          <div style={{ 
+            height: `${component.props.height || 400}px`, 
+            width: component.props.width || '100%',
+            maxWidth: '100%',
+          }}>
             <iframe
               src={getYouTubeEmbedUrl(component.props.url)}
               title="Embedded video"

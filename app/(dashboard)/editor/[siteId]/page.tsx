@@ -1519,7 +1519,30 @@ export default function EditorPage() {
   return (
     <>
       <link rel="stylesheet" href={googleFontsUrl} />
-      <div className="h-screen flex flex-col bg-gray-50">
+      <div 
+        className="h-screen flex flex-col bg-gray-50"
+        onClick={(e) => {
+          // Deselect section/component when clicking outside the editor canvas
+          const target = e.target as HTMLElement;
+          
+          // Check if clicked on navbar, sidebar, or other areas outside editor
+          const clickedOnCanvas = target.closest('.bg-gray-100.p-4.overflow-y-auto');
+          const clickedOnComponent = target.closest('[data-component-id]');
+          const clickedOnSection = target.closest('[data-section-id]');
+          const clickedOnToolbar = target.closest('.absolute') || target.closest('[role="toolbar"]');
+          const clickedOnButton = target.closest('button');
+          const clickedOnModal = target.closest('[role="dialog"]') || target.closest('.modal');
+          
+          // If clicked outside canvas and not on interactive elements, deselect
+          if (!clickedOnCanvas && !clickedOnToolbar && !clickedOnButton && !clickedOnModal) {
+            setSelectedComponent(null);
+            setSelectedSection(null);
+            setShowTextToolbar(false);
+            setShowImageModal(false);
+            setShowButtonModal(false);
+          }
+        }}
+      >
       {/* Top Bar */}
       <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4">
         <div className="flex items-center gap-4">

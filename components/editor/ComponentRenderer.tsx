@@ -570,30 +570,39 @@ export default function ComponentRenderer({
                   alt={component.props.alt || ''}
                   className="w-full rounded"
                   style={{
-                    objectFit: component.props.objectFit || (component.props.height ? 'cover' : 'contain'),
+                    objectFit: component.props.objectFit || 'contain',
                     height: component.props.height || 'auto',
                     width: '100%',
                   }}
                 />
                 
-                {/* Resize Handles - Corner dots */}
+                {/* Resize Handles - All four corners for free-form resizing */}
                 {isSelected && (
                   <>
-                    {/* Bottom-right resize handle */}
+                    {/* Bottom-right resize handle - resize both width and height */}
                     <div
-                      className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform"
+                      className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform shadow-lg"
                       onMouseDown={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
                         const startX = e.clientX;
+                        const startY = e.clientY;
                         const startWidth = parseInt(component.props.width) || 400;
+                        const startHeight = parseInt(component.props.height) || 300;
                         
                         const handleMouseMove = (moveEvent: MouseEvent) => {
                           const deltaX = moveEvent.clientX - startX;
-                          const newWidth = Math.max(100, Math.min(1200, startWidth + deltaX));
+                          const deltaY = moveEvent.clientY - startY;
+                          const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
+                          const newHeight = Math.max(100, Math.min(1000, startHeight + deltaY));
                           onUpdateComponent(component.id, {
                             ...component,
-                            props: { ...component.props, width: `${newWidth}px` }
+                            props: { 
+                              ...component.props, 
+                              width: `${newWidth}px`,
+                              height: `${newHeight}px`,
+                              objectFit: 'cover' // Use cover for better results with custom dimensions
+                            }
                           });
                         };
                         
@@ -606,21 +615,105 @@ export default function ComponentRenderer({
                         document.addEventListener('mouseup', handleMouseUp);
                       }}
                     />
+                    
                     {/* Bottom-left resize handle */}
                     <div
-                      className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nesw-resize hover:scale-125 transition-transform"
+                      className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nesw-resize hover:scale-125 transition-transform shadow-lg"
                       onMouseDown={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
                         const startX = e.clientX;
+                        const startY = e.clientY;
                         const startWidth = parseInt(component.props.width) || 400;
+                        const startHeight = parseInt(component.props.height) || 300;
                         
                         const handleMouseMove = (moveEvent: MouseEvent) => {
                           const deltaX = startX - moveEvent.clientX;
-                          const newWidth = Math.max(100, Math.min(1200, startWidth + deltaX));
+                          const deltaY = moveEvent.clientY - startY;
+                          const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
+                          const newHeight = Math.max(100, Math.min(1000, startHeight + deltaY));
                           onUpdateComponent(component.id, {
                             ...component,
-                            props: { ...component.props, width: `${newWidth}px` }
+                            props: { 
+                              ...component.props, 
+                              width: `${newWidth}px`,
+                              height: `${newHeight}px`,
+                              objectFit: 'cover'
+                            }
+                          });
+                        };
+                        
+                        const handleMouseUp = () => {
+                          document.removeEventListener('mousemove', handleMouseMove);
+                          document.removeEventListener('mouseup', handleMouseUp);
+                        };
+                        
+                        document.addEventListener('mousemove', handleMouseMove);
+                        document.addEventListener('mouseup', handleMouseUp);
+                      }}
+                    />
+                    
+                    {/* Top-right resize handle */}
+                    <div
+                      className="absolute -top-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nesw-resize hover:scale-125 transition-transform shadow-lg"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startWidth = parseInt(component.props.width) || 400;
+                        const startHeight = parseInt(component.props.height) || 300;
+                        
+                        const handleMouseMove = (moveEvent: MouseEvent) => {
+                          const deltaX = moveEvent.clientX - startX;
+                          const deltaY = startY - moveEvent.clientY;
+                          const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
+                          const newHeight = Math.max(100, Math.min(1000, startHeight + deltaY));
+                          onUpdateComponent(component.id, {
+                            ...component,
+                            props: { 
+                              ...component.props, 
+                              width: `${newWidth}px`,
+                              height: `${newHeight}px`,
+                              objectFit: 'cover'
+                            }
+                          });
+                        };
+                        
+                        const handleMouseUp = () => {
+                          document.removeEventListener('mousemove', handleMouseMove);
+                          document.removeEventListener('mouseup', handleMouseUp);
+                        };
+                        
+                        document.addEventListener('mousemove', handleMouseMove);
+                        document.addEventListener('mouseup', handleMouseUp);
+                      }}
+                    />
+                    
+                    {/* Top-left resize handle */}
+                    <div
+                      className="absolute -top-2 -left-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform shadow-lg"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startWidth = parseInt(component.props.width) || 400;
+                        const startHeight = parseInt(component.props.height) || 300;
+                        
+                        const handleMouseMove = (moveEvent: MouseEvent) => {
+                          const deltaX = startX - moveEvent.clientX;
+                          const deltaY = startY - moveEvent.clientY;
+                          const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
+                          const newHeight = Math.max(100, Math.min(1000, startHeight + deltaY));
+                          onUpdateComponent(component.id, {
+                            ...component,
+                            props: { 
+                              ...component.props, 
+                              width: `${newWidth}px`,
+                              height: `${newHeight}px`,
+                              objectFit: 'cover'
+                            }
                           });
                         };
                         
@@ -1155,7 +1248,7 @@ export default function ComponentRenderer({
 
       {/* Video Component */}
       {component.type === 'video' && (
-        <div className="relative">
+        <div className="relative inline-block" style={{ maxWidth: '100%' }}>
           {/* Inline toolbar for videos */}
           {isSelected && (
             <div 
@@ -1186,25 +1279,6 @@ export default function ComponentRenderer({
                 {component.props.url ? 'Change URL' : 'Add URL'}
               </button>
               <div className="w-px bg-gray-300"></div>
-              <div className="px-2 py-1.5 flex items-center gap-2">
-                <label className="text-xs text-gray-700 whitespace-nowrap">Height:</label>
-                <input
-                  type="number"
-                  value={parseInt(component.props.height) || 400}
-                  onChange={(e) => {
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, height: e.target.value }
-                    });
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-20 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
-                  min="200"
-                  max="800"
-                  step="50"
-                />
-              </div>
-              <div className="w-px bg-gray-300"></div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1232,13 +1306,169 @@ export default function ComponentRenderer({
           )}
           
           {component.props.url ? (
-            <div style={{ height: `${component.props.height || 400}px`, width: '100%' }}>
+            <div 
+              className="relative"
+              style={{ 
+                height: `${component.props.height || 400}px`, 
+                width: component.props.width || '800px',
+                maxWidth: '100%',
+              }}
+            >
               <iframe
                 src={getYouTubeEmbedUrl(component.props.url)}
                 title="Embedded video"
                 className="w-full h-full rounded"
                 allowFullScreen
               />
+              
+              {/* Resize Handles - All four corners for free-form resizing */}
+              {isSelected && (
+                <>
+                  {/* Bottom-right resize handle - resize both width and height */}
+                  <div
+                    className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform shadow-lg z-10"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      const startX = e.clientX;
+                      const startY = e.clientY;
+                      const startWidth = parseInt(component.props.width) || 800;
+                      const startHeight = parseInt(component.props.height) || 400;
+                      
+                      const handleMouseMove = (moveEvent: MouseEvent) => {
+                        const deltaX = moveEvent.clientX - startX;
+                        const deltaY = moveEvent.clientY - startY;
+                        const newWidth = Math.max(200, Math.min(1400, startWidth + deltaX));
+                        const newHeight = Math.max(200, Math.min(1000, startHeight + deltaY));
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { 
+                            ...component.props, 
+                            width: `${newWidth}px`,
+                            height: `${newHeight}px`
+                          }
+                        });
+                      };
+                      
+                      const handleMouseUp = () => {
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
+                    }}
+                  />
+                  
+                  {/* Bottom-left resize handle */}
+                  <div
+                    className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nesw-resize hover:scale-125 transition-transform shadow-lg z-10"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      const startX = e.clientX;
+                      const startY = e.clientY;
+                      const startWidth = parseInt(component.props.width) || 800;
+                      const startHeight = parseInt(component.props.height) || 400;
+                      
+                      const handleMouseMove = (moveEvent: MouseEvent) => {
+                        const deltaX = startX - moveEvent.clientX;
+                        const deltaY = moveEvent.clientY - startY;
+                        const newWidth = Math.max(200, Math.min(1400, startWidth + deltaX));
+                        const newHeight = Math.max(200, Math.min(1000, startHeight + deltaY));
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { 
+                            ...component.props, 
+                            width: `${newWidth}px`,
+                            height: `${newHeight}px`
+                          }
+                        });
+                      };
+                      
+                      const handleMouseUp = () => {
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
+                    }}
+                  />
+                  
+                  {/* Top-right resize handle */}
+                  <div
+                    className="absolute -top-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nesw-resize hover:scale-125 transition-transform shadow-lg z-10"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      const startX = e.clientX;
+                      const startY = e.clientY;
+                      const startWidth = parseInt(component.props.width) || 800;
+                      const startHeight = parseInt(component.props.height) || 400;
+                      
+                      const handleMouseMove = (moveEvent: MouseEvent) => {
+                        const deltaX = moveEvent.clientX - startX;
+                        const deltaY = startY - moveEvent.clientY;
+                        const newWidth = Math.max(200, Math.min(1400, startWidth + deltaX));
+                        const newHeight = Math.max(200, Math.min(1000, startHeight + deltaY));
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { 
+                            ...component.props, 
+                            width: `${newWidth}px`,
+                            height: `${newHeight}px`
+                          }
+                        });
+                      };
+                      
+                      const handleMouseUp = () => {
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
+                    }}
+                  />
+                  
+                  {/* Top-left resize handle */}
+                  <div
+                    className="absolute -top-2 -left-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform shadow-lg z-10"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      const startX = e.clientX;
+                      const startY = e.clientY;
+                      const startWidth = parseInt(component.props.width) || 800;
+                      const startHeight = parseInt(component.props.height) || 400;
+                      
+                      const handleMouseMove = (moveEvent: MouseEvent) => {
+                        const deltaX = startX - moveEvent.clientX;
+                        const deltaY = startY - moveEvent.clientY;
+                        const newWidth = Math.max(200, Math.min(1400, startWidth + deltaX));
+                        const newHeight = Math.max(200, Math.min(1000, startHeight + deltaY));
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { 
+                            ...component.props, 
+                            width: `${newWidth}px`,
+                            height: `${newHeight}px`
+                          }
+                        });
+                      };
+                      
+                      const handleMouseUp = () => {
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
+                    }}
+                  />
+                </>
+              )}
             </div>
           ) : (
             <div className="bg-gray-200 h-64 flex items-center justify-center text-gray-400 rounded">
