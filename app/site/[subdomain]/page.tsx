@@ -1195,7 +1195,7 @@ export default function PublishedSitePage() {
               );
               
               // Check if this is the last section
-              const isLastSection = index === currentPage.sections.length - 1;
+              const isLastSection = index === (currentPage.sections?.length || 0) - 1;
               
               // For cards on mobile, use centered justification
               const mobileJustify = isCardSection && direction === 'row' ? 'center' : justify;
