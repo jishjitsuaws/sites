@@ -60,8 +60,12 @@ exports.uploadAsset = asyncHandler(async (req, res, next) => {
 
     // Construct backend URL for assets
     // Backend serves uploads at http://10.244.0.147:5000/uploads/
-    const backendUrl = process.env.BACKEND_URL ;
-    const assetUrl = `${backendUrl}/src/uploads/${result.public_id}`;
+    let backendUrl = process.env.BACKEND_URL || 'http://10.244.0.147:5000';
+    
+    // Remove any trailing /src or /api paths from BACKEND_URL
+    backendUrl = backendUrl.replace(/\/(src|api)$/, '');
+    
+    const assetUrl = `${backendUrl}/uploads/${result.public_id}`;
 
     console.log('[Asset Upload] File saved:', result.public_id, 'URL:', assetUrl);
 
