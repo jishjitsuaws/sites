@@ -1346,42 +1346,57 @@ export default function PublishedSitePage() {
         )}
       </main>
 
-      {/* Fixed Footer */}
-      <footer 
-        style={{
-          backgroundColor: '#1f2937',
-          color: '#ffffff',
-          padding: '3rem 0',
-        }}
-      >
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-xl font-bold mb-4">Your Company</h3>
-              <p className="text-gray-300">Building amazing experiences for our customers.</p>
+      {/* Render Footer from page sections if available, otherwise show default */}
+      {currentPage && currentPage.sections ? (
+        // Find and render footer section
+        currentPage.sections
+          .filter((section: any) => section.components?.some((c: any) => c.type === 'footer'))
+          .map((footerSection: any) => {
+            const footerComponent = footerSection.components.find((c: any) => c.type === 'footer');
+            return footerComponent ? (
+              <div key={footerSection.id}>
+                {renderComponent(footerComponent)}
+              </div>
+            ) : null;
+          })
+      ) : (
+        // Default hardcoded footer (fallback)
+        <footer 
+          style={{
+            backgroundColor: '#1f2937',
+            color: '#ffffff',
+            padding: '3rem 0',
+          }}
+        >
+          <div className="container mx-auto px-4 md:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <h3 className="text-xl font-bold mb-4">Your Company</h3>
+                <p className="text-gray-300">Building amazing experiences for our customers.</p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-4">Quick Links</h4>
+                <ul className="space-y-2 text-gray-300">
+                  <li><a href="#" className="hover:text-white transition-colors">About</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Services</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-4">Connect</h4>
+                <ul className="space-y-2 text-gray-300">
+                  <li><a href="#" className="hover:text-white transition-colors">Twitter</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">LinkedIn</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Facebook</a></li>
+                </ul>
+              </div>
             </div>
-            <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Services</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Connect</h4>
-              <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-white transition-colors">Twitter</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">LinkedIn</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Facebook</a></li>
-              </ul>
+            <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+              <p>© 2024 Your Company. All rights reserved.</p>
             </div>
           </div>
-          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-            <p>© 2024 Your Company. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      )}
       </div>
     </>
   );

@@ -3015,166 +3015,338 @@ export default function ComponentRenderer({
             </div>
           </div>
 
-          {/* Footer Settings Toolbar */}
+          {/* Footer Settings Toolbar - Stacked and Wide */}
           {isSelected && (
-            <div className="absolute top-2 right-2 bg-white shadow-lg rounded-lg border p-2 flex items-center gap-2 text-gray-600 z-10 max-w-3xl overflow-x-auto">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const companyName = prompt('Enter company name:', component.props.companyName || '');
-                  if (companyName !== null) {
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, companyName }
-                    });
-                  }
-                }}
-                className="px-2 py-1 hover:bg-gray-100 rounded text-sm"
-                title="Edit Company Name"
-              >
-                Company
-              </button>
-              <div className="w-px bg-gray-300"></div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const description = prompt('Enter description:', component.props.description || '');
-                  if (description !== null) {
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, description }
-                    });
-                  }
-                }}
-                className="px-2 py-1 hover:bg-gray-100 rounded text-sm"
-                title="Edit Description"
-              >
-                Description
-              </button>
-              <div className="w-px bg-gray-300"></div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const link1Text = prompt('Quick Link 1 Text:', component.props.link1Text || 'About');
-                  if (link1Text !== null) {
-                    const link1Url = prompt('Quick Link 1 URL:', component.props.link1Url || '#');
-                    if (link1Url !== null) {
+            <div className="absolute top-2 right-2 bg-white shadow-xl rounded-lg border p-4 z-10 w-96 max-h-[80vh] overflow-y-auto">
+              <div className="space-y-3">
+                {/* Company Name */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Company Name</label>
+                  <input
+                    type="text"
+                    value={component.props.companyName || ''}
+                    onChange={(e) => {
+                      e.stopPropagation();
                       onUpdateComponent(component.id, {
                         ...component,
-                        props: { ...component.props, link1Text, link1Url }
+                        props: { ...component.props, companyName: e.target.value }
                       });
-                    }
-                  }
-                }}
-                className="px-2 py-1 hover:bg-gray-100 rounded text-sm"
-                title="Edit Quick Links"
-              >
-                Quick Links
-              </button>
-              <div className="w-px bg-gray-300"></div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const social1Text = prompt('Social Link 1 Text:', component.props.social1Text || 'Twitter');
-                  if (social1Text !== null) {
-                    const social1Url = prompt('Social Link 1 URL:', component.props.social1Url || '#');
-                    if (social1Url !== null) {
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder="Your Company"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={component.props.description || ''}
+                    onChange={(e) => {
+                      e.stopPropagation();
                       onUpdateComponent(component.id, {
                         ...component,
-                        props: { ...component.props, social1Text, social1Url }
+                        props: { ...component.props, description: e.target.value }
                       });
-                    }
-                  }
-                }}
-                className="px-2 py-1 hover:bg-gray-100 rounded text-sm"
-                title="Edit Social Links"
-              >
-                Social Links
-              </button>
-              <div className="w-px bg-gray-300"></div>
-              <div className="px-2 py-1.5 flex items-center gap-2">
-                <span className="text-xs">BG:</span>
-                <input
-                  type="color"
-                  value={component.props.backgroundColor || themeColors.secondary}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, backgroundColor: e.target.value }
-                    });
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-8 h-8 rounded cursor-pointer border border-gray-300"
-                  title="Background Color"
-                />
-                <input
-                  type="text"
-                  value={component.props.backgroundColor || themeColors.secondary}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    const newColor = e.target.value;
-                    if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
-                      onUpdateComponent(component.id, {
-                        ...component,
-                        props: { ...component.props, backgroundColor: newColor }
-                      });
-                    }
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  placeholder="#000000"
-                  className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
-                  title="Hex Color Code"
-                />
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder="Building amazing experiences..."
+                    rows={2}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="border-t pt-3">
+                  <h4 className="text-xs font-bold text-gray-700 mb-2">Quick Links</h4>
+                  
+                  {/* Link 1 */}
+                  <div className="mb-2">
+                    <label className="block text-xs text-gray-600 mb-1">Link 1</label>
+                    <input
+                      type="text"
+                      value={component.props.link1Text || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, link1Text: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="About"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="text"
+                      value={component.props.link1Url || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, link1Url: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="URL: #about"
+                      className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Link 2 */}
+                  <div className="mb-2">
+                    <label className="block text-xs text-gray-600 mb-1">Link 2</label>
+                    <input
+                      type="text"
+                      value={component.props.link2Text || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, link2Text: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="Services"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="text"
+                      value={component.props.link2Url || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, link2Url: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="URL: #services"
+                      className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Link 3 */}
+                  <div className="mb-2">
+                    <label className="block text-xs text-gray-600 mb-1">Link 3</label>
+                    <input
+                      type="text"
+                      value={component.props.link3Text || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, link3Text: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="Contact"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="text"
+                      value={component.props.link3Url || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, link3Url: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="URL: #contact"
+                      className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t pt-3">
+                  <h4 className="text-xs font-bold text-gray-700 mb-2">Social Links</h4>
+                  
+                  {/* Social 1 */}
+                  <div className="mb-2">
+                    <label className="block text-xs text-gray-600 mb-1">Social 1</label>
+                    <input
+                      type="text"
+                      value={component.props.social1Text || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, social1Text: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="Twitter"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="text"
+                      value={component.props.social1Url || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, social1Url: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="URL: https://twitter.com/..."
+                      className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Social 2 */}
+                  <div className="mb-2">
+                    <label className="block text-xs text-gray-600 mb-1">Social 2</label>
+                    <input
+                      type="text"
+                      value={component.props.social2Text || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, social2Text: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="LinkedIn"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="text"
+                      value={component.props.social2Url || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, social2Url: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="URL: https://linkedin.com/..."
+                      className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Social 3 */}
+                  <div className="mb-2">
+                    <label className="block text-xs text-gray-600 mb-1">Social 3</label>
+                    <input
+                      type="text"
+                      value={component.props.social3Text || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, social3Text: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="Facebook"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="text"
+                      value={component.props.social3Url || ''}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, social3Url: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="URL: https://facebook.com/..."
+                      className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t pt-3">
+                  <h4 className="text-xs font-bold text-gray-700 mb-2">Colors</h4>
+                  
+                  {/* Background Color */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-xs text-gray-600 w-20">Background:</label>
+                    <input
+                      type="color"
+                      value={component.props.backgroundColor || themeColors.secondary}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, backgroundColor: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-10 h-10 rounded cursor-pointer border border-gray-300"
+                    />
+                    <input
+                      type="text"
+                      value={component.props.backgroundColor || themeColors.secondary}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, backgroundColor: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="#000000"
+                      className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Text Color */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-xs text-gray-600 w-20">Text:</label>
+                    <input
+                      type="color"
+                      value={component.props.textColor || '#ffffff'}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, textColor: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-10 h-10 rounded cursor-pointer border border-gray-300"
+                    />
+                    <input
+                      type="text"
+                      value={component.props.textColor || '#ffffff'}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, textColor: e.target.value }
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="#ffffff"
+                      className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Delete Button */}
+                <div className="border-t pt-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm('Are you sure you want to delete the footer?')) {
+                        onDeleteComponent();
+                      }
+                    }}
+                    className="w-full px-4 py-2 bg-red-50 hover:bg-red-100 rounded text-sm flex items-center justify-center gap-2 text-red-600 transition-colors font-medium"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete Footer
+                  </button>
+                </div>
               </div>
-              <div className="w-px bg-gray-300"></div>
-              <div className="px-2 py-1.5 flex items-center gap-2">
-                <span className="text-xs">Text:</span>
-                <input
-                  type="color"
-                  value={component.props.textColor || '#ffffff'}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, textColor: e.target.value }
-                    });
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-8 h-8 rounded cursor-pointer border border-gray-300"
-                  title="Text Color"
-                />
-                <input
-                  type="text"
-                  value={component.props.textColor || '#ffffff'}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    const newColor = e.target.value;
-                    if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
-                      onUpdateComponent(component.id, {
-                        ...component,
-                        props: { ...component.props, textColor: newColor }
-                      });
-                    }
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  placeholder="#ffffff"
-                  className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
-                  title="Hex Color Code"
-                />
-              </div>
-              <div className="w-px bg-gray-300"></div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteComponent();
-                }}
-                className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
-                title="Delete Footer"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
             </div>
           )}
         </div>

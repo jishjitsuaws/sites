@@ -2,8 +2,6 @@
 
 // Parse allowed origins from environment variable
 const ALLOWED_ORIGINS = process.env.NEXT_PUBLIC_ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [];
-console.log('[Next.js Config] Allowed origins for CSP:', ALLOWED_ORIGINS);
-
 // Extract hostnames for image domains configuration
 const IMAGE_HOSTNAMES = ALLOWED_ORIGINS
   .map(origin => {
