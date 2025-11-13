@@ -200,11 +200,17 @@ export default function EditorPage() {
         if (firstPage) {
           setCurrentPage(firstPage);
           
+          console.log('[Editor] First page loaded:', firstPage.pageName);
+          console.log('[Editor] Page sections:', firstPage.sections);
+          console.log('[Editor] Sections count:', firstPage.sections?.length || 0);
+          
           // ALWAYS prioritize sections if they exist
           if (firstPage.sections && firstPage.sections.length > 0) {
+            console.log('[Editor] Setting sections from page:', firstPage.sections);
             setSections(firstPage.sections);
             setComponents([]); // Don't use content when sections exist
           } else {
+            console.log('[Editor] No sections found, setting empty');
             setSections([]);
             setComponents([]);
           }
@@ -1839,7 +1845,9 @@ export default function EditorPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {sections.map((section, index) => (
+                  {sections.map((section, index) => {
+                    console.log('[Editor Render] Rendering section:', index, section.id, section);
+                    return (
                     <SectionWrapper
                       key={section.id}
                       section={section}
@@ -1995,7 +2003,8 @@ export default function EditorPage() {
                       }}
                       draggedComponentId={draggedComponent?.componentId || null}
                     />
-                  ))}
+                  );
+                  })}
                 </div>
               )}
             </div>
