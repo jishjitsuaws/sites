@@ -38,6 +38,7 @@ function DashboardContent() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [processingOAuth, setProcessingOAuth] = useState(false);
+  const [siteToDelete, setSiteToDelete] = useState<string | null>(null);
   
   // Get user info from OAuth
   const userInfo = authStorage.getUserInfo();
@@ -261,12 +262,11 @@ function DashboardContent() {
   };
 
   const handleDeleteSite = async (siteId: string) => {
-    if (!confirm('Are you sure you want to delete this site?')) return;
-    
     try {
       await api.delete(`/sites/${siteId}`);
       setSites(sites.filter(site => site._id !== siteId));
       toast.success('Site deleted successfully');
+      setSiteToDelete(null);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to delete site');
     }
@@ -416,7 +416,7 @@ function DashboardContent() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteSite(site._id);
+                              setSiteToDelete(site._id);
                               setOpenDropdown(null);
                             }}
                             className="w-full px-4 py-2 text-left hover:bg-red-50 flex items-center gap-2 text-red-600 border-t border-gray-200"
@@ -483,6 +483,35 @@ function DashboardContent() {
 
       {/* Templates Modal */}
       <TemplatesModal isOpen={showTemplates} onClose={() => setShowTemplates(false)} />
+
+      {/* Delete Confirmation Modal */}
+      {siteToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setSiteToDelete(null)}>
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-red-100 p-3 rounded-full">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Delete Website</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this website? This action cannot be undone and all associated data will be permanently removed.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setSiteToDelete(null)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="default" 
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={() => handleDeleteSite(siteToDelete)}
+              >
+                Delete Website
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
