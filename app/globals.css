@@ -75,3 +75,23 @@ textarea,
 select {
   color: rgba(0, 0, 0, 0.95) !important;
 }
+
+/* Sonner toast close button positioning */
+[data-sonner-toast] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+[data-sonner-toast] [data-close-button] {
+  position: relative !important;
+  left: auto !important;
+  right: 0 !important;
+  top: auto !important;
+  margin-left: auto !important;
+  order: 999 !important;
+}
+
+[data-sonner-toast] [data-content] {
+  flex: 1 !important;
+}
