@@ -256,8 +256,43 @@ export default function EditorPage() {
             }
             setComponents([]); // Don't use content when sections exist
           } else {
-            console.log('[Editor] No sections found, setting empty');
-            setSections([]);
+            console.log('[Editor] No sections found, creating default footer');
+            const defaultFooterSection = {
+              id: `section-footer-${Date.now()}`,
+              sectionName: '',
+              showInNavbar: false,
+              components: [{
+                id: `footer-${Date.now()}`,
+                type: 'footer',
+                props: {
+                  companyName: 'Your Company',
+                  description: 'Building amazing experiences for our customers.',
+                  backgroundColor: '#1f2937',
+                  textColor: '#ffffff',
+                  link1Text: 'About',
+                  link1Url: '#',
+                  link2Text: 'Services', 
+                  link2Url: '#',
+                  link3Text: 'Contact',
+                  link3Url: '#',
+                  social1Text: 'Twitter',
+                  social1Url: '#',
+                  social2Text: 'LinkedIn',
+                  social2Url: '#',
+                  social3Text: 'Facebook',
+                  social3Url: '#',
+                }
+              }],
+              layout: {
+                direction: 'column' as const,
+                justifyContent: 'center' as const,
+                alignItems: 'center' as const,
+                gap: 16,
+                padding: 0,
+              },
+              order: 0,
+            };
+            setSections([defaultFooterSection]);
             setComponents([]);
           }
         } else {
