@@ -736,16 +736,17 @@ export default function ComponentRenderer({
             {/* Inline Button Controls with Text and Color Editing */}
             {isSelected && (
               <div 
-                className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
+                className="fixed bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
                 style={{
-                  top: '-80px',
+                  top: '50%',
                   left: '50%',
-                  transform: 'translateX(-50%)',
+                  transform: 'translate(-50%, -50%)',
                   zIndex: 1000,
                   minWidth: '800px',
                   maxWidth: '90vw',
                 }}
                 onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 {/* Button Text Input */}
                 <div className="flex flex-col gap-1">
@@ -762,7 +763,15 @@ export default function ComponentRenderer({
                     }}
                     onFocus={(e) => e.stopPropagation()}
                     onBlur={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      e.nativeEvent.stopImmediatePropagation();
+                    }}
+                    onKeyUp={(e) => {
+                      e.stopPropagation();
+                      e.nativeEvent.stopImmediatePropagation();
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
                     placeholder="Button text"
                     className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-32"
                     onClick={(e) => e.stopPropagation()}
@@ -777,17 +786,31 @@ export default function ComponentRenderer({
                       value={component.props.linkType || 'url'}
                       onChange={(e) => {
                         e.stopPropagation();
+                        const newLinkType = e.target.value;
+                        let newHref = '';
+                        
+                        if (newLinkType === 'url') {
+                          newHref = 'https://';
+                        } else if (newLinkType === 'page') {
+                          newHref = '/';
+                        } else if (newLinkType === 'section') {
+                          newHref = '#';
+                        }
+                        
                         onUpdateComponent(component.id, {
                           ...component,
                           props: { 
                             ...component.props, 
-                            linkType: e.target.value,
-                            href: e.target.value === 'page' ? '' : (component.props.href || '#')
+                            linkType: newLinkType,
+                            href: newHref,
+                            pageSlug: '',
+                            sectionId: ''
                           }
                         });
                       }}
                       className="px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
                     >
                       <option value="url">URL</option>
                       <option value="page">Page</option>
@@ -797,7 +820,7 @@ export default function ComponentRenderer({
                     {component.props.linkType === 'url' || !component.props.linkType ? (
                       <input
                         type="text"
-                        value={component.props.href || '#'}
+                        value={component.props.href || 'https://'}
                         onChange={(e) => {
                           e.stopPropagation();
                           onUpdateComponent(component.id, {
@@ -807,7 +830,15 @@ export default function ComponentRenderer({
                         }}
                         onFocus={(e) => e.stopPropagation()}
                         onBlur={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          e.stopPropagation();
+                          e.nativeEvent.stopImmediatePropagation();
+                        }}
+                        onKeyUp={(e) => {
+                          e.stopPropagation();
+                          e.nativeEvent.stopImmediatePropagation();
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
                         placeholder="https://example.com"
                         className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-48"
                         onClick={(e) => e.stopPropagation()}
@@ -818,14 +849,27 @@ export default function ComponentRenderer({
                         value={component.props.pageSlug || ''}
                         onChange={(e) => {
                           e.stopPropagation();
+                          const slug = e.target.value;
                           onUpdateComponent(component.id, {
                             ...component,
-                            props: { ...component.props, pageSlug: e.target.value, href: `/${e.target.value}` }
+                            props: { 
+                              ...component.props, 
+                              pageSlug: slug, 
+                              href: slug ? `/${slug}` : '/'
+                            }
                           });
                         }}
                         onFocus={(e) => e.stopPropagation()}
                         onBlur={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          e.stopPropagation();
+                          e.nativeEvent.stopImmediatePropagation();
+                        }}
+                        onKeyUp={(e) => {
+                          e.stopPropagation();
+                          e.nativeEvent.stopImmediatePropagation();
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
                         placeholder="page-slug"
                         className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-32"
                         onClick={(e) => e.stopPropagation()}
@@ -836,14 +880,27 @@ export default function ComponentRenderer({
                         value={component.props.sectionId || ''}
                         onChange={(e) => {
                           e.stopPropagation();
+                          const sectionId = e.target.value;
                           onUpdateComponent(component.id, {
                             ...component,
-                            props: { ...component.props, sectionId: e.target.value, href: `#${e.target.value}` }
+                            props: { 
+                              ...component.props, 
+                              sectionId: sectionId, 
+                              href: sectionId ? `#${sectionId}` : '#'
+                            }
                           });
                         }}
                         onFocus={(e) => e.stopPropagation()}
                         onBlur={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          e.stopPropagation();
+                          e.nativeEvent.stopImmediatePropagation();
+                        }}
+                        onKeyUp={(e) => {
+                          e.stopPropagation();
+                          e.nativeEvent.stopImmediatePropagation();
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
                         placeholder="section-id"
                         className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-32"
                         onClick={(e) => e.stopPropagation()}
