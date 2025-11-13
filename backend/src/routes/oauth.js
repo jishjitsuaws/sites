@@ -7,8 +7,8 @@ const ca = fs.readFileSync('/etc/haproxy/certs/usessl/sites.isea.in.pem');
 
 const router = express.Router();
 
-const OAUTH_BASE_URL = process.env.OAUTH_BASE_URL || 'https://ivp.isea.in/backend';
-const CLIENT_ID = process.env.OAUTH_CLIENT_ID || 'owl';
+const OAUTH_BASE_URL = process.env.OAUTH_BASE_URL ;
+const CLIENT_ID = process.env.OAUTH_CLIENT_ID ;
 
 // Set Node.js to accept unauthorized certificates globally for OAuth requests
 // This is required because IVP ISEA OAuth provider has SSL/TLS certificate issues
@@ -167,7 +167,6 @@ router.post('/debug-token', async (req, res) => {
 });
 
 // STEP 3: Token Generation - Exchange code for access token
-// Calls: POST https://ivp.isea.in/backend/tokengen
 router.post('/token', async (req, res) => {
   try {
     const { code, state, client_id } = req.body;
@@ -305,7 +304,6 @@ router.post('/token', async (req, res) => {
 });
 
 // STEP 4: User Info - Fetch user information
-// Calls: POST https://ivp.isea.in/backend/userinfo
 router.post('/userinfo', async (req, res) => {
   try {
     // SECURITY FIX (CVE-002): Get access token from HttpOnly cookie
@@ -369,7 +367,6 @@ router.post('/userinfo', async (req, res) => {
 });
 
 // STEP 5: User Profile - Fetch user profile
-// Calls: POST https://ivp.isea.in/backend/ivp/profile/
 router.post('/profile', async (req, res) => {
   try {
     // SECURITY FIX (CVE-002): Get access token from HttpOnly cookie
@@ -414,7 +411,6 @@ router.post('/profile', async (req, res) => {
 });
 
 // STEP 6: Update Profile - Create/update user profile
-// Calls: POST https://ivp.isea.in/backend/updateuserbyid
 router.post('/update-profile', async (req, res) => {
   try {
     const { first_name, last_name, email, mobileno, uid, mode } = req.body;
@@ -448,7 +444,6 @@ router.post('/update-profile', async (req, res) => {
 
 /**
  * LOGOUT: Call OAuth provider logout endpoint
- * Calls: POST https://ivp.isea.in/backend/logout
  */
 router.post('/logout', async (req, res) => {
   try {

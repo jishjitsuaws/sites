@@ -1,7 +1,7 @@
 // OAuth Configuration
-const CLIENT_ID = process.env.NEXT_PUBLIC_OAUTH_CLIENT_ID || 'owl';
-const OAUTH_LOGIN_URL = process.env.NEXT_PUBLIC_OAUTH_LOGIN_URL || 'https://ivp.isea.in/backend/loginRedirect';
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://sites.isea.in';
+const CLIENT_ID = process.env.NEXT_PUBLIC_OAUTH_CLIENT_ID;
+const OAUTH_LOGIN_URL = process.env.NEXT_PUBLIC_OAUTH_LOGIN_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ;
 
 export interface UserInfo {
   uid: string;
@@ -66,7 +66,6 @@ export function redirectToLogin() {
   }
   
   // Construct OAuth login URL
-  // EXACT ENDPOINT: https://ivp.isea.in/backend/loginRedirect?client_id=owl
   const loginUrl = `${OAUTH_LOGIN_URL}?client_id=${CLIENT_ID}`;
   
   console.log('[Auth] Redirecting to OAuth login:', loginUrl);
@@ -83,7 +82,6 @@ export async function exchangeCodeForToken(
     console.log('[Auth] Exchanging code for token...');
     
     // Call backend proxy which calls:
-    // POST https://ivp.isea.in/backend/tokengen
     // SECURITY FIX (CVE-002): Backend will set HttpOnly cookie, we don't store token in localStorage
     const response = await fetch(`${BACKEND_URL}/api/oauth/token`, {
       method: 'POST',
@@ -119,7 +117,6 @@ export async function fetchUserInfo(accessToken: string, uid: string): Promise<U
     console.log('[Auth] Fetching user info...');
     
     // Call backend proxy which calls:
-    // POST https://ivp.isea.in/backend/userinfo
     // SECURITY FIX (CVE-002): Token is sent via HttpOnly cookie, not in body
     const response = await fetch(`${BACKEND_URL}/api/oauth/userinfo`, {
       method: 'POST',
@@ -153,7 +150,6 @@ export async function fetchUserProfile(accessToken: string, uid: string): Promis
     console.log('[Auth] Fetching user profile...');
     
     // Call backend proxy which calls:
-    // POST https://ivp.isea.in/backend/ivp/profile/
     // SECURITY FIX (CVE-002): Token is sent via HttpOnly cookie, not in body
     const response = await fetch(`${BACKEND_URL}/api/oauth/profile`, {
       method: 'POST',
@@ -192,7 +188,6 @@ export async function updateUserProfile(profileData: UserProfile): Promise<void>
     console.log('[Auth] Updating user profile...');
     
     // Call backend proxy which calls:
-    // POST https://ivp.isea.in/backend/updateuserbyid
     const response = await fetch(`${BACKEND_URL}/api/oauth/update-profile`, {
       method: 'POST',
       headers: {
@@ -216,7 +211,6 @@ export async function updateUserProfile(profileData: UserProfile): Promise<void>
 
 /**
  * LOGOUT: Call OAuth provider logout endpoint and clear session
- * Calls: POST https://ivp.isea.in/backend/logout
  */
 export async function logout(): Promise<void> {
   console.log('[Auth] ========== LOGOUT STARTED ==========');
@@ -266,8 +260,6 @@ export async function logout(): Promise<void> {
     console.log('[Auth] Logout payload:', { user_id: userId });
 
     // Call backend which calls OAuth provider logout and clears HttpOnly cookies
-    // POST http://sites.isea.in/api/oauth/logout
-    // Which calls: POST https://ivp.isea.in/backend/ivplogout
     const response = await fetch(`${BACKEND_URL}/api/oauth/logout`, {
       method: 'POST',
       headers: {
