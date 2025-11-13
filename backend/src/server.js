@@ -195,9 +195,9 @@ process.on('uncaughtException', (err) => {
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('👋 SIGTERM received. Shutting down gracefully...');
+  console.log('SIGTERM received. Shutting down gracefully...');
   server.close(() => {
-    console.log('✅ Process terminated');
+    console.log('Process terminated');
   });
 });
 

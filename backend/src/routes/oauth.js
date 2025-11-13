@@ -12,6 +12,7 @@ const CLIENT_ID = process.env.OAUTH_CLIENT_ID ;
 
 // Set Node.js to accept unauthorized certificates globally for OAuth requests
 // This is required because IVP ISEA OAuth provider has SSL/TLS certificate issues
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Create axios instance with comprehensive SSL bypass for OAuth provider
 const axiosInstance = axios.create({
