@@ -1,4 +1,21 @@
 /** @type {import('next').NextConfig} */
+
+// Parse allowed origins from environment variable
+const ALLOWED_ORIGINS = process.env.NEXT_PUBLIC_ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [];
+console.log('[Next.js Config] Allowed origins for CSP:', ALLOWED_ORIGINS);
+
+// Extract hostnames for image domains configuration
+const IMAGE_HOSTNAMES = ALLOWED_ORIGINS
+  .map(origin => {
+    try {
+      const url = new URL(origin);
+      return { hostname: url.hostname, protocol: url.protocol.replace(':', ''), port: url.port || (url.protocol === 'https:' ? '443' : '80') };
+    } catch (e) {
+      return null;
+    }
+  })
+  .filter(Boolean);
+
 const nextConfig = {
   reactStrictMode: true,
   
@@ -46,14 +63,14 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "img-src 'self' data: blob: https://sites.isea.in/ https:",
+              `img-src 'self' data: blob: https: ${ALLOWED_ORIGINS.join(' ')}`,
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' https://sites.isea.in/",
-              "media-src 'self' https://sites.isea.in/",
+              `connect-src 'self' ${ALLOWED_ORIGINS.join(' ')}`,
+              `media-src 'self' ${ALLOWED_ORIGINS.join(' ')}`,
               "frame-src 'self' https://www.youtube.com https://www.google.com",
               "object-src 'none'",
               "base-uri 'self'",
-              "form-action 'self' http://localhost:5000 http://10.244.0.147:5000 https://sites.isea.in/",
+              `form-action 'self' ${ALLOWED_ORIGINS.join(' ')}`,
               "frame-ancestors 'self'",
               // Remove upgrade-insecure-requests in development
               ...(isDev ? [] : ["upgrade-insecure-requests"])
@@ -65,21 +82,13 @@ const nextConfig = {
   },
   
   images: {
-    domains: ['localhost', '10.244.0.147', 'https://sites.isea.in/'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'sites.isea.in',
-        port: '443',
-        pathname: '/uploads/**',
-      },
-      {
-        protocol: 'http',
-        hostname: '10.244.0.147',
-        port: '5000',
-        pathname: '/uploads/**',
-      },
-    ],
+    domains: ['localhost', ...IMAGE_HOSTNAMES.map(h => h.hostname)],
+    remotePatterns: IMAGE_HOSTNAMES.map(host => ({
+      protocol: host.protocol,
+      hostname: host.hostname,
+      port: host.port,
+      pathname: '/uploads/**',
+    })),
   },
   
   async rewrites() {

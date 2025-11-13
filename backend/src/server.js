@@ -30,6 +30,10 @@ app.set('trust proxy', 1);
 // Connect to database
 connectDB();
 
+// Parse allowed origins from environment variable
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [];
+console.log('[Server] Allowed origins for CSP:', ALLOWED_ORIGINS);
+
 // Security middleware - Comprehensive security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
@@ -38,10 +42,10 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", 'fonts.googleapis.com', 'cdn.jsdelivr.net'],
       fontSrc: ["'self'", 'fonts.gstatic.com', 'cdn.jsdelivr.net'],
-      imgSrc: ["'self'", 'data:', 'https:', 'http:','blob:', 'https://sites.isea.in'],
+      imgSrc: ["'self'", 'data:', 'https:', 'http:', 'blob:', ...ALLOWED_ORIGINS],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      connectSrc: ["'self'", 'https://sites.isea.in/'],
-      formAction: ["'self'", 'https://sites.isea.in'],
+      connectSrc: ["'self'", ...ALLOWED_ORIGINS],
+      formAction: ["'self'", ...ALLOWED_ORIGINS],
       frameSrc: ["'self'"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
