@@ -209,33 +209,107 @@ export default function EditorPage() {
             setComponents([]);
           }
         } else {
-          // No pages yet - create a default home page
+          // No pages yet - create a default home page with footer
+          const defaultFooterSection = {
+            id: `section-footer-${Date.now()}`,
+            sectionName: '',
+            showInNavbar: false,
+            components: [{
+              id: `footer-${Date.now()}`,
+              type: 'footer',
+              props: {
+                companyName: 'Your Company',
+                description: 'Building amazing experiences for our customers.',
+                backgroundColor: '#1f2937',
+                textColor: '#ffffff',
+                link1Text: 'About',
+                link1Url: '#',
+                link2Text: 'Services', 
+                link2Url: '#',
+                link3Text: 'Contact',
+                link3Url: '#',
+                social1Text: 'Twitter',
+                social1Url: '#',
+                social2Text: 'LinkedIn',
+                social2Url: '#',
+                social3Text: 'Facebook',
+                social3Url: '#',
+              }
+            }],
+            layout: {
+              direction: 'column' as const,
+              justifyContent: 'center' as const,
+              alignItems: 'center' as const,
+              gap: 16,
+              padding: 0,
+            },
+            order: 0,
+          };
+
           const defaultPage = await api.post(`/sites/${siteId}/pages`, {
             pageName: 'Home',
             slug: '',
             isHome: true,
+            sections: [defaultFooterSection],
           });
           const newPage = defaultPage.data.data;
           setPages([newPage]);
           setCurrentPage(newPage);
           setComponents([]);
-          setSections([]);
+          setSections([defaultFooterSection]);
         }
       } catch (pageErr: any) {
         console.error('Error fetching pages:', pageErr);
         // If pages endpoint fails (404 means no pages yet), try to create a default page
         if (pageErr.response?.status === 404 || pageErr.response?.data?.count === 0) {
           try {
+            const defaultFooterSection = {
+              id: `section-footer-${Date.now()}`,
+              sectionName: '',
+              showInNavbar: false,
+              components: [{
+                id: `footer-${Date.now()}`,
+                type: 'footer',
+                props: {
+                  companyName: 'Your Company',
+                  description: 'Building amazing experiences for our customers.',
+                  backgroundColor: '#1f2937',
+                  textColor: '#ffffff',
+                  link1Text: 'About',
+                  link1Url: '#',
+                  link2Text: 'Services', 
+                  link2Url: '#',
+                  link3Text: 'Contact',
+                  link3Url: '#',
+                  social1Text: 'Twitter',
+                  social1Url: '#',
+                  social2Text: 'LinkedIn',
+                  social2Url: '#',
+                  social3Text: 'Facebook',
+                  social3Url: '#',
+                }
+              }],
+              layout: {
+                direction: 'column' as const,
+                justifyContent: 'center' as const,
+                alignItems: 'center' as const,
+                gap: 16,
+                padding: 0,
+              },
+              order: 0,
+            };
+
             const defaultPage = await api.post(`/sites/${siteId}/pages`, {
               pageName: 'Home',
               slug: 'home',
               isHome: true,
+              sections: [defaultFooterSection],
             });
             const newPage = defaultPage.data.data;
             setPages([newPage]);
             setCurrentPage(newPage);
             setComponents([]);
-            setSections([]);
+            setSections([defaultFooterSection]);
           } catch (createErr) {
             console.error('Error creating default page:', createErr);
             // Continue anyway with empty pages

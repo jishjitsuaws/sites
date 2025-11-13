@@ -102,12 +102,47 @@ exports.createSite = asyncHandler(async (req, res, next) => {
     description: description || ''
   });
 
-  // Create default home page
+  // Create default home page with footer
   await Page.create({
     siteId: site._id,
     pageName: 'Home',
     slug: '/',
     content: [],
+    sections: [{
+      id: `section-footer-${Date.now()}`,
+      sectionName: '',
+      showInNavbar: false,
+      components: [{
+        id: `footer-${Date.now()}`,
+        type: 'footer',
+        props: {
+          companyName: 'Your Company',
+          description: 'Building amazing experiences for our customers.',
+          backgroundColor: '#1f2937',
+          textColor: '#ffffff',
+          link1Text: 'About',
+          link1Url: '#',
+          link2Text: 'Services', 
+          link2Url: '#',
+          link3Text: 'Contact',
+          link3Url: '#',
+          social1Text: 'Twitter',
+          social1Url: '#',
+          social2Text: 'LinkedIn',
+          social2Url: '#',
+          social3Text: 'Facebook',
+          social3Url: '#',
+        }
+      }],
+      layout: {
+        direction: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 16,
+        padding: 0,
+      },
+      order: 0,
+    }],
     isHome: true,
     order: 0
   });
