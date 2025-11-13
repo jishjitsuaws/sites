@@ -207,7 +207,53 @@ export default function EditorPage() {
           // ALWAYS prioritize sections if they exist
           if (firstPage.sections && firstPage.sections.length > 0) {
             console.log('[Editor] Setting sections from page:', firstPage.sections);
-            setSections(firstPage.sections);
+            
+            // Check if footer exists, if not add it
+            const hasFooter = firstPage.sections.some((s: any) => 
+              s.components?.some((c: any) => c.type === 'footer')
+            );
+            
+            if (!hasFooter) {
+              console.log('[Editor] No footer found, adding default footer');
+              const defaultFooterSection = {
+                id: `section-footer-${Date.now()}`,
+                sectionName: '',
+                showInNavbar: false,
+                components: [{
+                  id: `footer-${Date.now()}`,
+                  type: 'footer',
+                  props: {
+                    companyName: 'Your Company',
+                    description: 'Building amazing experiences for our customers.',
+                    backgroundColor: '#1f2937',
+                    textColor: '#ffffff',
+                    link1Text: 'About',
+                    link1Url: '#',
+                    link2Text: 'Services', 
+                    link2Url: '#',
+                    link3Text: 'Contact',
+                    link3Url: '#',
+                    social1Text: 'Twitter',
+                    social1Url: '#',
+                    social2Text: 'LinkedIn',
+                    social2Url: '#',
+                    social3Text: 'Facebook',
+                    social3Url: '#',
+                  }
+                }],
+                layout: {
+                  direction: 'column' as const,
+                  justifyContent: 'center' as const,
+                  alignItems: 'center' as const,
+                  gap: 16,
+                  padding: 0,
+                },
+                order: firstPage.sections.length,
+              };
+              setSections([...firstPage.sections, defaultFooterSection]);
+            } else {
+              setSections(firstPage.sections);
+            }
             setComponents([]); // Don't use content when sections exist
           } else {
             console.log('[Editor] No sections found, setting empty');
