@@ -44,10 +44,8 @@ function DashboardContent() {
   const userProfile = authStorage.getUserProfile();
   const displayName = getUserDisplayName(userInfo, userProfile);
 
-  // Handle OAuth callback if code and state are present in URL
-  // Prevent multiple site fetches
-  const hasFetchedSitesRef = (globalThis as any).__hasFetchedSitesRef || { current: false };
-  (globalThis as any).__hasFetchedSitesRef = hasFetchedSitesRef;
+  // Track if sites have been fetched in this session (reset on component mount)
+  const [hasFetchedSites, setHasFetchedSites] = useState(false);
 
   useEffect(() => {
     const handleOAuthCallback = async () => {
@@ -152,8 +150,8 @@ function DashboardContent() {
           setProcessingOAuth(false);
           setLoading(false);
           // Fetch sites once
-          if (!hasFetchedSitesRef.current) {
-            hasFetchedSitesRef.current = true;
+          if (!hasFetchedSites) {
+            setHasFetchedSites(true);
             fetchSites();
           }
           return;
@@ -194,8 +192,8 @@ function DashboardContent() {
           console.log('[Home] User is authenticated, setting loading to false');
           setProcessingOAuth(false);
           setLoading(false);
-          if (!hasFetchedSitesRef.current) {
-            hasFetchedSitesRef.current = true;
+          if (!hasFetchedSites) {
+            setHasFetchedSites(true);
             console.log('[Home] Fetching sites...');
             fetchSites();
           }
@@ -215,12 +213,12 @@ function DashboardContent() {
       console.log('[Home] Setting loading to false in second useEffect');
       setLoading(false);
     }
-    if (authStorage.isAuthenticated() && !processingOAuth && !hasFetchedSitesRef.current) {
-      hasFetchedSitesRef.current = true;
+    if (authStorage.isAuthenticated() && !processingOAuth && !hasFetchedSites) {
+      setHasFetchedSites(true);
       console.log('[Home] Fetching sites from second useEffect...');
       fetchSites();
     }
-  }, [processingOAuth, loading]);
+  }, [processingOAuth, loading, hasFetchedSites]);
 
   useEffect(() => {
     const handleClickOutside = () => setOpenDropdown(null);

@@ -540,6 +540,7 @@ export default function EditorPage() {
     { id: 'carousel', name: 'Carousel', icon: ImageIcon, description: 'Image carousel (1–5, 16:9)' },
     { id: 'bullet-list', name: 'Bullet List', icon: FileText, description: 'Bulleted or numbered list' },
     { id: 'collapsible-list', name: 'Collapsible List', icon: FileText, description: 'Expandable items with > or bullets' },
+    { id: 'footer', name: 'Footer', icon: Layout, description: 'Add a footer section' },
   ];
 
   const handleInsertComponent = (type: string) => {
