@@ -171,6 +171,7 @@ export default function EditorPage() {
   const fetchSiteData = async () => {
     try {
       setLoading(true);
+      console.log('=== EDITOR LOAD - VERSION 2.0 ===');
       console.log('Fetching site data for:', siteId);
       
       // Fetch site first
@@ -203,6 +204,8 @@ export default function EditorPage() {
           console.log('[Editor] First page loaded:', firstPage.pageName);
           console.log('[Editor] Page sections:', firstPage.sections);
           console.log('[Editor] Sections count:', firstPage.sections?.length || 0);
+          console.log('[Editor] Sections is array?', Array.isArray(firstPage.sections));
+          console.log('[Editor] Sections value:', JSON.stringify(firstPage.sections));
           
           // ALWAYS prioritize sections if they exist
           if (firstPage.sections && firstPage.sections.length > 0) {
@@ -1904,11 +1907,12 @@ export default function EditorPage() {
 
             {/* Page Content */}
             <div 
-              className="p-8 pt-0 pb-0"
+              className="p-8 pt-0 pb-0 flex flex-col"
               style={{
                 backgroundColor: getThemeColors().background,
                 fontFamily: `'${getThemeFonts().body}', sans-serif`,
                 overflow: 'visible',
+                minHeight: '600px',
               }}
               onClick={(e) => {
                 const target = e.target as HTMLElement;
@@ -1918,17 +1922,21 @@ export default function EditorPage() {
                 }
               }}
             >
-              {!sections || sections.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                  <Layout className="h-16 w-16 mb-4" />
-                  <p className="text-lg font-medium">Start building your page</p>
-                  <p className="text-sm">Add sections from the right panel</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {sections.map((section, index) => {
-                    console.log('[Editor Render] Rendering section:', index, section.id, section);
-                    return (
+              {/* Regular Sections (not footer) */}
+              <div className="flex-1">
+                {!sections || sections.filter((s) => !s.components?.some((c: any) => c.type === 'footer')).length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+                    <Layout className="h-16 w-16 mb-4" />
+                    <p className="text-lg font-medium">Start building your page</p>
+                    <p className="text-sm">Add sections from the right panel</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {sections
+                      .filter((section) => !section.components?.some((c: any) => c.type === 'footer'))
+                      .map((section, index, filteredSections) => {
+                      console.log('[Editor Render] Rendering section:', index, section.id, section);
+                      return (
                     <SectionWrapper
                       key={section.id}
                       section={section}
@@ -1959,10 +1967,13 @@ export default function EditorPage() {
                         }
                       }}
                       onMoveDown={() => {
-                        if (index < sections.length - 1) {
+                        if (index < filteredSections.length - 1) {
+                          const allNonFooterSections = sections.filter((s) => !s.components?.some((c: any) => c.type === 'footer'));
+                          const currentIdx = allNonFooterSections.findIndex(s => s.id === section.id);
                           const newSections = [...sections];
-                          [newSections[index], newSections[index + 1]] = [newSections[index + 1], newSections[index]];
-                          // Update order property
+                          const sectionIdx = newSections.findIndex(s => s.id === section.id);
+                          const nextSectionIdx = newSections.findIndex(s => s.id === allNonFooterSections[currentIdx + 1].id);
+                          [newSections[sectionIdx], newSections[nextSectionIdx]] = [newSections[nextSectionIdx], newSections[sectionIdx]];
                           newSections.forEach((s, idx) => {
                             s.order = idx;
                           });
@@ -2088,6 +2099,64 @@ export default function EditorPage() {
                   })}
                 </div>
               )}
+              </div>
+
+              {/* Footer Section - Always at bottom, not draggable */}
+              {sections
+                .filter((section) => section.components?.some((c: any) => c.type === 'footer'))
+                .map((footerSection) => {
+                  console.log('[Editor Render] Rendering FOOTER section:', footerSection.id);
+                  const footerComponent = footerSection.components.find((c: any) => c.type === 'footer');
+                  return (
+                    <div 
+                      key={footerSection.id}
+                      className="mt-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedSection(footerSection.id);
+                        setSelectedComponent(footerComponent || null);
+                      }}
+                    >
+                      {footerComponent && (
+                        <div className={`relative ${selectedSection === footerSection.id ? 'ring-2 ring-blue-500' : ''}`}>
+                          {selectedSection === footerSection.id && (
+                            <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10">
+                              Footer (click to edit)
+                            </div>
+                          )}
+                          <ComponentRenderer
+                            component={footerComponent}
+                            isSelected={selectedComponent?.id === footerComponent.id}
+                            themeColors={getThemeColors()}
+                            themeFonts={getThemeFonts()}
+                            onComponentClick={(comp, e) => handleComponentClick(comp, e)}
+                            onUpdateComponent={(id, updated) => updateComponent(id, updated)}
+                            onCopyComponent={() => {
+                              const newComponent = {
+                                ...footerComponent,
+                                id: `footer-${Date.now()}`,
+                              };
+                              addComponent(newComponent);
+                            }}
+                            onDeleteComponent={() => {
+                              deleteComponent(footerComponent.id);
+                            }}
+                            onShowImageModal={() => {
+                              setSelectedComponent(footerComponent);
+                              setShowImageModal(true);
+                            }}
+                            onShowTextToolbar={(position) => {
+                              setSelectedComponent(footerComponent);
+                              setToolbarPosition(position);
+                              setShowTextToolbar(true);
+                            }}
+                            setSelectedComponent={setStoreSelectedComponent}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           </div>
         </div>
