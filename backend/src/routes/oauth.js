@@ -545,4 +545,136 @@ router.post('/logout', async (req, res) => {
   }
 });
 
+/**
+ * Refresh access token using refresh token
+ * POST /api/oauth/refresh
+ */
+router.post('/refresh', async (req, res) => {
+  try {
+    // SECURITY FIX (CVE-005): Implement refresh token flow
+    console.log('[OAuth] Refresh token request received');
+    
+    // Get refresh token from HttpOnly cookie
+    const refreshToken = req.cookies.refresh_token;
+    
+    if (!refreshToken) {
+      console.error('[OAuth] No refresh token in cookie');
+      return res.status(401).json({
+        success: false,
+        error: 'No refresh token available',
+        message: 'Please log in again'
+      });
+    }
+    
+    console.log('[OAuth] Refresh token found, exchanging with OAuth provider...');
+    console.log('[OAuth] Using OAuth Base URL:', OAUTH_BASE_URL);
+    
+    // Exchange refresh token with OAuth provider
+    // IVP ISEA endpoint: POST /oauth/token with grant_type=refresh_token
+    const tokenUrl = `${OAUTH_BASE_URL}/oauth/token`;
+    console.log('[OAuth] Token URL:', tokenUrl);
+    
+    const tokenResponse = await axiosInstance.post(
+      tokenUrl,
+      {
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: CLIENT_ID,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      }
+    );
+    
+    console.log('[OAuth] Refresh response status:', tokenResponse.status);
+    console.log('[OAuth] Refresh response data:', JSON.stringify(tokenResponse.data, null, 2));
+    
+    // Extract tokens from nested response structure
+    const outerData = tokenResponse.data.data || tokenResponse.data;
+    const tokenData = outerData.data || outerData;
+    
+    const newAccessToken = tokenData.access_token;
+    const newRefreshToken = tokenData.refresh_token; // May get new refresh token
+    const expiresIn = tokenData.expires_in || 3600;
+    
+    if (!newAccessToken) {
+      console.error('[OAuth] No access token in refresh response');
+      return res.status(500).json({
+        success: false,
+        error: 'Token refresh failed',
+        message: 'No access token received from OAuth provider'
+      });
+    }
+    
+    // Update access token cookie
+    res.cookie('access_token', newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: expiresIn * 1000,
+      path: '/'
+    });
+    console.log('[OAuth] New access token stored in HttpOnly cookie');
+    
+    // Update refresh token if provider sent a new one (some providers rotate refresh tokens)
+    if (newRefreshToken && newRefreshToken !== refreshToken) {
+      res.cookie('refresh_token', newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: (tokenData.refresh_expires_in || 86400) * 1000,
+        path: '/'
+      });
+      console.log('[OAuth] New refresh token stored in HttpOnly cookie');
+    }
+    
+    // Return success (tokens are in cookies, not in response body)
+    res.json({
+      success: true,
+      message: 'Token refreshed successfully',
+      expires_in: expiresIn
+    });
+    
+  } catch (error) {
+    console.error('[OAuth] Token refresh error:');
+    console.error('[OAuth] Error status:', error.response?.status);
+    console.error('[OAuth] Error data:', error.response?.data);
+    console.error('[OAuth] Error message:', error.message);
+    
+    // If refresh token is invalid/expired, clear cookies and require re-login
+    if (error.response?.status === 400 || error.response?.status === 401) {
+      res.clearCookie('access_token', { 
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+      });
+      res.clearCookie('refresh_token', { 
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+      });
+      console.log('[OAuth] Refresh token invalid, cookies cleared');
+      
+      return res.status(401).json({
+        success: false,
+        error: 'Refresh token expired',
+        message: 'Please log in again',
+        requiresLogin: true
+      });
+    }
+    
+    // Generic error
+    res.status(error.response?.status || 500).json({
+      success: false,
+      error: 'Token refresh failed',
+      details: error.response?.data || error.message
+    });
+  }
+});
+
 module.exports = router;

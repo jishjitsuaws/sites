@@ -37,6 +37,16 @@ const protect = async (req, res, next) => {
       if (parts.length === 3) {
         const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
         
+        // SECURITY FIX (CVE-004): Check token expiration
+        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+          console.warn('[Auth] Token expired at', new Date(payload.exp * 1000).toISOString());
+          console.warn('[Auth] Current time:', new Date().toISOString());
+          console.warn('[Auth] Token has been expired for', Math.floor(Date.now() / 1000) - payload.exp, 'seconds');
+          // Don't set req.user - token is expired
+          // Frontend will get 401 and trigger refresh
+          return next();
+        }
+        
         // Check if it's an OAuth token (has 'iss' field from OAuth provider)
         if (payload.iss && payload.iss.includes('ivp.isea.in')) {
           // Extract user ID from OAuth token's 'sub' field (this is the user's unique ID)

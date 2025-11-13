@@ -25,24 +25,60 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle errors
+// Response interceptor - handle errors and automatic token refresh
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // If error is 401, avoid instant redirect loop. Try a single silent retry once.
+    // SECURITY FIX (CVE-005): Automatic token refresh on 401
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      // Small delay to allow storage to settle
-      await new Promise((r) => setTimeout(r, 150));
-      return apiClient(originalRequest);
+      
+      console.log('[API] 401 error, attempting token refresh...');
+      
+      try {
+        // Call refresh token endpoint
+        const refreshResponse = await axios.post(
+          `${API_URL}/api/oauth/refresh`,
+          {},
+          {
+            withCredentials: true, // Send refresh_token cookie
+          }
+        );
+        
+        if (refreshResponse.data.success) {
+          console.log('[API] Token refreshed successfully, retrying original request');
+          // Token is now refreshed in HttpOnly cookie
+          // Retry the original request
+          return apiClient(originalRequest);
+        }
+      } catch (refreshError: any) {
+        console.error('[API] Token refresh failed:', refreshError.response?.data || refreshError.message);
+        
+        // If refresh failed and requires login, redirect to login
+        if (refreshError.response?.data?.requiresLogin) {
+          console.warn('[API] Refresh token expired, redirecting to login');
+          if (typeof window !== 'undefined') {
+            // Clear user info from storage
+            sessionStorage.removeItem('user_info');
+            sessionStorage.removeItem('user_profile');
+            localStorage.removeItem('user_info');
+            localStorage.removeItem('user_profile');
+            
+            // Redirect to login
+            window.location.href = '/login';
+          }
+        }
+        
+        return Promise.reject(refreshError);
+      }
     }
 
-    // On second 401, then redirect to login
+    // On second 401 (after refresh attempt), redirect to login
     if (error.response?.status === 401 && originalRequest._retry) {
       if (typeof window !== 'undefined') {
-        console.warn('[API] Auth failed twice, redirecting to login');
+        console.warn('[API] Auth failed after refresh, redirecting to login');
         // SECURITY FIX (CVE-002): Only clear user info, token is in HttpOnly cookie
         sessionStorage.removeItem('user_info');
         sessionStorage.removeItem('user_profile');
