@@ -191,6 +191,7 @@ function TimerComponent({ component, themeColors, themeFonts, isSelected, onUpda
 interface ComponentData {
   id: string;
   type: string;
+  subType?: string;
   props: any;
 }
 
@@ -2366,6 +2367,9 @@ export default function ComponentRenderer({
             minHeight: component.props.backgroundImage ? 'auto' : (component.props.height || '400px'),
             padding: '0',
             color: component.props.textColor || '#ffffff',
+            marginLeft: '-32px',  // Extend to editor edges
+            marginRight: '-32px',
+            width: 'calc(100% + 64px)',  // Full editor width
           }}
         >
           {/* Background image layer */}
@@ -2384,8 +2388,8 @@ export default function ComponentRenderer({
             />
           )}
           
-          {/* Content overlay when there's an image */}
-          {component.props.backgroundImage && (component.props.heading !== null || component.props.subheading !== null || component.props.buttonText !== null) && (
+          {/* Content overlay when there's an image - ONLY for Text Banner (banner-full) */}
+          {component.subType === 'banner-full' && component.props.backgroundImage && (component.props.heading !== null || component.props.subheading !== null || component.props.buttonText !== null) && (
             <div 
               className="absolute inset-0 flex flex-col items-center justify-center text-center"
               style={{ 
@@ -2618,8 +2622,8 @@ export default function ComponentRenderer({
                 </div>
               )}
               
-              {/* Add component buttons when selected and elements are deleted */}
-              {isSelected && (
+              {/* Add component buttons when selected and elements are deleted - ONLY for Text Banner */}
+              {isSelected && component.subType === 'banner-full' && (
                 <div className="mt-6 flex gap-2 flex-wrap justify-center" style={{ zIndex: 2 }}>
                   {(component.props.heading === null || component.props.heading === undefined) && (
                     <button
@@ -2671,24 +2675,71 @@ export default function ComponentRenderer({
             </div>
           )}
           
-          {/* Content when there's NO image - show upload prompt */}
+          {/* Content when there's NO image */}
           {!component.props.backgroundImage && (
             <div style={{ padding: '60px 40px', width: '100%' }}>
-              <div className="text-center">
-                <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg mb-4 opacity-75">Click "Image" to upload a background image</p>
-                {isSelected && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onShowImageModal();
-                    }}
-                    className="px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg font-semibold transition-colors border border-white/30"
-                  >
-                    Upload Image
-                  </button>
-                )}
-              </div>
+              {/* Image Banner (banner-minimal) - show upload prompt */}
+              {component.subType === 'banner-minimal' && (
+                <div className="text-center">
+                  <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg mb-4 opacity-75">Click "Image" to upload a background image</p>
+                  {isSelected && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onShowImageModal();
+                      }}
+                      className="px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg font-semibold transition-colors border border-white/30"
+                    >
+                      Upload Image
+                    </button>
+                  )}
+                </div>
+              )}
+              
+              {/* Text Banner (banner-full) - show text/button editing */}
+              {component.subType === 'banner-full' && (
+                <>
+                  {component.props.heading && (
+                    <h1 
+                      className="text-5xl font-bold mb-4"
+                      style={{ 
+                        fontFamily: `'${themeFonts.heading}', sans-serif`,
+                        color: component.props.textColor || '#ffffff',
+                      }}
+                    >
+                      {component.props.heading}
+                    </h1>
+                  )}
+                  
+                  {component.props.subheading && (
+                    <p 
+                      className="text-xl mb-8 max-w-2xl mx-auto"
+                      style={{ 
+                        fontFamily: `'${themeFonts.body}', sans-serif`,
+                        color: component.props.textColor || '#ffffff',
+                        opacity: 0.9,
+                      }}
+                    >
+                      {component.props.subheading}
+                    </p>
+                  )}
+                  
+                  {component.props.buttonText && (
+                    <a
+                      href={component.props.buttonLink || '#'}
+                      className="px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105 inline-block"
+                      style={{
+                        backgroundColor: '#ffffff',
+                        color: component.props.backgroundColor || themeColors.primary,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {component.props.buttonText}
+                    </a>
+                  )}
+                </>
+              )}
             </div>
           )}
           

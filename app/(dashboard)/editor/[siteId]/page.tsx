@@ -785,6 +785,7 @@ export default function EditorPage() {
     const newComponent: any = {
       id: `${type}-${Date.now()}`,
       type: type === 'banner-full' || type === 'banner-minimal' ? 'banner' : type,
+      subType: type === 'banner-full' || type === 'banner-minimal' ? type : undefined,
       props: getDefaultProps(type),
     };
 
