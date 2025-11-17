@@ -2297,8 +2297,8 @@ export default function ComponentRenderer({
           className="relative w-full flex flex-col items-center justify-center text-center"
           style={{
             backgroundColor: component.props.backgroundColor || themeColors.primary,
-            minHeight: component.props.backgroundImage ? 'auto' : (component.props.height || '400px'),
-            padding: '0',
+            paddingTop: component.props.backgroundImage ? '0' : '120px',
+            paddingBottom: component.props.backgroundImage ? '0' : '120px',
             color: component.props.textColor || '#ffffff',
           }}
         >
