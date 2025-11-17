@@ -267,7 +267,7 @@ export default function ComponentRenderer({
         marginRight: isFloating && component.props.float === 'left' ? '20px' : '0',
         marginLeft: isFloating && component.props.float === 'right' ? '20px' : '0',
         marginBottom: (isBanner || isFooter) ? '0' : '16px',
-        maxWidth: '100%',
+        maxWidth: (isBanner || isFooter) ? 'none' : '100%', // No max-width constraint for banners/footers
         position: 'relative',
         // Allow full-bleed banner/footer content (which uses negative margins) to be visible
         overflow: (isBanner || isFooter) ? 'visible' : 'visible',
@@ -573,208 +573,68 @@ export default function ComponentRenderer({
                     objectFit: 'contain',
                     width: '100%',
                     height: 'auto',
+                    pointerEvents: isSelected ? 'none' : 'auto', // Disable clicks when selected to allow dragging
                   }}
                 />
                 
-                {/* Resize Handles - Use only width-based resizing to maintain aspect ratio */}
+                {/* Resize Handle - Full surface draggable like video */}
                 {isSelected && (
-                  <>
-                    {/* Bottom-right resize handle - resize width only, height auto-scales */}
-                    <div
-                      className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform shadow-lg"
-                      style={{
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                      }}
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        const startX = e.clientX;
-                        const startWidth = parseInt(component.props.width) || 400;
+                  <div
+                    className="absolute top-0 -right-3 bottom-0 cursor-ew-resize"
+                    style={{
+                      width: '100%', // Cover entire image area for easier dragging
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      const startX = e.clientX;
+                      const startWidth = parseInt(component.props.width) || 400;
+                      
+                      // Add body styles to prevent selection during drag
+                      document.body.style.userSelect = 'none';
+                      document.body.style.cursor = 'ew-resize';
+                      
+                      const handleMouseMove = (moveEvent: MouseEvent) => {
+                        moveEvent.preventDefault();
+                        moveEvent.stopPropagation();
+                        const deltaX = moveEvent.clientX - startX;
+                        const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { 
+                            ...component.props, 
+                            width: `${newWidth}px`,
+                            height: undefined, // Remove height to maintain aspect ratio
+                            objectFit: 'contain'
+                          }
+                        });
+                      };
+                      
+                      const handleMouseUp = () => {
+                        // Restore body styles
+                        document.body.style.userSelect = '';
+                        document.body.style.cursor = '';
                         
-                        // Add body styles to prevent selection during drag
-                        document.body.style.userSelect = 'none';
-                        document.body.style.cursor = 'nwse-resize';
-                        
-                        const handleMouseMove = (moveEvent: MouseEvent) => {
-                          moveEvent.preventDefault();
-                          moveEvent.stopPropagation();
-                          const deltaX = moveEvent.clientX - startX;
-                          const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { 
-                              ...component.props, 
-                              width: `${newWidth}px`,
-                              height: undefined, // Remove height to maintain aspect ratio
-                              objectFit: 'contain'
-                            }
-                          });
-                        };
-                        
-                        const handleMouseUp = () => {
-                          // Restore body styles
-                          document.body.style.userSelect = '';
-                          document.body.style.cursor = '';
-                          
-                          document.removeEventListener('mousemove', handleMouseMove);
-                          document.removeEventListener('mouseup', handleMouseUp);
-                        };
-                        
-                        document.addEventListener('mousemove', handleMouseMove);
-                        document.addEventListener('mouseup', handleMouseUp);
-                      }}
-                    />
-                    
-                    {/* Bottom-left resize handle */}
-                    <div
-                      className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nesw-resize hover:scale-125 transition-transform shadow-lg"
-                      style={{
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                      }}
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        const startX = e.clientX;
-                        const startWidth = parseInt(component.props.width) || 400;
-                        
-                        // Add body styles to prevent selection during drag
-                        document.body.style.userSelect = 'none';
-                        document.body.style.cursor = 'nesw-resize';
-                        
-                        const handleMouseMove = (moveEvent: MouseEvent) => {
-                          moveEvent.preventDefault();
-                          moveEvent.stopPropagation();
-                          const deltaX = startX - moveEvent.clientX;
-                          const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { 
-                              ...component.props, 
-                              width: `${newWidth}px`,
-                              height: undefined, // Remove height to maintain aspect ratio
-                              objectFit: 'contain'
-                            }
-                          });
-                        };
-                        
-                        const handleMouseUp = () => {
-                          // Restore body styles
-                          document.body.style.userSelect = '';
-                          document.body.style.cursor = '';
-                          
-                          document.removeEventListener('mousemove', handleMouseMove);
-                          document.removeEventListener('mouseup', handleMouseUp);
-                        };
-                        
-                        document.addEventListener('mousemove', handleMouseMove);
-                        document.addEventListener('mouseup', handleMouseUp);
-                      }}
-                    />
-                    
-                    {/* Top-right resize handle */}
-                    <div
-                      className="absolute -top-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nesw-resize hover:scale-125 transition-transform shadow-lg"
-                      style={{
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                      }}
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        const startX = e.clientX;
-                        const startWidth = parseInt(component.props.width) || 400;
-                        
-                        // Add body styles to prevent selection during drag
-                        document.body.style.userSelect = 'none';
-                        document.body.style.cursor = 'nesw-resize';
-                        
-                        const handleMouseMove = (moveEvent: MouseEvent) => {
-                          moveEvent.preventDefault();
-                          moveEvent.stopPropagation();
-                          const deltaX = moveEvent.clientX - startX;
-                          const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { 
-                              ...component.props, 
-                              width: `${newWidth}px`,
-                              height: undefined, // Remove height to maintain aspect ratio
-                              objectFit: 'contain'
-                            }
-                          });
-                        };
-                        
-                        const handleMouseUp = () => {
-                          // Restore body styles
-                          document.body.style.userSelect = '';
-                          document.body.style.cursor = '';
-                          
-                          document.removeEventListener('mousemove', handleMouseMove);
-                          document.removeEventListener('mouseup', handleMouseUp);
-                        };
-                        
-                        document.addEventListener('mousemove', handleMouseMove);
-                        document.addEventListener('mouseup', handleMouseUp);
-                      }}
-                    />
-                    
-                    {/* Top-left resize handle */}
-                    <div
-                      className="absolute -top-2 -left-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform shadow-lg"
-                      style={{
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                      }}
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        const startX = e.clientX;
-                        const startWidth = parseInt(component.props.width) || 400;
-                        
-                        // Add body styles to prevent selection during drag
-                        document.body.style.userSelect = 'none';
-                        document.body.style.cursor = 'nwse-resize';
-                        
-                        const handleMouseMove = (moveEvent: MouseEvent) => {
-                          moveEvent.preventDefault();
-                          moveEvent.stopPropagation();
-                          const deltaX = startX - moveEvent.clientX;
-                          const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { 
-                              ...component.props, 
-                              width: `${newWidth}px`,
-                              height: undefined, // Remove height to maintain aspect ratio
-                              objectFit: 'contain'
-                            }
-                          });
-                        };
-                        
-                        const handleMouseUp = () => {
-                          // Restore body styles
-                          document.body.style.userSelect = '';
-                          document.body.style.cursor = '';
-                          
-                          document.removeEventListener('mousemove', handleMouseMove);
-                          document.removeEventListener('mouseup', handleMouseUp);
-                        };
-                        
-                        document.addEventListener('mousemove', handleMouseMove);
-                        document.addEventListener('mouseup', handleMouseUp);
-                      }}
-                    />
-                  </>
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
+                    }}
+                    title="Drag anywhere to resize width (maintains aspect ratio)"
+                  >
+                    {/* Visual indicator on the right edge */}
+                    <div 
+                      className="absolute top-0 -right-3 bottom-0 w-6 flex items-center justify-center hover:bg-blue-100 rounded transition-colors group"
+                    >
+                      <div className="w-1 h-8 bg-blue-600 rounded group-hover:h-12 transition-all"></div>
+                    </div>
+                  </div>
                 )}
               </div>
             ) : (
