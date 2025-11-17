@@ -479,6 +479,72 @@ export default function EditorPage() {
     }
   };
 
+  const handlePreview = async () => {
+    try {
+      // First, save the current page
+      if (currentPage) {
+        setSaving(true);
+        console.log('Saving page before preview:', currentPage._id);
+        
+        const cleanedSections = sections.map(section => ({
+          ...section,
+          layout: {
+            ...section.layout,
+            direction: section.components.length >= 2 && section.components.every((c: any) => c.type === 'card') 
+              ? 'row' 
+              : section.layout.direction,
+            justifyContent: section.components.length >= 2 && section.components.every((c: any) => c.type === 'card')
+              ? 'space-between'
+              : section.layout.justifyContent,
+            alignItems: section.components.length >= 2 && section.components.every((c: any) => c.type === 'card')
+              ? 'stretch'
+              : section.layout.alignItems,
+          }
+        }));
+        
+        const flatComponents = cleanedSections.flatMap(section => section.components);
+        
+        await api.put(`/pages/${currentPage._id}`, {
+          content: flatComponents,
+          sections: cleanedSections,
+        });
+        
+        setPages(pages.map(p => 
+          p._id === currentPage._id 
+            ? { ...p, content: flatComponents, sections: cleanedSections } 
+            : p
+        ));
+        
+        setSaving(false);
+      }
+
+      // Then publish the site
+      if (!site) return;
+      
+      // Check if site has proper name and subdomain
+      if (site.siteName === 'Untitled Site' || site.subdomain.startsWith('site-')) {
+        toast.error('Please set a site name and subdomain before previewing');
+        setPublishName(site.siteName || '');
+        setPublishSubdomain('');
+        setShowPublishModal(true);
+        return;
+      }
+
+      await api.post(`/sites/${siteId}/publish`);
+      setSite({ ...site, isPublished: true });
+      
+      // Open published site in new tab
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      window.open(`${siteUrl}/site/${site.subdomain}`, '_blank');
+      
+      toast.success('Site saved and published! Opening preview...');
+    } catch (err: any) {
+      console.error('Preview error:', err);
+      toast.error(err.response?.data?.message || 'Failed to preview site');
+      setSaving(false);
+    }
+  };
+
   const handlePublish = async () => {
     // Check if site has a proper name and subdomain
     if (!site || site.siteName === 'Untitled Site' || site.subdomain.startsWith('site-')) {
@@ -1728,12 +1794,9 @@ export default function EditorPage() {
             siteId={siteId} 
             onLogoUpdate={handleSaveLogo} 
           />
-          <Button variant="outline" size="sm" onClick={() => {
-            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-            window.open(`${siteUrl}/site/${site?.subdomain}`, '_blank');
-          }}>
+          <Button variant="outline" size="sm" onClick={handlePreview} disabled={saving}>
             <Eye className="h-4 w-4 mr-2" />
-            Preview
+            {saving ? 'Saving...' : 'Preview'}
           </Button>
           <Button 
             variant="outline" 
