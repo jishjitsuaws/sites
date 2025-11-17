@@ -1501,137 +1501,41 @@ export default function ComponentRenderer({
                 allowFullScreen
               />
               
-              {/* Resize Handles - Width only, height maintains 16:9 ratio */}
+              {/* Resize Handle - Width-based resizing with aspect ratio maintained */}
               {isSelected && (
-                <>
-                  {/* Bottom-right resize handle - resize width only */}
-                  <div
-                    className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform shadow-lg z-10"
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      const startX = e.clientX;
-                      const startWidth = parseInt(component.props.width) || 800;
-                      
-                      const handleMouseMove = (moveEvent: MouseEvent) => {
-                        const deltaX = moveEvent.clientX - startX;
-                        const newWidth = Math.max(200, Math.min(1400, startWidth + deltaX));
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { 
-                            ...component.props, 
-                            width: `${newWidth}px`,
-                            height: undefined // Remove height to use aspect ratio
-                          }
-                        });
-                      };
-                      
-                      const handleMouseUp = () => {
-                        document.removeEventListener('mousemove', handleMouseMove);
-                        document.removeEventListener('mouseup', handleMouseUp);
-                      };
-                      
-                      document.addEventListener('mousemove', handleMouseMove);
-                      document.addEventListener('mouseup', handleMouseUp);
-                    }}
-                  />
-                  
-                  {/* Bottom-left resize handle */}
-                  <div
-                    className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nesw-resize hover:scale-125 transition-transform shadow-lg z-10"
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      const startX = e.clientX;
-                      const startWidth = parseInt(component.props.width) || 800;
-                      
-                      const handleMouseMove = (moveEvent: MouseEvent) => {
-                        const deltaX = startX - moveEvent.clientX;
-                        const newWidth = Math.max(200, Math.min(1400, startWidth + deltaX));
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { 
-                            ...component.props, 
-                            width: `${newWidth}px`,
-                            height: undefined
-                          }
-                        });
-                      };
-                      
-                      const handleMouseUp = () => {
-                        document.removeEventListener('mousemove', handleMouseMove);
-                        document.removeEventListener('mouseup', handleMouseUp);
-                      };
-                      
-                      document.addEventListener('mousemove', handleMouseMove);
-                      document.addEventListener('mouseup', handleMouseUp);
-                    }}
-                  />
-                  
-                  {/* Top-right resize handle */}
-                  <div
-                    className="absolute -top-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nesw-resize hover:scale-125 transition-transform shadow-lg z-10"
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      const startX = e.clientX;
-                      const startWidth = parseInt(component.props.width) || 800;
-                      
-                      const handleMouseMove = (moveEvent: MouseEvent) => {
-                        const deltaX = moveEvent.clientX - startX;
-                        const newWidth = Math.max(200, Math.min(1400, startWidth + deltaX));
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { 
-                            ...component.props, 
-                            width: `${newWidth}px`,
-                            height: undefined
-                          }
-                        });
-                      };
-                      
-                      const handleMouseUp = () => {
-                        document.removeEventListener('mousemove', handleMouseMove);
-                        document.removeEventListener('mouseup', handleMouseUp);
-                      };
-                      
-                      document.addEventListener('mousemove', handleMouseMove);
-                      document.addEventListener('mouseup', handleMouseUp);
-                    }}
-                  />
-                  
-                  {/* Top-left resize handle */}
-                  <div
-                    className="absolute -top-2 -left-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform shadow-lg z-10"
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      const startX = e.clientX;
-                      const startWidth = parseInt(component.props.width) || 800;
-                      
-                      const handleMouseMove = (moveEvent: MouseEvent) => {
-                        const deltaX = startX - moveEvent.clientX;
-                        const newWidth = Math.max(200, Math.min(1400, startWidth + deltaX));
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { 
-                            ...component.props, 
-                            width: `${newWidth}px`,
-                            height: undefined
-                          }
-                        });
-                      };
-                      
-                      const handleMouseUp = () => {
-                        document.removeEventListener('mousemove', handleMouseMove);
-                        document.removeEventListener('mouseup', handleMouseUp);
-                      };
-                      
-                      document.addEventListener('mousemove', handleMouseMove);
-                      document.addEventListener('mouseup', handleMouseUp);
-                    }}
-                  />
-                </>
+                <div
+                  className="absolute top-0 -right-3 bottom-0 w-6 flex items-center justify-center cursor-ew-resize hover:bg-blue-100 rounded transition-colors group"
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    const startX = e.clientX;
+                    const startWidth = parseInt(component.props.width) || 800;
+                    
+                    const handleMouseMove = (moveEvent: MouseEvent) => {
+                      const deltaX = moveEvent.clientX - startX;
+                      const newWidth = Math.max(200, Math.min(1400, startWidth + deltaX));
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { 
+                          ...component.props, 
+                          width: `${newWidth}px`,
+                          height: undefined // Remove height to use aspect ratio
+                        }
+                      });
+                    };
+                    
+                    const handleMouseUp = () => {
+                      document.removeEventListener('mousemove', handleMouseMove);
+                      document.removeEventListener('mouseup', handleMouseUp);
+                    };
+                    
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', handleMouseUp);
+                  }}
+                  title="Drag to resize width (maintains 16:9 ratio)"
+                >
+                  <div className="w-1 h-8 bg-blue-600 rounded group-hover:h-12 transition-all"></div>
+                </div>
               )}
             </div>
           ) : (

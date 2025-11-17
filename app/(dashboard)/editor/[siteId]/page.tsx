@@ -756,8 +756,8 @@ export default function EditorPage() {
   };
 
   const insertComponentTypes = [
-    { id: 'banner-full', name: 'Banner (Full)', icon: Layout, description: 'Banner with text & button' },
-    { id: 'banner-minimal', name: 'Banner (Minimal)', icon: Layout, description: 'Banner - image only' },
+    { id: 'banner-full', name: 'Text Banner', icon: Layout, description: 'Banner with text & button' },
+    { id: 'banner-minimal', name: 'Image Banner', icon: ImageIcon, description: 'Banner - image only' },
     { id: 'heading', name: 'Heading', icon: Type, description: 'Add a title or heading' },
     { id: 'text', name: 'Text', icon: FileText, description: 'Add a paragraph of text' },
     { id: 'image', name: 'Image', icon: ImageIcon, description: 'Insert an image' },
@@ -799,7 +799,7 @@ export default function EditorPage() {
           alignItems: 'center' as const,
           gap: 16,
           padding: 0, // No padding for full-width banners
-          backgroundColor: newComponent.props.backgroundColor,
+          backgroundColor: 'transparent', // No section background - banner has its own
         },
         order: sections.length,
       };
