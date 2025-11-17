@@ -159,11 +159,6 @@ export default function SectionWrapper({
       style={{
         backgroundColor: section.layout.backgroundColor || 'transparent',
         padding: `${section.layout.padding}px`,
-        // For banners/footers (padding: 0), extend to full width by negating parent's p-8 (32px)
-        marginLeft: section.layout.padding === 0 ? '-32px' : '0',
-        marginRight: section.layout.padding === 0 ? '-32px' : '0',
-        marginTop: section.layout.padding === 0 && isFirstSection ? '-8px' : '0', // Reduced to not encroach toolbar area
-        width: section.layout.padding === 0 ? 'calc(100% + 64px)' : 'auto',
         overflow: 'visible', // Allow toolbars to show above section
       }}
     >

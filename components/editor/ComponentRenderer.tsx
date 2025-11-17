@@ -2300,9 +2300,6 @@ export default function ComponentRenderer({
             minHeight: component.props.backgroundImage ? 'auto' : (component.props.height || '400px'),
             padding: '0',
             color: component.props.textColor || '#ffffff',
-            marginLeft: '-32px',  // Extend to editor edges
-            marginRight: '-32px',
-            width: 'calc(100% + 64px)',  // Full editor width
           }}
         >
           {/* Background image layer */}
