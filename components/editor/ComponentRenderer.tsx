@@ -1505,13 +1505,25 @@ export default function ComponentRenderer({
               {isSelected && (
                 <div
                   className="absolute top-0 -right-3 bottom-0 w-6 flex items-center justify-center cursor-ew-resize hover:bg-blue-100 rounded transition-colors group"
+                  style={{
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                  }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     const startX = e.clientX;
                     const startWidth = parseInt(component.props.width) || 800;
                     
+                    // Add body styles to prevent selection during drag
+                    document.body.style.userSelect = 'none';
+                    document.body.style.cursor = 'ew-resize';
+                    
                     const handleMouseMove = (moveEvent: MouseEvent) => {
+                      moveEvent.preventDefault();
+                      moveEvent.stopPropagation();
                       const deltaX = moveEvent.clientX - startX;
                       const newWidth = Math.max(200, Math.min(1400, startWidth + deltaX));
                       onUpdateComponent(component.id, {
@@ -1525,6 +1537,10 @@ export default function ComponentRenderer({
                     };
                     
                     const handleMouseUp = () => {
+                      // Restore body styles
+                      document.body.style.userSelect = '';
+                      document.body.style.cursor = '';
+                      
                       document.removeEventListener('mousemove', handleMouseMove);
                       document.removeEventListener('mouseup', handleMouseUp);
                     };
@@ -2655,216 +2671,24 @@ export default function ComponentRenderer({
             </div>
           )}
           
-          {/* Content when there's NO image - centered in colored background */}
+          {/* Content when there's NO image - show upload prompt */}
           {!component.props.backgroundImage && (
             <div style={{ padding: '60px 40px', width: '100%' }}>
-              {/* Heading with inline controls */}
-              {(component.props.heading !== null && component.props.heading !== undefined) && (
-            <div className="relative group/heading" style={{ zIndex: 1, width: '100%', maxWidth: '1200px' }}>
-              {isSelected && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, heading: null }
-                    });
-                  }}
-                  className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover/heading:opacity-100 transition-opacity shadow-lg"
-                  title="Delete Heading"
-                  style={{ zIndex: 10 }}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </button>
-              )}
-              <h1 
-                contentEditable={isSelected}
-                suppressContentEditableWarning
-                onBlur={(e) => {
-                  const newHeading = e.currentTarget.textContent || '';
-                  if (newHeading !== component.props.heading) {
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, heading: newHeading }
-                    });
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    e.currentTarget.blur();
-                  }
-                }}
-                onClick={(e) => {
-                  if (isSelected) {
-                    e.stopPropagation();
-                  }
-                }}
-                className="text-5xl font-bold mb-4 outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
-                style={{ 
-                  fontFamily: `'${themeFonts.heading}', sans-serif`,
-                  color: component.props.textColor || '#ffffff',
-                  cursor: isSelected ? 'text' : 'default',
-                }}
-              >
-                {component.props.heading || (isSelected ? 'Add heading...' : '')}
-              </h1>
-            </div>
-          )}
-          
-          {/* Subheading with inline controls */}
-          {(component.props.subheading !== null && component.props.subheading !== undefined) && (
-            <div className="relative group/subheading" style={{ zIndex: 1, width: '100%', maxWidth: '800px' }}>
-              {isSelected && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, subheading: null }
-                    });
-                  }}
-                  className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover/subheading:opacity-100 transition-opacity shadow-lg"
-                  title="Delete Subheading"
-                  style={{ zIndex: 10 }}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </button>
-              )}
-              <p 
-                contentEditable={isSelected}
-                suppressContentEditableWarning
-                onBlur={(e) => {
-                  const newSubheading = e.currentTarget.textContent || '';
-                  if (newSubheading !== component.props.subheading) {
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, subheading: newSubheading }
-                    });
-                  }
-                }}
-                onClick={(e) => {
-                  if (isSelected) {
-                    e.stopPropagation();
-                  }
-                }}
-                className="text-xl mb-8 max-w-2xl outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
-                style={{ 
-                  fontFamily: `'${themeFonts.body}', sans-serif`,
-                  color: component.props.textColor || '#ffffff',
-                  opacity: 0.9,
-                  cursor: isSelected ? 'text' : 'default',
-                }}
-              >
-                {component.props.subheading || (isSelected ? 'Add subheading...' : '')}
-              </p>
-            </div>
-          )}
-          
-          {/* Button with inline controls */}
-          {(component.props.buttonText !== null && component.props.buttonText !== undefined) && (
-            <div className="relative group/button inline-block" style={{ zIndex: 1 }}>
-              {isSelected && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, buttonText: null }
-                    });
-                  }}
-                  className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover/button:opacity-100 transition-opacity shadow-lg"
-                  title="Delete Button"
-                  style={{ zIndex: 10 }}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </button>
-              )}
-              <div
-                contentEditable={isSelected}
-                suppressContentEditableWarning
-                onBlur={(e) => {
-                  const newButtonText = e.currentTarget.textContent || '';
-                  if (newButtonText !== component.props.buttonText) {
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, buttonText: newButtonText }
-                    });
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    e.currentTarget.blur();
-                  }
-                }}
-                onClick={(e) => {
-                  if (isSelected) {
-                    e.stopPropagation();
-                  }
-                }}
-                className="px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105 outline-none focus:ring-2 focus:ring-offset-2 inline-block"
-                style={{
-                  backgroundColor: '#ffffff',
-                  color: component.props.backgroundColor || themeColors.primary,
-                  cursor: isSelected ? 'text' : 'pointer',
-                }}
-              >
-                {component.props.buttonText || (isSelected ? 'Add button text...' : 'Get Started')}
+              <div className="text-center">
+                <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-4 opacity-75">Click "Image" to upload a background image</p>
+                {isSelected && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShowImageModal();
+                    }}
+                    className="px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg font-semibold transition-colors border border-white/30"
+                  >
+                    Upload Image
+                  </button>
+                )}
               </div>
-            </div>
-          )}
-          
-          {/* Add component buttons when selected and elements are deleted */}
-          {isSelected && (
-            <div className="mt-6 flex gap-2 flex-wrap justify-center" style={{ zIndex: 1 }}>
-              {(component.props.heading === null || component.props.heading === undefined) && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, heading: 'Welcome to our site' }
-                    });
-                  }}
-                  className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg text-sm flex items-center gap-2 transition-colors border border-white/30"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Heading
-                </button>
-              )}
-              {(component.props.subheading === null || component.props.subheading === undefined) && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, subheading: 'Discover amazing features' }
-                    });
-                  }}
-                  className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg text-sm flex items-center gap-2 transition-colors border border-white/30"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Subheading
-                </button>
-              )}
-              {(component.props.buttonText === null || component.props.buttonText === undefined) && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, buttonText: 'Get Started' }
-                    });
-                  }}
-                  className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg text-sm flex items-center gap-2 transition-colors border border-white/30"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Button
-                </button>
-              )}
-            </div>
-          )}
             </div>
           )}
           
@@ -3031,10 +2855,11 @@ export default function ComponentRenderer({
               {/* Left: C-DAC Hyderabad Address */}
               <div>
                 <h3 className="text-base font-bold mb-2" style={{ fontFamily: themeFonts.heading }}>
-                  C-DAC Hyderabad
+                  CDAC Hyderabad
                 </h3>
                 <p className="text-sm leading-relaxed" style={{ fontFamily: themeFonts.body }}>
-                  sites.isea.in
+                  sites.isea - Build beautiful websites
+                    Create stunning websites. No coding required.
                 </p>
               </div>
 

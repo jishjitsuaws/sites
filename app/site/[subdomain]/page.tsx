@@ -898,10 +898,11 @@ export default function PublishedSitePage() {
                 {/* Left: C-DAC Hyderabad Address */}
                 <div>
                   <h3 className="text-base font-bold mb-3" style={{ fontFamily: `'${themeFonts.heading}', sans-serif` }}>
-                    C-DAC Hyderabad
+                    CDAC Hyderabad
                   </h3>
                   <p className="text-sm" style={{ fontFamily: `'${themeFonts.body}', sans-serif` }}>
-                    sites.isea.in
+                    sites.isea - Build beautiful websites
+                    Create stunning websites. No coding required.
                   </p>
                 </div>
 
