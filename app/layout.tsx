@@ -30,7 +30,7 @@ export default function RootLayout({
       <body className={`${inter.variable} antialiased font-sans`}>
         <Providers>
           {children}
-          <Toaster position="top-right" richColors closeButton />
+          <Toaster position="bottom-left" richColors closeButton />
         </Providers>
       </body>
     </html>

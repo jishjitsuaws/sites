@@ -159,6 +159,8 @@ export default function SectionWrapper({
       style={{
         backgroundColor: section.layout.backgroundColor || 'transparent',
         padding: `${section.layout.padding}px`,
+        marginTop: hasFooterOrBanner ? '16px' : '0',
+        marginBottom: hasFooterOrBanner ? '16px' : '0',
         overflow: 'visible', // Allow toolbars to show above section
       }}
     >
