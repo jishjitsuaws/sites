@@ -3130,11 +3130,7 @@ export default function ComponentRenderer({
                   C-DAC Hyderabad
                 </h3>
                 <p className="text-sm leading-relaxed" style={{ fontFamily: themeFonts.body }}>
-                  Plot No. 6 & 7, Sy No. 1/1,<br />
-                  Srisailam Highway, Pahadi Shareef,<br />
-                  Via Keshavagiri Post,<br />
-                  Hyderabad, Telangana<br />
-                  Pin. 501510
+                  sites.isea.in
                 </p>
               </div>
 
