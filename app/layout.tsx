@@ -9,9 +9,15 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+
 export const metadata: Metadata = {
-  title: "CMS Platform - Build Beautiful Websites",
-  description: "Create stunning websites with our drag-and-drop CMS platform. No coding required.",
+  title: "sites.isea - Build Beautiful Websites",
+  description: "Create stunning websites. No coding required.",
+  icons: {
+    icon: [
+      { url: "/favicon.png", sizes: "32x32", type: "image/png" }
+    ]
+  }
 };
 
 export default function RootLayout({
@@ -30,3 +36,4 @@ export default function RootLayout({
     </html>
   );
 }
+
