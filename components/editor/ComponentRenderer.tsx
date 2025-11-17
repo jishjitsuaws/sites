@@ -3196,12 +3196,12 @@ export default function ComponentRenderer({
                 </h3>
                 <div className="flex justify-end items-center gap-4">
                   <img 
-                    src="https://i.imgur.com/9YX8Z7m.png" 
+                    src="/3.png" 
                     alt="ISEA Logo"
                     className="h-14 w-auto object-contain bg-white rounded p-1"
                   />
                   <img 
-                    src="https://i.imgur.com/VQZx8Zu.png" 
+                    src="/cdac.png" 
                     alt="C-DAC Logo"
                     className="h-14 w-auto object-contain bg-white rounded p-1"
                   />

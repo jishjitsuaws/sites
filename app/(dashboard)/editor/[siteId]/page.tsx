@@ -1831,59 +1831,73 @@ export default function EditorPage() {
               }}
             >
               <div className="flex items-center justify-between">
-                {site?.logo ? (
+                <div className="flex items-center gap-3">
+                  {/* ISEA Logo - Always displayed (immutable) */}
                   <img 
-                    src={site.logo} 
-                    alt={site.siteName}
+                    src="/3.png" 
+                    alt="ISEA Logo"
                     style={{ 
-                      height: '40px',
+                      height: '45px',
                       width: 'auto',
-                      maxWidth: site.logoWidth || '200px',
                       objectFit: 'contain'
                     }}
                   />
-                ) : (
-                  isEditingSiteName ? (
-                    <input
-                      type="text"
-                      value={editedSiteName}
-                      onChange={(e) => setEditedSiteName(e.target.value)}
-                      onBlur={handleSaveSiteName}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSaveSiteName();
-                        } else if (e.key === 'Escape') {
-                          setIsEditingSiteName(false);
-                        }
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      autoFocus
-                      className="text-xl font-bold border-b-2 outline-none bg-transparent px-1"
-                      style={{
-                        color: getThemeColors().primary,
-                        borderColor: getThemeColors().primary,
-                        fontFamily: `'${getThemeFonts().heading}', sans-serif`,
-                        width: Math.max(150, editedSiteName.length * 12) + 'px'
+                  
+                  {/* Site Logo or Name */}
+                  {site?.logo ? (
+                    <img 
+                      src={site.logo} 
+                      alt={site.siteName}
+                      style={{ 
+                        height: '40px',
+                        width: 'auto',
+                        maxWidth: site.logoWidth || '200px',
+                        objectFit: 'contain'
                       }}
                     />
                   ) : (
-                    <h1 
-                      className="text-xl font-bold cursor-pointer hover:opacity-70 transition-opacity"
-                      style={{
-                        color: getThemeColors().primary,
-                        fontFamily: `'${getThemeFonts().heading}', sans-serif`
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditedSiteName(site?.siteName || '');
-                        setIsEditingSiteName(true);
-                      }}
-                      title="Click to edit site name"
-                    >
-                      {site?.siteName || 'Untitled Site'}
-                    </h1>
-                  )
-                )}
+                    isEditingSiteName ? (
+                      <input
+                        type="text"
+                        value={editedSiteName}
+                        onChange={(e) => setEditedSiteName(e.target.value)}
+                        onBlur={handleSaveSiteName}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleSaveSiteName();
+                          } else if (e.key === 'Escape') {
+                            setIsEditingSiteName(false);
+                          }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        autoFocus
+                        className="text-xl font-bold border-b-2 outline-none bg-transparent px-1"
+                        style={{
+                          color: getThemeColors().primary,
+                          borderColor: getThemeColors().primary,
+                          fontFamily: `'${getThemeFonts().heading}', sans-serif`,
+                          width: Math.max(150, editedSiteName.length * 12) + 'px'
+                        }}
+                      />
+                    ) : (
+                      <h1 
+                        className="text-xl font-bold cursor-pointer hover:opacity-70 transition-opacity"
+                        style={{
+                          color: getThemeColors().primary,
+                          fontFamily: `'${getThemeFonts().heading}', sans-serif`
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditedSiteName(site?.siteName || '');
+                          setIsEditingSiteName(true);
+                        }}
+                        title="Click to edit site name"
+                      >
+                        {site?.siteName || 'Untitled Site'}
+                      </h1>
+                    )
+                  )}
+                </div>
                 <nav className="flex gap-4">
                   {pages.map((page) => (
                     <button
