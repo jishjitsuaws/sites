@@ -379,7 +379,7 @@ export default function SectionWrapper({
         style={{
           flexDirection: section.layout.direction,
           justifyContent: section.layout.justifyContent,
-          alignItems: section.layout.alignItems,
+          alignItems: hasFooterOrBanner ? 'stretch' : section.layout.alignItems, // Banners/footers need full width
           flexWrap: section.layout.direction === 'row' ? 'wrap' as const : 'nowrap' as const,
           gap: `${section.layout.gap}px`,
         }}
