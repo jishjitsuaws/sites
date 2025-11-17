@@ -3113,401 +3113,104 @@ export default function ComponentRenderer({
         </div>
       )}
 
-      {/* Footer Component (Editor rendering supports optional full-bleed preview) */}
+      {/* Footer Component (Immutable - matches C-DAC design) */}
       {component.type === 'footer' && (
         <div 
-          className="w-full p-8"
+          className="w-full py-8"
           style={{
-            backgroundColor: component.props.backgroundColor || themeColors.secondary,
-            color: component.props.textColor || '#ffffff',
+            backgroundColor: '#0066CC',
+            color: '#ffffff',
           }}
         >
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex flex-col md:flex-row justify-between gap-8 mb-8">
-              {/* Company Info - Left */}
-              <div className="flex-1 max-w-md">
-                <h3 
-                  className="text-lg font-semibold mb-2"
-                  style={{ fontFamily: themeFonts.heading }}
-                >
-                  {component.props.companyName || 'Company Name'}
+          <div className="max-w-7xl mx-auto px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
+              {/* Left: C-DAC Hyderabad Address */}
+              <div>
+                <h3 className="text-base font-bold mb-2" style={{ fontFamily: themeFonts.heading }}>
+                  C-DAC Hyderabad
                 </h3>
-                <p 
-                  className="text-sm opacity-80"
-                  style={{ fontFamily: themeFonts.body }}
-                >
-                  {component.props.description || 'Your company description goes here.'}
+                <p className="text-sm leading-relaxed" style={{ fontFamily: themeFonts.body }}>
+                  Plot No. 6 & 7, Sy No. 1/1,<br />
+                  Srisailam Highway, Pahadi Shareef,<br />
+                  Via Keshavagiri Post,<br />
+                  Hyderabad, Telangana<br />
+                  Pin. 501510
                 </p>
               </div>
 
-              {/* Links - Right */}
-              <div className="flex gap-12 items-start">
-                <div className="text-right">
-                  <h4 className="font-semibold mb-2">Quick Links</h4>
-                  <ul className="space-y-1 text-sm opacity-80">
-                    <li><a href={component.props.link1Url || '#'} className="hover:opacity-100">{component.props.link1Text || 'About'}</a></li>
-                    <li><a href={component.props.link2Url || '#'} className="hover:opacity-100">{component.props.link2Text || 'Services'}</a></li>
-                    <li><a href={component.props.link3Url || '#'} className="hover:opacity-100">{component.props.link3Text || 'Contact'}</a></li>
-                  </ul>
-                </div>
-                <div className="text-right">
-                  <h4 className="font-semibold mb-2">Connect</h4>
-                  <ul className="space-y-1 text-sm opacity-80">
-                    <li><a href={component.props.social1Url || '#'} className="hover:opacity-100">{component.props.social1Text || 'Twitter'}</a></li>
-                    <li><a href={component.props.social2Url || '#'} className="hover:opacity-100">{component.props.social2Text || 'LinkedIn'}</a></li>
-                    <li><a href={component.props.social3Url || '#'} className="hover:opacity-100">{component.props.social3Text || 'Facebook'}</a></li>
-                  </ul>
+              {/* Center: Social Network Links */}
+              <div className="text-center">
+                <h3 className="text-base font-bold mb-3" style={{ fontFamily: themeFonts.heading }}>
+                  Our Social Network
+                </h3>
+                <div className="flex justify-center gap-4">
+                  <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity" aria-label="Visit our Twitter page">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                      </svg>
+                    </div>
+                  </a>
+                  <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity" aria-label="Visit our Facebook page">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      </svg>
+                    </div>
+                  </a>
+                  <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity" aria-label="Visit our Instagram page">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                      </svg>
+                    </div>
+                  </a>
+                  <a href="https://wa.me/" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity" aria-label="Contact us on WhatsApp">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                      </svg>
+                    </div>
+                  </a>
+                  <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity" aria-label="Visit our YouTube channel">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                      </svg>
+                    </div>
+                  </a>
+                  <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity" aria-label="Visit our Pinterest page">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/>
+                      </svg>
+                    </div>
+                  </a>
                 </div>
               </div>
-            </div>
-            
-            <div className="border-t pt-4 text-center text-sm opacity-60">
-              © 2024 {component.props.companyName || 'Company Name'}. All rights reserved.
+
+              {/* Right: Supported By Logos */}
+              <div className="text-right">
+                <h3 className="text-base font-bold mb-3" style={{ fontFamily: themeFonts.heading }}>
+                  Supported By
+                </h3>
+                <div className="flex justify-end items-center gap-4">
+                  <img 
+                    src="https://i.imgur.com/9YX8Z7m.png" 
+                    alt="ISEA Logo"
+                    className="h-14 w-auto object-contain bg-white rounded p-1"
+                  />
+                  <img 
+                    src="https://i.imgur.com/VQZx8Zu.png" 
+                    alt="C-DAC Logo"
+                    className="h-14 w-auto object-contain bg-white rounded p-1"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Footer Settings Toolbar - Horizontal and Fat */}
-          {isSelected && (
-            <div className="absolute top-2 left-2 right-2 bg-white shadow-xl rounded-lg border p-4 z-10 max-h-[60vh] overflow-y-auto">
-              <div className="grid grid-cols-4 gap-4">
-                {/* Column 1: Company Info */}
-                <div>
-                  <h4 className="text-xs font-bold text-gray-700 mb-2 border-b pb-1">Company Info</h4>
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Company Name</label>
-                      <input
-                        type="text"
-                        value={component.props.companyName || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, companyName: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="Your Company"
-                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
-                      <textarea
-                        value={component.props.description || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, description: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="Building amazing experiences..."
-                        rows={3}
-                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Column 2: Quick Links */}
-                <div>
-                  <h4 className="text-xs font-bold text-gray-700 mb-2 border-b pb-1">Quick Links</h4>
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Link 1</label>
-                      <input
-                        type="text"
-                        value={component.props.link1Text || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, link1Text: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="About"
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={component.props.link1Url || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, link1Url: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="URL"
-                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Link 2</label>
-                      <input
-                        type="text"
-                        value={component.props.link2Text || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, link2Text: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="Services"
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={component.props.link2Url || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, link2Url: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="URL"
-                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Link 3</label>
-                      <input
-                        type="text"
-                        value={component.props.link3Text || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, link3Text: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="Contact"
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={component.props.link3Url || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, link3Url: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="URL"
-                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Column 3: Social Links */}
-                <div>
-                  <h4 className="text-xs font-bold text-gray-700 mb-2 border-b pb-1">Social Links</h4>
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Social 1</label>
-                      <input
-                        type="text"
-                        value={component.props.social1Text || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, social1Text: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="Twitter"
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={component.props.social1Url || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, social1Url: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="URL"
-                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Social 2</label>
-                      <input
-                        type="text"
-                        value={component.props.social2Text || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, social2Text: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="LinkedIn"
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={component.props.social2Url || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, social2Url: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="URL"
-                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">Social 3</label>
-                      <input
-                        type="text"
-                        value={component.props.social3Text || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, social3Text: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="Facebook"
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded mb-1 focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        value={component.props.social3Url || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, social3Url: e.target.value }
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="URL"
-                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Column 4: Colors & Actions */}
-                <div>
-                  <h4 className="text-xs font-bold text-gray-700 mb-2 border-b pb-1">Styling</h4>
-                  <div className="space-y-3">
-                    {/* Background Color */}
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Background</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={component.props.backgroundColor || themeColors.secondary}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            onUpdateComponent(component.id, {
-                              ...component,
-                              props: { ...component.props, backgroundColor: e.target.value }
-                            });
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-12 h-12 rounded cursor-pointer border border-gray-300"
-                        />
-                        <input
-                          type="text"
-                          value={component.props.backgroundColor || themeColors.secondary}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            onUpdateComponent(component.id, {
-                              ...component,
-                              props: { ...component.props, backgroundColor: e.target.value }
-                            });
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          placeholder="#000000"
-                          className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Text Color */}
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Text Color</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={component.props.textColor || '#ffffff'}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            onUpdateComponent(component.id, {
-                              ...component,
-                              props: { ...component.props, textColor: e.target.value }
-                            });
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-12 h-12 rounded cursor-pointer border border-gray-300"
-                        />
-                        <input
-                          type="text"
-                          value={component.props.textColor || '#ffffff'}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            onUpdateComponent(component.id, {
-                              ...component,
-                              props: { ...component.props, textColor: e.target.value }
-                            });
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          placeholder="#ffffff"
-                          className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Delete Button */}
-                    <div className="pt-3 border-t">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm('Are you sure you want to delete the footer?')) {
-                            onDeleteComponent();
-                          }
-                        }}
-                        className="w-full px-3 py-2 bg-red-50 hover:bg-red-100 rounded text-sm flex items-center justify-center gap-2 text-red-600 transition-colors font-medium"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete Footer
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* NO TOOLBAR - Footer is immutable */}
         </div>
       )}
 
