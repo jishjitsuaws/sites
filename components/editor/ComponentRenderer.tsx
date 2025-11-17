@@ -582,13 +582,25 @@ export default function ComponentRenderer({
                     {/* Bottom-right resize handle - resize width only, height auto-scales */}
                     <div
                       className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform shadow-lg"
+                      style={{
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none',
+                      }}
                       onMouseDown={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
                         const startX = e.clientX;
                         const startWidth = parseInt(component.props.width) || 400;
                         
+                        // Add body styles to prevent selection during drag
+                        document.body.style.userSelect = 'none';
+                        document.body.style.cursor = 'nwse-resize';
+                        
                         const handleMouseMove = (moveEvent: MouseEvent) => {
+                          moveEvent.preventDefault();
+                          moveEvent.stopPropagation();
                           const deltaX = moveEvent.clientX - startX;
                           const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
                           onUpdateComponent(component.id, {
@@ -603,6 +615,10 @@ export default function ComponentRenderer({
                         };
                         
                         const handleMouseUp = () => {
+                          // Restore body styles
+                          document.body.style.userSelect = '';
+                          document.body.style.cursor = '';
+                          
                           document.removeEventListener('mousemove', handleMouseMove);
                           document.removeEventListener('mouseup', handleMouseUp);
                         };
@@ -615,13 +631,25 @@ export default function ComponentRenderer({
                     {/* Bottom-left resize handle */}
                     <div
                       className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nesw-resize hover:scale-125 transition-transform shadow-lg"
+                      style={{
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none',
+                      }}
                       onMouseDown={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
                         const startX = e.clientX;
                         const startWidth = parseInt(component.props.width) || 400;
                         
+                        // Add body styles to prevent selection during drag
+                        document.body.style.userSelect = 'none';
+                        document.body.style.cursor = 'nesw-resize';
+                        
                         const handleMouseMove = (moveEvent: MouseEvent) => {
+                          moveEvent.preventDefault();
+                          moveEvent.stopPropagation();
                           const deltaX = startX - moveEvent.clientX;
                           const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
                           onUpdateComponent(component.id, {
@@ -636,6 +664,10 @@ export default function ComponentRenderer({
                         };
                         
                         const handleMouseUp = () => {
+                          // Restore body styles
+                          document.body.style.userSelect = '';
+                          document.body.style.cursor = '';
+                          
                           document.removeEventListener('mousemove', handleMouseMove);
                           document.removeEventListener('mouseup', handleMouseUp);
                         };
@@ -648,13 +680,25 @@ export default function ComponentRenderer({
                     {/* Top-right resize handle */}
                     <div
                       className="absolute -top-2 -right-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nesw-resize hover:scale-125 transition-transform shadow-lg"
+                      style={{
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none',
+                      }}
                       onMouseDown={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
                         const startX = e.clientX;
                         const startWidth = parseInt(component.props.width) || 400;
                         
+                        // Add body styles to prevent selection during drag
+                        document.body.style.userSelect = 'none';
+                        document.body.style.cursor = 'nesw-resize';
+                        
                         const handleMouseMove = (moveEvent: MouseEvent) => {
+                          moveEvent.preventDefault();
+                          moveEvent.stopPropagation();
                           const deltaX = moveEvent.clientX - startX;
                           const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
                           onUpdateComponent(component.id, {
@@ -669,6 +713,10 @@ export default function ComponentRenderer({
                         };
                         
                         const handleMouseUp = () => {
+                          // Restore body styles
+                          document.body.style.userSelect = '';
+                          document.body.style.cursor = '';
+                          
                           document.removeEventListener('mousemove', handleMouseMove);
                           document.removeEventListener('mouseup', handleMouseUp);
                         };
@@ -681,13 +729,25 @@ export default function ComponentRenderer({
                     {/* Top-left resize handle */}
                     <div
                       className="absolute -top-2 -left-2 w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-125 transition-transform shadow-lg"
+                      style={{
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none',
+                      }}
                       onMouseDown={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
                         const startX = e.clientX;
                         const startWidth = parseInt(component.props.width) || 400;
                         
+                        // Add body styles to prevent selection during drag
+                        document.body.style.userSelect = 'none';
+                        document.body.style.cursor = 'nwse-resize';
+                        
                         const handleMouseMove = (moveEvent: MouseEvent) => {
+                          moveEvent.preventDefault();
+                          moveEvent.stopPropagation();
                           const deltaX = startX - moveEvent.clientX;
                           const newWidth = Math.max(100, Math.min(1400, startWidth + deltaX));
                           onUpdateComponent(component.id, {
@@ -702,6 +762,10 @@ export default function ComponentRenderer({
                         };
                         
                         const handleMouseUp = () => {
+                          // Restore body styles
+                          document.body.style.userSelect = '';
+                          document.body.style.cursor = '';
+                          
                           document.removeEventListener('mousemove', handleMouseMove);
                           document.removeEventListener('mouseup', handleMouseUp);
                         };
@@ -1499,14 +1563,18 @@ export default function ComponentRenderer({
                 src={getYouTubeEmbedUrl(component.props.url)}
                 title="Embedded video"
                 className="w-full h-full rounded"
+                style={{
+                  pointerEvents: isSelected ? 'none' : 'auto', // Disable clicks when selected to allow dragging
+                }}
                 allowFullScreen
               />
               
               {/* Resize Handle - Width-based resizing with aspect ratio maintained */}
               {isSelected && (
                 <div
-                  className="absolute top-0 -right-3 bottom-0 w-6 flex items-center justify-center cursor-ew-resize hover:bg-blue-100 rounded transition-colors group"
+                  className="absolute top-0 -right-3 bottom-0 cursor-ew-resize"
                   style={{
+                    width: '100%', // Cover entire video area for easier dragging
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
                     MozUserSelect: 'none',
@@ -1549,9 +1617,14 @@ export default function ComponentRenderer({
                     document.addEventListener('mousemove', handleMouseMove);
                     document.addEventListener('mouseup', handleMouseUp);
                   }}
-                  title="Drag to resize width (maintains 16:9 ratio)"
+                  title="Drag anywhere to resize width (maintains 16:9 ratio)"
                 >
-                  <div className="w-1 h-8 bg-blue-600 rounded group-hover:h-12 transition-all"></div>
+                  {/* Visual indicator on the right edge */}
+                  <div 
+                    className="absolute top-0 -right-3 bottom-0 w-6 flex items-center justify-center hover:bg-blue-100 rounded transition-colors group"
+                  >
+                    <div className="w-1 h-8 bg-blue-600 rounded group-hover:h-12 transition-all"></div>
+                  </div>
                 </div>
               )}
             </div>
@@ -2677,7 +2750,10 @@ export default function ComponentRenderer({
           
           {/* Content when there's NO image */}
           {!component.props.backgroundImage && (
-            <div style={{ padding: '60px 40px', width: '100%' }}>
+            <div style={{ 
+              padding: component.subType === 'banner-full' ? '60px 0' : '60px 40px', 
+              width: '100%' 
+            }}>
               {/* Image Banner (banner-minimal) - show upload prompt */}
               {component.subType === 'banner-minimal' && (
                 <div className="text-center">
@@ -2699,7 +2775,7 @@ export default function ComponentRenderer({
               
               {/* Text Banner (banner-full) - show text/button editing */}
               {component.subType === 'banner-full' && (
-                <>
+                <div className="text-center" style={{ padding: '0 40px' }}>
                   {component.props.heading && (
                     <h1 
                       className="text-5xl font-bold mb-4"
@@ -2738,7 +2814,7 @@ export default function ComponentRenderer({
                       {component.props.buttonText}
                     </a>
                   )}
-                </>
+                </div>
               )}
             </div>
           )}
