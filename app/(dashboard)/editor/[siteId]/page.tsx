@@ -760,7 +760,7 @@ export default function EditorPage() {
     { id: 'image', name: 'Image', icon: ImageIcon, description: 'Insert an image' },
     { id: 'button', name: 'Button', icon: LinkIcon, description: 'Add a clickable button' },
     { id: 'video', name: 'Video', icon: Video, description: 'Embed a video' },
-    { id: 'divider', name: 'Divider', icon: Minus, description: 'Add a horizontal line' },
+  { id: 'divider', name: 'Divider', icon: Minus, description: 'Line / Dashed / Dotted / Spacer' },
     { id: 'social', name: 'Social Links', icon: LinkIcon, description: 'Instagram, Facebook, Twitter icons' },
     { id: 'timer', name: 'Countdown Timer', icon: Layout, description: 'Countdown to a specific date' },
     { id: 'card-grid', name: 'Card Grid', icon: Layout, description: 'Add 1-5 cards in a row' },
@@ -1641,6 +1641,7 @@ export default function EditorPage() {
           expanded: false,
           buttonTextShow: 'Show Items',
           buttonTextHide: 'Hide Items',
+          width: '100%',
         };
       default:
         return {};

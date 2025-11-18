@@ -689,20 +689,11 @@ export default function ComponentRenderer({
                       const newText = e.target.value;
                       onUpdateComponent(component.id, {
                         ...component,
-                        props: { ...component.props, text: newText || 'Button' }
+                        props: { ...component.props, text: newText }
                       });
                     }}
                     onFocus={(e) => e.stopPropagation()}
-                    onBlur={(e) => {
-                      e.stopPropagation();
-                      // Ensure button always has text
-                      if (!e.target.value.trim()) {
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, text: 'Button' }
-                        });
-                      }
-                    }}
+                    onBlur={(e) => e.stopPropagation()}
                     onKeyDown={(e) => {
                       e.stopPropagation();
                       e.nativeEvent.stopImmediatePropagation();
@@ -851,25 +842,24 @@ export default function ComponentRenderer({
                 
                 <div className="w-px bg-gray-300 h-8"></div>
                 
-                {/* Style Variant */}
+                {/* Size */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold text-gray-600">Style</label>
+                  <label className="text-[10px] font-semibold text-gray-600">Size</label>
                   <select
-                    value={component.props.variant || 'primary'}
+                    value={component.props.size || 'medium'}
                     onChange={(e) => {
                       e.stopPropagation();
                       onUpdateComponent(component.id, {
                         ...component,
-                        props: { ...component.props, variant: e.target.value }
+                        props: { ...component.props, size: e.target.value }
                       });
                     }}
                     className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <option value="primary">Primary</option>
-                    <option value="secondary">Secondary</option>
-                    <option value="outline">Outline</option>
-                    <option value="text">Text</option>
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large">Large</option>
                   </select>
                 </div>
                 
@@ -1020,25 +1010,19 @@ export default function ComponentRenderer({
             )}
             
             <button 
-              className="px-6 py-2 font-medium transition-colors"
+              className={`font-medium transition-colors ${
+                (component.props.size || 'medium') === 'small' ? 'px-3 py-1 text-sm' :
+                (component.props.size || 'medium') === 'large' ? 'px-8 py-3 text-lg' :
+                'px-6 py-2 text-base'
+              }`}
               style={{
-                backgroundColor: component.props.buttonColor || (
-                  component.props.variant === 'primary' 
-                    ? themeColors.primary 
-                    : component.props.variant === 'secondary'
-                    ? themeColors.secondary
-                    : 'transparent'
-                ),
-                color: component.props.textColor || (
-                  component.props.variant === 'outline' || component.props.variant === 'text' 
-                    ? themeColors.primary 
-                    : '#ffffff'
-                ),
-                border: component.props.variant === 'outline' ? `2px solid ${component.props.buttonColor || themeColors.primary}` : 'none',
+                backgroundColor: component.props.buttonColor || themeColors.primary,
+                color: component.props.textColor || '#ffffff',
+                border: 'none',
                 borderRadius: `${component.props.borderRadius || 8}px`,
               }}
             >
-              {component.props.text}
+              {component.props.text ?? ''}
             </button>
           </div>
         </div>
@@ -1070,7 +1054,7 @@ export default function ComponentRenderer({
                     value={parseInt(component.props.height) || 40}
                     onChange={(e) => {
                       e.stopPropagation();
-                      const height = Math.max(10, Math.min(200, parseInt(e.target.value) || 40));
+                      const height = Math.max(10, Math.min(400, parseInt(e.target.value) || 40));
                       onUpdateComponent(component.id, {
                         ...component,
                         props: { ...component.props, height: `${height}px` }
@@ -1078,8 +1062,8 @@ export default function ComponentRenderer({
                     }}
                     onClick={(e) => e.stopPropagation()}
                     className="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
-                    min="10"
-                    max="200"
+                    min={10}
+                    max={400}
                     title="Spacer Height (px)"
                   />
                   <span className="text-xs text-gray-600">px</span>
@@ -1099,7 +1083,7 @@ export default function ComponentRenderer({
                     className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <option value="solid">Solid</option>
+                    <option value="solid">Line</option>
                     <option value="dashed">Dashed</option>
                     <option value="dotted">Dotted</option>
                     <option value="spacer">Spacer</option>
@@ -1107,6 +1091,17 @@ export default function ComponentRenderer({
                   <div className="w-px bg-gray-300"></div>
                 </>
               )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCopyComponent();
+                }}
+                className="px-3 py-1.5 hover:bg-gray-100 rounded text-sm flex items-center gap-1.5 transition-colors text-gray-900"
+                title="Duplicate"
+              >
+                <Copy className="h-4 w-4" />
+                Duplicate
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -2091,6 +2086,14 @@ export default function ComponentRenderer({
               </button>
               <div className="w-px bg-gray-300"></div>
               <button
+                className="px-3 py-1.5 hover:bg-gray-100 rounded text-sm flex items-center gap-1.5 transition-colors text-gray-900"
+                onClick={() => onCopyComponent()}
+                title="Duplicate"
+              >
+                <Copy className="h-4 w-4" />
+                Duplicate
+              </button>
+              <button
                 className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
                 onClick={() => onDeleteComponent()}
               >
@@ -2305,11 +2308,11 @@ export default function ComponentRenderer({
 
           {/* Items as stacked cards when expanded */}
           {component.props.expanded && (
-            <div className="space-y-2">
+            <div className="space-y-2 w-full">
               {(component.props.items || []).map((raw: any, idx: number) => {
                 const text = typeof raw === 'string' ? raw : (raw?.title || '');
                 return (
-                  <div key={idx} className="border rounded-md p-3 bg-white">
+                  <div key={idx} className="border rounded-md p-3 bg-white w-full">
                     <div
                       contentEditable={isSelected}
                       suppressContentEditableWarning

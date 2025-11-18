@@ -938,10 +938,9 @@ export default function PublishedSitePage() {
                   <h3 className="text-base font-bold mb-3" style={{ fontFamily: `'${themeFonts.heading}', sans-serif` }}>
                     CDAC Hyderabad
                   </h3>
-                  <p className="text-sm" style={{ fontFamily: `'${themeFonts.body}', sans-serif` }}>
-                    sites.isea - Build beautiful websites
-                    Create stunning websites. No coding required.
-                  </p>
+                   <h3 className="text-base font-bold mb-3" style={{ fontFamily: `'${themeFonts.heading}', sans-serif` }}>
+                    SITES.ISEA
+                  </h3>
                 </div>
 
                 {/* Center: Social Network Links */}
