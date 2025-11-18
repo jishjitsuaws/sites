@@ -419,6 +419,173 @@ export default function ComponentRenderer({
         </div>
       )}
 
+      {/* FAQs Component */}
+      {component.type === 'faqs' && (
+        <div style={{ position: 'relative', width: component.props.width || '100%', margin: component.props.align === 'center' ? '0 auto' : component.props.align === 'right' ? '0 0 0 auto' : '0' }}>
+          {/* Inline toolbar - fat toolbar with many options */}
+          {isSelected && (
+            <div
+              className="fixed bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex flex-wrap gap-2 items-center"
+              style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000, maxWidth: '90vw' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Alignment */}
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-700">Align</span>
+                <button
+                  className={`p-1.5 rounded ${component.props.align === 'left' ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
+                  onClick={() => onUpdateComponent(component.id, { ...component, props: { ...component.props, align: 'left' } })}
+                  title="Align Left"
+                >
+                  <AlignLeft className="h-4 w-4" />
+                </button>
+                <button
+                  className={`p-1.5 rounded ${component.props.align === 'center' ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
+                  onClick={() => onUpdateComponent(component.id, { ...component, props: { ...component.props, align: 'center' } })}
+                  title="Align Center"
+                >
+                  <AlignCenter className="h-4 w-4" />
+                </button>
+                <button
+                  className={`p-1.5 rounded ${component.props.align === 'right' ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
+                  onClick={() => onUpdateComponent(component.id, { ...component, props: { ...component.props, align: 'right' } })}
+                  title="Align Right"
+                >
+                  <AlignRight className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="w-px bg-gray-300 h-6" />
+
+              {/* Width */}
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-700">Width</span>
+                <select
+                  value={component.props.width || '100%'}
+                  onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, width: e.target.value } })}
+                  className="px-2 py-1 text-xs border border-gray-300 rounded text-black"
+                >
+                  <option value="100%">100%</option>
+                  <option value="75%">75%</option>
+                  <option value="50%">50%</option>
+                  <option value="600px">600px</option>
+                  <option value="800px">800px</option>
+                </select>
+              </div>
+              <div className="w-px bg-gray-300 h-6" />
+
+              {/* Add/Remove */}
+              <button
+                className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-black"
+                onClick={() => {
+                  const items = Array.isArray(component.props.items) ? [...component.props.items] : [];
+                  items.push({ question: 'New question', answer: 'Answer goes here', expanded: false });
+                  onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
+                }}
+              >
+                + Add FAQ
+              </button>
+              <button
+                className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-black"
+                onClick={() => {
+                  const items = Array.isArray(component.props.items) ? [...component.props.items] : [];
+                  if (items.length > 0) items.pop();
+                  onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
+                }}
+              >
+                Remove Last
+              </button>
+              <div className="w-px bg-gray-300 h-6" />
+              <button
+                className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-black"
+                onClick={() => {
+                  const items = (component.props.items || []).map((it: any) => ({ ...it, expanded: true }));
+                  onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
+                }}
+              >
+                Expand All
+              </button>
+              <button
+                className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-black"
+                onClick={() => {
+                  const items = (component.props.items || []).map((it: any) => ({ ...it, expanded: false }));
+                  onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
+                }}
+              >
+                Collapse All
+              </button>
+              <div className="w-px bg-gray-300 h-6" />
+              <button
+                className="px-3 py-1.5 hover:bg-gray-100 rounded text-sm flex items-center gap-1.5 transition-colors text-gray-900"
+                onClick={() => onCopyComponent()}
+                title="Duplicate"
+              >
+                <Copy className="h-4 w-4" />
+                Duplicate
+              </button>
+              <button
+                className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
+                onClick={() => onDeleteComponent()}
+                title="Delete"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
+            </div>
+          )}
+
+          {/* FAQ items */}
+          <div className="space-y-3 w-full">
+            {(component.props.items || []).map((it: any, idx: number) => (
+              <div key={idx} className="border rounded-md bg-white w-full overflow-hidden">
+                <button
+                  className="w-full text-left px-4 py-3 font-medium flex justify-between items-center hover:bg-gray-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const items = [...(component.props.items || [])];
+                    items[idx] = { ...it, expanded: !it.expanded };
+                    onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
+                  }}
+                >
+                  <span
+                    contentEditable={isSelected}
+                    suppressContentEditableWarning
+                    onBlur={(e) => {
+                      const items = [...(component.props.items || [])];
+                      items[idx] = { ...it, question: e.currentTarget.textContent || '' };
+                      onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
+                    }}
+                    onClick={(e) => { if (isSelected) e.stopPropagation(); }}
+                    className="outline-none"
+                    style={{ fontFamily: `'${themeFonts.heading}', sans-serif`, color: themeColors.text }}
+                  >
+                    {it.question || `Question ${idx + 1}`}
+                  </span>
+                  <span className="text-gray-500">{it.expanded ? '−' : '+'}</span>
+                </button>
+                {it.expanded && (
+                  <div className="px-4 py-3 border-t bg-white">
+                    <div
+                      contentEditable={isSelected}
+                      suppressContentEditableWarning
+                      onBlur={(e) => {
+                        const items = [...(component.props.items || [])];
+                        items[idx] = { ...it, answer: e.currentTarget.textContent || '' };
+                        onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
+                      }}
+                      onClick={(e) => { if (isSelected) e.stopPropagation(); }}
+                      className="outline-none"
+                      style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
+                    >
+                      {it.answer || 'Answer goes here'}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Image Component */}
       {component.type === 'image' && (
         <div style={{ 
@@ -1089,6 +1256,41 @@ export default function ComponentRenderer({
                     <option value="spacer">Spacer</option>
                   </select>
                   <div className="w-px bg-gray-300"></div>
+                  {/* Thickness */}
+                  <span className="px-1 py-1 text-xs text-gray-600">Thickness</span>
+                  <input
+                    type="number"
+                    value={parseInt(component.props.thickness) || 2}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      const thickness = Math.max(1, Math.min(12, parseInt(e.target.value) || 2));
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, thickness }
+                      });
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
+                    min={1}
+                    max={12}
+                    title="Line Thickness (px)"
+                  />
+                  <div className="w-px bg-gray-300"></div>
+                  {/* Color */}
+                  <input
+                    type="color"
+                    value={component.props.color || '#94a3b8'}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, color: e.target.value }
+                      });
+                    }}
+                    className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
+                    title="Line Color"
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 </>
               )}
               <button
@@ -1119,7 +1321,14 @@ export default function ComponentRenderer({
           {component.props.style === 'spacer' ? (
             <div style={{ height: component.props.height || '40px' }} />
           ) : component.props.style !== 'none' ? (
-            <hr style={{ borderColor: component.props.color, borderStyle: component.props.style }} />
+            <div
+              style={{
+                width: '100%',
+                borderTopStyle: component.props.style || 'solid',
+                borderTopColor: component.props.color || '#94a3b8',
+                borderTopWidth: `${component.props.thickness || 2}px`,
+              }}
+            />
           ) : null}
         </div>
       )}
@@ -1130,13 +1339,14 @@ export default function ComponentRenderer({
           {/* Social Media Toolbar */}
           {isSelected && (
             <div 
-              className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex flex-col gap-2 whitespace-nowrap"
+              className="fixed bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex flex-col gap-2 whitespace-nowrap"
               style={{
-                top: '-220px',
+                top: '50%',
                 left: '50%',
-                transform: 'translateX(-50%)',
+                transform: 'translate(-50%, -50%)',
                 zIndex: 1000,
                 minWidth: 'max-content',
+                maxWidth: '90vw'
               }}
             >
               <div className="flex items-center gap-2">

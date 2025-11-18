@@ -767,6 +767,7 @@ export default function EditorPage() {
     { id: 'carousel', name: 'Carousel', icon: ImageIcon, description: 'Image carousel (1–5, 16:9)' },
     { id: 'bullet-list', name: 'Bullet List', icon: FileText, description: 'Bulleted or numbered list' },
     { id: 'collapsible-list', name: 'Collapsible List', icon: FileText, description: 'Expandable items with > or bullets' },
+    { id: 'faqs', name: 'FAQs', icon: FileText, description: 'Questions with expandable answers' },
   ];
 
   const handleInsertComponent = (type: string) => {
@@ -1566,7 +1567,7 @@ export default function EditorPage() {
       case 'video':
         return { url: '', autoplay: false, height: 400 };
       case 'divider':
-        return { style: 'solid', color: '#e5e7eb', height: '40px' };
+        return { style: 'solid', color: '#94a3b8', thickness: 2, height: '40px' };
       case 'social':
         return {
           instagramUrl: '',
@@ -1642,6 +1643,15 @@ export default function EditorPage() {
           buttonTextShow: 'Show Items',
           buttonTextHide: 'Hide Items',
           width: '100%',
+        };
+      case 'faqs':
+        return {
+          items: [
+            { question: 'What is your service?', answer: 'We provide amazing sites.', expanded: false },
+            { question: 'How do I start?', answer: 'Click the button and follow the steps.', expanded: false }
+          ],
+          align: 'left',
+          width: '100%'
         };
       default:
         return {};
