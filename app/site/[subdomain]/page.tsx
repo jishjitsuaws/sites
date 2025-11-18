@@ -589,7 +589,15 @@ export default function PublishedSitePage() {
                   }}
                 >
                   <img
-                    src={component.props.image}
+                    src={(() => {
+                      const img = component.props.image;
+                      if (!img) return '';
+                      if (img.startsWith('http')) return img;
+                      const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || '';
+                      if (img.startsWith('/')) return `${apiUrl}${img}`;
+                      if (img.startsWith('uploads')) return `${apiUrl}/${img}`;
+                      return img;
+                    })()}
                     alt={component.props.title || 'Card image'}
                     style={{
                       width: '100%',
@@ -966,12 +974,12 @@ export default function PublishedSitePage() {
                     <img 
                       src="/3.png" 
                       alt="ISEA Logo"
-                      className="h-14 w-auto object-contain bg-white rounded p-1"
+                      className="h-14 w-auto"
                     />
                     <img 
                       src="/cdac.png" 
                       alt="C-DAC Logo"
-                      className="h-14 w-auto object-contain bg-white rounded p-1"
+                      className="h-14 w-auto"
                     />
                   </div>
                 </div>

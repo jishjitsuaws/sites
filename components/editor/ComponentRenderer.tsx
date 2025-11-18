@@ -2907,12 +2907,12 @@ export default function ComponentRenderer({
                   <img 
                     src="/3.png" 
                     alt="ISEA Logo"
-                    className="h-14 w-auto object-contain bg-white rounded p-1"
+                    className="h-14 w-auto"
                   />
                   <img 
                     src="/cdac.png" 
                     alt="C-DAC Logo"
-                    className="h-14 w-auto object-contain bg-white rounded p-1"
+                    className="h-14 w-auto"
                   />
                 </div>
               </div>
