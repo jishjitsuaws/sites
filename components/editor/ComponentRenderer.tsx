@@ -1641,7 +1641,9 @@ export default function ComponentRenderer({
           {/* Image Card */}
           {component.props.cardType === 'image' && (
             <div className="mb-4">
-              {console.log(component.props.cardType, component.props.image)}
+              <>
+                {console.log(component.props.cardType, component.props.image)}
+              </>
               {component.props.image ? (
                 <div 
                   className="w-full rounded-lg overflow-hidden"
