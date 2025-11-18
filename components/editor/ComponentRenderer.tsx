@@ -1197,7 +1197,7 @@ export default function ComponentRenderer({
 
       {/* Divider Component */}
       {component.type === 'divider' && (
-        <div style={{ clear: 'both', position: 'relative' }}>
+        <div style={{ clear: 'both', position: 'relative', width: '100%', flex: '0 0 100%' }}>
           {/* Inline toolbar for dividers */}
           {isSelected && (
             <div 
