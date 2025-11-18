@@ -274,6 +274,7 @@ export default function ComponentRenderer({
         zIndex: isSelected ? 50 : 1,
         outline: (isBanner || isFooter) && isSelected ? '2px solid #60a5fa' : 'none',
         outlineOffset: (isBanner || isFooter) && isSelected ? '2px' : '0',
+        ...(component.type === 'divider' ? { alignSelf: 'stretch', flex: '0 0 100%', width: '100%' } : {}),
       }}
       onClick={(e) => {
         const target = e.target as HTMLElement;
@@ -421,7 +422,7 @@ export default function ComponentRenderer({
 
       {/* FAQs Component */}
       {component.type === 'faqs' && (
-        <div style={{ position: 'relative', width: component.props.width || '100%', margin: component.props.align === 'center' ? '0 auto' : component.props.align === 'right' ? '0 0 0 auto' : '0' }}>
+        <div style={{ position: 'relative', width: component.props.width || '100%', margin: component.props.align === 'center' ? '0 auto' : component.props.align === 'right' ? '0 0 0 auto' : '0', textAlign: component.props.align || 'left' }}>
           {/* Inline toolbar - fat toolbar with many options */}
           {isSelected && (
             <div
@@ -554,9 +555,18 @@ export default function ComponentRenderer({
                       items[idx] = { ...it, question: e.currentTarget.textContent || '' };
                       onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
                     }}
+                    onFocus={(e) => {
+                      if (!isSelected) {
+                        onComponentClick(component, e as any);
+                      }
+                      setSelectedComponent(component);
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      const absoluteRect = { x: rect.left, y: rect.top, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height, toJSON: () => ({}) } as DOMRect;
+                      onShowTextToolbar(absoluteRect);
+                    }}
                     onClick={(e) => { if (isSelected) e.stopPropagation(); }}
                     className="outline-none"
-                    style={{ fontFamily: `'${themeFonts.heading}', sans-serif`, color: themeColors.text }}
+                    style={{ fontFamily: `'${themeFonts.heading}', sans-serif`, color: themeColors.text, textAlign: component.props.align || 'left' }}
                   >
                     {it.question || `Question ${idx + 1}`}
                   </span>
@@ -572,9 +582,18 @@ export default function ComponentRenderer({
                         items[idx] = { ...it, answer: e.currentTarget.textContent || '' };
                         onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
                       }}
+                      onFocus={(e) => {
+                        if (!isSelected) {
+                          onComponentClick(component, e as any);
+                        }
+                        setSelectedComponent(component);
+                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                        const absoluteRect = { x: rect.left, y: rect.top, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height, toJSON: () => ({}) } as DOMRect;
+                        onShowTextToolbar(absoluteRect);
+                      }}
                       onClick={(e) => { if (isSelected) e.stopPropagation(); }}
                       className="outline-none"
-                      style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
+                      style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text, textAlign: component.props.align || 'left' }}
                     >
                       {it.answer || 'Answer goes here'}
                     </div>
