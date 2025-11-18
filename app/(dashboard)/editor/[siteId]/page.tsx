@@ -2407,6 +2407,16 @@ export default function EditorPage() {
                   alt: props.alt 
                 }
               });
+            } else if (selectedComponent.type === 'card') {
+              // For card components, save image to 'image' property instead of 'src'
+              updateComponent(selectedComponent.id, {
+                ...selectedComponent,
+                props: { 
+                  ...selectedComponent.props, 
+                  image: props.src,
+                  alt: props.alt 
+                }
+              });
             } else {
               updateComponent(selectedComponent.id, {
                 ...selectedComponent,
@@ -2417,6 +2427,8 @@ export default function EditorPage() {
           }}
           initialProps={selectedComponent.type === 'banner' 
             ? { ...selectedComponent.props, src: selectedComponent.props.backgroundImage }
+            : selectedComponent.type === 'card'
+            ? { ...selectedComponent.props, src: selectedComponent.props.image }
             : selectedComponent.props
           }
           onDelete={handleDeleteComponent}
