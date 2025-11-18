@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Edit2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { toast } from 'sonner';
 import api from '@/lib/api';
@@ -31,6 +31,8 @@ export default function PagesPanel({
 }: PagesPanelProps) {
   const [showAddPageForm, setShowAddPageForm] = useState(false);
   const [newPageName, setNewPageName] = useState('');
+  const [editingPageId, setEditingPageId] = useState<string | null>(null);
+  const [editedPageName, setEditedPageName] = useState('');
 
   const handleAddPage = async () => {
     if (!newPageName.trim()) {
@@ -43,7 +45,7 @@ export default function PagesPanel({
         pageName: newPageName.trim(),
       });
       toast.success(`Page "${newPageName}" created`);
-      onPagesUpdate([...pages, response.data]);
+      onPagesUpdate([...pages, response.data.data]);
       setNewPageName('');
       setShowAddPageForm(false);
     } catch (err: any) {
@@ -69,6 +71,28 @@ export default function PagesPanel({
     }
   };
 
+  const handleRenamePage = async (pageId: string) => {
+    if (!editedPageName.trim() || editedPageName === pages.find(p => p._id === pageId)?.pageName) {
+      setEditingPageId(null);
+      return;
+    }
+
+    try {
+      const response = await api.put(`/pages/${pageId}`, {
+        pageName: editedPageName.trim(),
+      });
+      
+      toast.success('Page renamed successfully');
+      const updatedPages = pages.map(p => 
+        p._id === pageId ? { ...p, pageName: editedPageName.trim() } : p
+      );
+      onPagesUpdate(updatedPages);
+      setEditingPageId(null);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to rename page');
+    }
+  };
+
   return (
     <div>
       <div className="space-y-1.5">
@@ -83,10 +107,33 @@ export default function PagesPanel({
           >
             <div 
               className="cursor-pointer flex items-center justify-between"
-              onClick={() => onPageSwitch(page)}
+              onClick={() => {
+                if (editingPageId !== page._id) {
+                  onPageSwitch(page);
+                }
+              }}
             >
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm truncate">{page.pageName}</div>
+                {editingPageId === page._id ? (
+                  <input
+                    type="text"
+                    value={editedPageName}
+                    onChange={(e) => setEditedPageName(e.target.value)}
+                    onBlur={() => handleRenamePage(page._id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleRenamePage(page._id);
+                      } else if (e.key === 'Escape') {
+                        setEditingPageId(null);
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    autoFocus
+                    className="w-full px-2 py-1 border border-blue-500 rounded text-sm font-medium text-black mb-1"
+                  />
+                ) : (
+                  <div className="font-medium text-sm truncate">{page.pageName}</div>
+                )}
                 <div className="text-xs text-gray-500">
                   {page.isHome ? '/' : `/${page.slug}`}
                 </div>
@@ -97,6 +144,17 @@ export default function PagesPanel({
                     Home
                   </span>
                 )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditedPageName(page.pageName);
+                    setEditingPageId(page._id);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-100 rounded transition-opacity"
+                  title="Rename page"
+                >
+                  <Edit2 className="h-3.5 w-3.5 text-blue-600" />
+                </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

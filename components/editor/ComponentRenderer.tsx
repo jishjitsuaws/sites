@@ -2830,7 +2830,7 @@ export default function ComponentRenderer({
         <div 
           className="w-full py-8"
           style={{
-            backgroundColor: '#0066CC',
+            backgroundColor: themeColors.primary || '#0066CC',
             color: '#ffffff',
           }}
         >
@@ -2838,10 +2838,10 @@ export default function ComponentRenderer({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
               {/* Left: C-DAC Hyderabad Address */}
               <div>
-                <h3 className="text-base font-bold mb-2" style={{ fontFamily: themeFonts.heading }}>
+                <h3 className="text-base font-bold mb-2" style={{ fontFamily: themeFonts.heading, color: '#ffffff' }}>
                   CDAC Hyderabad
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ fontFamily: themeFonts.body }}>
+                <p className="text-sm leading-relaxed" style={{ fontFamily: themeFonts.body, color: '#ffffff' }}>
                   sites.isea - Build beautiful websites
                     Create stunning websites. No coding required.
                 </p>
@@ -2849,7 +2849,7 @@ export default function ComponentRenderer({
 
               {/* Center: Social Network Links */}
               <div className="text-center">
-                <h3 className="text-base font-bold mb-3" style={{ fontFamily: themeFonts.heading }}>
+                <h3 className="text-base font-bold mb-3" style={{ fontFamily: themeFonts.heading, color: '#ffffff' }}>
                   Our Social Network
                 </h3>
                 <div className="flex justify-center gap-4">
@@ -2900,7 +2900,7 @@ export default function ComponentRenderer({
 
               {/* Right: Supported By Logos */}
               <div className="text-right">
-                <h3 className="text-base font-bold mb-3" style={{ fontFamily: themeFonts.heading }}>
+                <h3 className="text-base font-bold mb-3" style={{ fontFamily: themeFonts.heading, color: '#ffffff' }}>
                   Supported By
                 </h3>
                 <div className="flex justify-end items-center gap-4">
