@@ -1663,7 +1663,7 @@ export default function ComponentRenderer({
                 </div>
               ) : (
                 <div 
-                  className="w-full bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer"
+                  className="w-full bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
                   style={{ 
                     height: `${component.props.imageFrameHeight || 180}px`,
                     maxHeight: `${component.props.imageFrameHeight || 180}px`,
