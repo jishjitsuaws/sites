@@ -445,6 +445,11 @@ export default function PublishedSitePage() {
               margin: component.props.width && component.props.width !== '100%'
                 ? (component.props.align === 'center' ? '0 auto' : component.props.align === 'right' ? '0 0 0 auto' : '0')
                 : '0',
+              border: component.props.borderWidth 
+                ? `${component.props.borderWidth}px ${component.props.borderStyle || 'solid'} ${component.props.borderColor || '#000000'}` 
+                : 'none',
+              borderRadius: component.props.borderRadius ? `${component.props.borderRadius}px` : '0',
+              padding: component.props.borderWidth ? '8px 12px' : '0',
             }}
           >
             {component.props.text}
@@ -466,6 +471,12 @@ export default function PublishedSitePage() {
             margin: component.props.width 
               ? (component.props.align === 'center' ? '0 auto' : component.props.align === 'right' ? '0 0 0 auto' : '0')
               : '0',
+            border: component.props.borderWidth 
+              ? `${component.props.borderWidth}px ${component.props.borderStyle || 'solid'} ${component.props.borderColor || '#000000'}` 
+              : 'none',
+            borderRadius: component.props.borderRadius ? `${component.props.borderRadius}px` : '0',
+            padding: component.props.borderWidth ? '8px 12px' : '0',
+            display: 'inline-block',
           }}>
             {component.props.text}
           </p>
@@ -500,12 +511,13 @@ export default function PublishedSitePage() {
           <div style={{ textAlign: component.props.align || 'center' }}>
             <a 
               href={component.props.href} 
-              className="inline-block px-6 py-2 rounded-lg font-medium transition-colors"
+              className="inline-block px-6 py-2 font-medium transition-colors"
               style={{
                 backgroundColor: component.props.variant === 'primary' 
                   ? themeColors.primary 
                   : themeColors.secondary,
-                color: '#ffffff'
+                color: '#ffffff',
+                borderRadius: `${component.props.borderRadius || 8}px`,
               }}
             >
               {component.props.text}
@@ -660,7 +672,7 @@ export default function PublishedSitePage() {
       case 'banner':
         return (
           <div 
-            className="w-full flex flex-col items-center justify-center text-center relative"
+            className="w-full flex flex-col items-center justify-center text-center relative mt-8"
             style={{
               backgroundColor: component.props.backgroundColor || themeColors.primary,
               minHeight: component.props.backgroundImage ? 'auto' : (component.props.height || '400px'),

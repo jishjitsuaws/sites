@@ -302,6 +302,11 @@ export default function ComponentRenderer({
               maxWidth: component.props.width || '100%',
               width: component.props.width || 'auto',
               textAlign: component.props.align,
+              border: component.props.borderWidth 
+                ? `${component.props.borderWidth}px ${component.props.borderStyle || 'solid'} ${component.props.borderColor || '#000000'}` 
+                : 'none',
+              borderRadius: component.props.borderRadius ? `${component.props.borderRadius}px` : '0',
+              padding: component.props.borderWidth ? '8px 12px' : '0',
             }}
             contentEditable
             suppressContentEditableWarning
@@ -678,16 +683,26 @@ export default function ComponentRenderer({
                   <label className="text-[10px] font-semibold text-gray-600">Button Text</label>
                   <input
                     type="text"
-                    value={component.props.text || 'Button'}
+                    value={component.props.text || ''}
                     onChange={(e) => {
                       e.stopPropagation();
+                      const newText = e.target.value;
                       onUpdateComponent(component.id, {
                         ...component,
-                        props: { ...component.props, text: e.target.value }
+                        props: { ...component.props, text: newText || 'Button' }
                       });
                     }}
                     onFocus={(e) => e.stopPropagation()}
-                    onBlur={(e) => e.stopPropagation()}
+                    onBlur={(e) => {
+                      e.stopPropagation();
+                      // Ensure button always has text
+                      if (!e.target.value.trim()) {
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, text: 'Button' }
+                        });
+                      }
+                    }}
                     onKeyDown={(e) => {
                       e.stopPropagation();
                       e.nativeEvent.stopImmediatePropagation();
@@ -952,6 +967,28 @@ export default function ComponentRenderer({
                 
                 <div className="w-px bg-gray-300 h-8"></div>
                 
+                {/* Border Radius */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-semibold text-gray-600">Rounding</label>
+                  <input
+                    type="number"
+                    value={component.props.borderRadius || 8}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, borderRadius: parseInt(e.target.value) || 0 }
+                      });
+                    }}
+                    min="0"
+                    max="50"
+                    className="w-16 px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+                
+                <div className="w-px bg-gray-300 h-8"></div>
+                
                 {/* Actions */}
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-semibold text-gray-600">Actions</label>
@@ -983,7 +1020,7 @@ export default function ComponentRenderer({
             )}
             
             <button 
-              className="px-6 py-2 rounded-lg font-medium transition-colors"
+              className="px-6 py-2 font-medium transition-colors"
               style={{
                 backgroundColor: component.props.buttonColor || (
                   component.props.variant === 'primary' 
@@ -998,6 +1035,7 @@ export default function ComponentRenderer({
                     : '#ffffff'
                 ),
                 border: component.props.variant === 'outline' ? `2px solid ${component.props.buttonColor || themeColors.primary}` : 'none',
+                borderRadius: `${component.props.borderRadius || 8}px`,
               }}
             >
               {component.props.text}

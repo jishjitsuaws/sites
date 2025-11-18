@@ -171,12 +171,9 @@ export default function EditorPage() {
   const fetchSiteData = async () => {
     try {
       setLoading(true);
-      console.log('=== EDITOR LOAD - VERSION 2.0 ===');
-      console.log('Fetching site data for:', siteId);
       
       // Fetch site first
       const siteRes = await api.get(`/sites/${siteId}`);
-      console.log('Site response:', siteRes.data);
 
       const siteData = siteRes.data.data;
 
@@ -2012,7 +2009,6 @@ export default function EditorPage() {
                     {sections
                       .filter((section) => !section.components?.some((c: any) => c.type === 'footer'))
                       .map((section, index, filteredSections) => {
-                      console.log('[Editor Render] Rendering section:', index, section.id, section);
                       return (
                     <SectionWrapper
                       key={section.id}
@@ -2182,7 +2178,6 @@ export default function EditorPage() {
               {sections
                 .filter((section) => section.components?.some((c: any) => c.type === 'footer'))
                 .map((footerSection) => {
-                  console.log('[Editor Render] Rendering FOOTER section:', footerSection.id);
                   const footerComponent = footerSection.components.find((c: any) => c.type === 'footer');
                   return (
                     <div 
