@@ -132,7 +132,7 @@ export default function PagesPanel({
                     className="w-full px-2 py-1 border border-blue-500 rounded text-sm font-medium text-black mb-1"
                   />
                 ) : (
-                  <div className="font-medium text-sm truncate">{page.pageName}</div>
+                  <div className="font-medium text-sm text-black truncate">{page.pageName}</div>
                 )}
                 <div className="text-xs text-black">
                   {page.isHome ? '/' : `/${page.slug}`}
