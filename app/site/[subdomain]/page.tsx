@@ -1320,20 +1320,37 @@ export default function PublishedSitePage() {
               )}
               
               {/* Show pages after sections if multiple pages exist */}
-              {pages.length > 1 && pages.map((page) => (
-                <button
-                  key={page._id}
-                  onClick={() => setCurrentPage(page)}
-                  className="text-base font-medium transition-colors pb-2"
-                  style={{
-                    color: currentPage._id === page._id ? themeColors.primary : themeColors.text,
-                    borderBottom: currentPage._id === page._id ? `2px solid ${themeColors.primary}` : 'none',
-                    opacity: currentPage._id === page._id ? 1 : 0.7
-                  }}
-                >
-                  {page.pageName}
-                </button>
-              ))}
+              {/* Hide Home page when sections are shown in navbar */}
+              {pages.length > 1 && pages
+                .filter(page => {
+                  // Filter out pages with showInNavbar = false
+                  if ((page as any).settings?.showInNavbar === false) return false;
+                  
+                  // Check if there are any sections shown in navbar
+                  const hasSectionsInNavbar = (currentPage?.sections || []).some(section => 
+                    (section.showInNavbar === true || section.showInNavbar === undefined)
+                  );
+                  
+                  // If sections are shown, hide the Home page (since sections already point to it)
+                  if (hasSectionsInNavbar && page.isHome) return false;
+                  
+                  return true;
+                })
+                .map((page) => (
+                  <button
+                    key={page._id}
+                    onClick={() => setCurrentPage(page)}
+                    className="text-base font-medium transition-colors pb-2"
+                    style={{
+                      color: currentPage._id === page._id ? themeColors.primary : themeColors.text,
+                      borderBottom: currentPage._id === page._id ? `2px solid ${themeColors.primary}` : 'none',
+                      opacity: currentPage._id === page._id ? 1 : 0.7
+                    }}
+                  >
+                    {page.pageName}
+                  </button>
+                ))
+              }
             </nav>
           </div>
 

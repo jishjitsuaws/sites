@@ -90,6 +90,9 @@ interface Page {
   isHome: boolean;
   content: any[];
   sections?: any[];
+  settings?: {
+    showInNavbar?: boolean;
+  };
 }
 
 export default function EditorPage() {
@@ -2063,21 +2066,39 @@ export default function EditorPage() {
                   }
                   
                   {/* Show pages after sections if multiple pages exist */}
-                  {pages.length > 1 && pages.map((page) => (
-                    <button
-                      key={page._id}
-                      onClick={() => handlePageSwitch(page)}
-                      className="text-sm font-medium transition-colors pb-1"
-                      style={{
-                        color: currentPage?._id === page._id ? getThemeColors().primary : getThemeColors().text,
-                        borderBottom: currentPage?._id === page._id ? `2px solid ${getThemeColors().primary}` : 'none',
-                        opacity: currentPage?._id === page._id ? 1 : 0.7,
-                        fontFamily: `'${getThemeFonts().body}', sans-serif`
-                      }}
-                    >
-                      {page.pageName}
-                    </button>
-                  ))}
+                  {/* Hide Home page when sections are shown in navbar */}
+                  {pages.length > 1 && pages
+                    .filter(page => {
+                      // Filter out pages with showInNavbar = false
+                      if (page.settings?.showInNavbar === false) return false;
+                      
+                      // Check if there are any sections shown in navbar
+                      const hasSectionsInNavbar = sections.some(section => 
+                        (section.showInNavbar === true || section.showInNavbar === undefined) &&
+                        !section.components?.some((c: any) => c.type === 'footer')
+                      );
+                      
+                      // If sections are shown, hide the Home page (since sections already point to it)
+                      if (hasSectionsInNavbar && page.isHome) return false;
+                      
+                      return true;
+                    })
+                    .map((page) => (
+                      <button
+                        key={page._id}
+                        onClick={() => handlePageSwitch(page)}
+                        className="text-sm font-medium transition-colors pb-1"
+                        style={{
+                          color: currentPage?._id === page._id ? getThemeColors().primary : getThemeColors().text,
+                          borderBottom: currentPage?._id === page._id ? `2px solid ${getThemeColors().primary}` : 'none',
+                          opacity: currentPage?._id === page._id ? 1 : 0.7,
+                          fontFamily: `'${getThemeFonts().body}', sans-serif`
+                        }}
+                      >
+                        {page.pageName}
+                      </button>
+                    ))
+                  }
                 </nav>
               </div>
             </div>
