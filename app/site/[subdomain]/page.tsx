@@ -566,15 +566,22 @@ export default function PublishedSitePage() {
 
       case 'divider':
         return (
-          <div style={{ clear: 'both' }}>
+          <div style={{ clear: 'both', width: '100%' }}>
             {component.props.style === 'spacer' ? (
-              <div style={{ height: component.props.height || '40px' }} />
+              <div style={{ height: component.props.height || '40px', width: '100%' }} />
             ) : component.props.style !== 'none' ? (
-              <hr 
-                style={{ 
-                  borderColor: component.props.color || themeColors.primary, 
-                  borderStyle: component.props.style || 'solid'
-                }} 
+              <div
+                style={{
+                  width: '100%',
+                  height: `${component.props.thickness || 2}px`,
+                  backgroundColor: component.props.color || themeColors.primary,
+                  backgroundImage: component.props.style === 'dashed' 
+                    ? `repeating-linear-gradient(to right, ${component.props.color || themeColors.primary} 0, ${component.props.color || themeColors.primary} 10px, transparent 10px, transparent 20px)`
+                    : component.props.style === 'dotted'
+                    ? `repeating-linear-gradient(to right, ${component.props.color || themeColors.primary} 0, ${component.props.color || themeColors.primary} 5px, transparent 5px, transparent 10px)`
+                    : 'none',
+                  minHeight: `${component.props.thickness || 2}px`,
+                }}
               />
             ) : null}
           </div>

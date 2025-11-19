@@ -1340,14 +1340,19 @@ export default function ComponentRenderer({
           )}
           
           {component.props.style === 'spacer' ? (
-            <div style={{ height: component.props.height || '40px' }} />
+            <div style={{ height: component.props.height || '40px', width: '100%' }} />
           ) : component.props.style !== 'none' ? (
             <div
               style={{
                 width: '100%',
-                borderTopStyle: component.props.style || 'solid',
-                borderTopColor: component.props.color || '#94a3b8',
-                borderTopWidth: `${component.props.thickness || 2}px`,
+                height: `${component.props.thickness || 2}px`,
+                backgroundColor: component.props.color || '#94a3b8',
+                backgroundImage: component.props.style === 'dashed' 
+                  ? `repeating-linear-gradient(to right, ${component.props.color || '#94a3b8'} 0, ${component.props.color || '#94a3b8'} 10px, transparent 10px, transparent 20px)`
+                  : component.props.style === 'dotted'
+                  ? `repeating-linear-gradient(to right, ${component.props.color || '#94a3b8'} 0, ${component.props.color || '#94a3b8'} 5px, transparent 5px, transparent 10px)`
+                  : 'none',
+                minHeight: `${component.props.thickness || 2}px`,
               }}
             />
           ) : null}
