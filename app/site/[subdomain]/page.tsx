@@ -568,11 +568,12 @@ export default function PublishedSitePage() {
         return (
           <div style={{ clear: 'both', width: '100%' }}>
             {component.props.style === 'spacer' ? (
-              <div style={{ height: component.props.height || '40px', width: '100%' }} />
+              <div style={{ height: component.props.height || '40px', width: '100%', display: 'block' }} />
             ) : component.props.style !== 'none' ? (
               <div
                 style={{
                   width: '100%',
+                  display: 'block',
                   height: `${component.props.thickness || 2}px`,
                   backgroundColor: component.props.color || themeColors.primary,
                   backgroundImage: component.props.style === 'dashed' 

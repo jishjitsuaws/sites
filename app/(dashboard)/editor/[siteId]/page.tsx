@@ -743,6 +743,7 @@ export default function EditorPage() {
   };
 
   const insertComponentTypes = [
+    { id: 'hero-center', name: 'Hero Center', icon: Layout, description: 'Centered hero section' },
     { id: 'banner-full', name: 'Text Banner', icon: Layout, description: 'Banner with text & button' },
     { id: 'banner-minimal', name: 'Image Banner', icon: ImageIcon, description: 'Banner - image only' },
     { id: 'heading', name: 'Heading', icon: Type, description: 'Add a title or heading' },
@@ -761,6 +762,63 @@ export default function EditorPage() {
   ];
 
   const handleInsertComponent = (type: string) => {
+    // Handle hero-center template - creates a centered hero section
+    if (type === 'hero-center') {
+      const timestamp = Date.now();
+      const newComponents = [
+        {
+          id: `heading-${timestamp}`,
+          type: 'heading',
+          props: {
+            text: 'Welcome',
+            align: 'center',
+            fontSize: 48,
+            fontFamily: getThemeFonts().heading,
+            bold: true,
+            color: getThemeColors().primary,
+          }
+        },
+        {
+          id: `text-${timestamp + 1}`,
+          type: 'text',
+          props: {
+            text: 'Add your description here',
+            align: 'center',
+            fontSize: 18,
+            color: getThemeColors().textSecondary,
+          }
+        },
+        {
+          id: `button-${timestamp + 2}`,
+          type: 'button',
+          props: {
+            text: 'Get Started',
+            href: '#',
+            variant: 'primary',
+            align: 'center',
+          }
+        }
+      ];
+
+      const newSection = {
+        id: `section-${Date.now()}`,
+        components: newComponents,
+        layout: {
+          direction: 'column' as const,
+          justifyContent: 'center' as const,
+          alignItems: 'center' as const,
+          gap: 24,
+          padding: 80,
+        },
+        order: sections.length,
+      };
+
+      addSection(newSection);
+      setSelectedSection(newSection.id);
+      toast.success('Hero section added');
+      return;
+    }
+
     // Handle card grid specially - show modal to choose number of cards
     if (type === 'card-grid') {
       setCardGridMode('create');
@@ -1961,66 +2019,65 @@ export default function EditorPage() {
                   )}
                 </div>
                 
-                {/* Unified Navigation - Pages or Sections */}
+                {/* Unified Navigation - Pages AND Sections (amalgamation) */}
                 <nav className="flex gap-4">
-                  {pages.length > 1 ? (
-                    // Multi-page navigation
-                    pages.map((page) => (
-                      <button
-                        key={page._id}
-                        onClick={() => handlePageSwitch(page)}
-                        className="text-sm font-medium transition-colors pb-1"
-                        style={{
-                          color: currentPage?._id === page._id ? getThemeColors().primary : getThemeColors().text,
-                          borderBottom: currentPage?._id === page._id ? `2px solid ${getThemeColors().primary}` : 'none',
-                          opacity: currentPage?._id === page._id ? 1 : 0.7,
-                          fontFamily: `'${getThemeFonts().body}', sans-serif`
-                        }}
-                      >
-                        {page.pageName}
-                      </button>
-                    ))
-                  ) : (
-                    // Single-page section navigation
-                    sections
-                      .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
-                      .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
-                      .map((section, visibleIndex) => {
-                        const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
-                        const navType = section.navType || 'section';
-                        
-                        return (
-                          <button
-                            key={section.id}
-                            onClick={() => {
-                              if (navType === 'page' && section.navTarget) {
-                                // Navigate to another page
-                                const targetPage = pages.find(p => p.slug === section.navTarget);
-                                if (targetPage) {
-                                  handlePageSwitch(targetPage);
-                                  toast.success(`Navigating to ${targetPage.pageName}`);
-                                } else {
-                                  toast.error(`Page "${section.navTarget}" not found`);
-                                }
+                  {/* Always show pages if multiple pages exist */}
+                  {pages.length > 1 && pages.map((page) => (
+                    <button
+                      key={page._id}
+                      onClick={() => handlePageSwitch(page)}
+                      className="text-sm font-medium transition-colors pb-1"
+                      style={{
+                        color: currentPage?._id === page._id ? getThemeColors().primary : getThemeColors().text,
+                        borderBottom: currentPage?._id === page._id ? `2px solid ${getThemeColors().primary}` : 'none',
+                        opacity: currentPage?._id === page._id ? 1 : 0.7,
+                        fontFamily: `'${getThemeFonts().body}', sans-serif`
+                      }}
+                    >
+                      {page.pageName}
+                    </button>
+                  ))}
+                  
+                  {/* Always show sections that should appear in navbar */}
+                  {sections
+                    .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
+                    .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
+                    .map((section, visibleIndex) => {
+                      const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
+                      const navType = section.navType || 'section';
+                      
+                      return (
+                        <button
+                          key={section.id}
+                          onClick={() => {
+                            if (navType === 'page' && section.navTarget) {
+                              // Navigate to another page
+                              const targetPage = pages.find(p => p.slug === section.navTarget);
+                              if (targetPage) {
+                                handlePageSwitch(targetPage);
+                                toast.success(`Navigating to ${targetPage.pageName}`);
                               } else {
-                                // Select this section (default behavior)
-                                setSelectedSection(section.id);
-                                setSelectedComponent(null);
+                                toast.error(`Page "${section.navTarget}" not found`);
                               }
-                            }}
-                            className="text-sm font-medium transition-colors pb-1"
-                            style={{
-                              color: selectedSection === section.id ? getThemeColors().primary : getThemeColors().text,
-                              borderBottom: selectedSection === section.id ? `2px solid ${getThemeColors().primary}` : 'none',
-                              opacity: selectedSection === section.id ? 1 : 0.7,
-                              fontFamily: `'${getThemeFonts().body}', sans-serif`
-                            }}
-                          >
-                            {sectionName}
-                          </button>
-                        );
-                      })
-                  )}
+                            } else {
+                              // Select this section (default behavior)
+                              setSelectedSection(section.id);
+                              setSelectedComponent(null);
+                            }
+                          }}
+                          className="text-sm font-medium transition-colors pb-1"
+                          style={{
+                            color: selectedSection === section.id ? getThemeColors().primary : getThemeColors().text,
+                            borderBottom: selectedSection === section.id ? `2px solid ${getThemeColors().primary}` : 'none',
+                            opacity: selectedSection === section.id ? 1 : 0.7,
+                            fontFamily: `'${getThemeFonts().body}', sans-serif`
+                          }}
+                        >
+                          {sectionName}
+                        </button>
+                      );
+                    })
+                  }
                 </nav>
               </div>
             </div>
@@ -2347,7 +2404,6 @@ export default function EditorPage() {
                 <ComponentsPanel
                   insertComponentTypes={insertComponentTypes}
                   onInsertComponent={handleInsertComponent}
-                  onOpenBlockModal={() => setShowBlockModal(true)}
                 />
               )}
 

@@ -1340,11 +1340,12 @@ export default function ComponentRenderer({
           )}
           
           {component.props.style === 'spacer' ? (
-            <div style={{ height: component.props.height || '40px', width: '100%' }} />
+            <div style={{ height: component.props.height || '40px', width: '100%', display: 'block' }} />
           ) : component.props.style !== 'none' ? (
             <div
               style={{
                 width: '100%',
+                display: 'block',
                 height: `${component.props.thickness || 2}px`,
                 backgroundColor: component.props.color || '#94a3b8',
                 backgroundImage: component.props.style === 'dashed' 
