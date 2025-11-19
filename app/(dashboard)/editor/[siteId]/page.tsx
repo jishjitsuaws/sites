@@ -198,13 +198,8 @@ export default function EditorPage() {
         if (firstPage) {
           setCurrentPage(firstPage);
           
-          console.log('[LOAD] First page loaded:', firstPage.pageName);
-          console.log('[LOAD] Page sections:', JSON.stringify(firstPage.sections, null, 2));
-          console.log('[LOAD] Sections count:', firstPage.sections?.length || 0);
-          
           // ALWAYS prioritize sections if they exist
           if (firstPage.sections && firstPage.sections.length > 0) {
-            console.log('[Editor] Setting sections from page:', firstPage.sections);
             
             // Check if footer exists, if not add it
             const hasFooter = firstPage.sections.some((s: any) => 
@@ -423,9 +418,6 @@ export default function EditorPage() {
 
     setSaving(true);
     try {
-      console.log('[SAVE] Saving page:', currentPage._id);
-      console.log('[SAVE] Current sections:', JSON.stringify(sections, null, 2));
-      
       // Clean up and format sections for saving
       const cleanedSections = sections.map(section => ({
         ...section,
@@ -1969,10 +1961,11 @@ export default function EditorPage() {
                   )}
                 </div>
                 
-                {/* Multi-page navigation */}
-                {pages.length > 1 && (
-                  <nav className="flex gap-4">
-                    {pages.map((page) => (
+                {/* Unified Navigation - Pages or Sections */}
+                <nav className="flex gap-4">
+                  {pages.length > 1 ? (
+                    // Multi-page navigation
+                    pages.map((page) => (
                       <button
                         key={page._id}
                         onClick={() => handlePageSwitch(page)}
@@ -1986,24 +1979,34 @@ export default function EditorPage() {
                       >
                         {page.pageName}
                       </button>
-                    ))}
-                  </nav>
-                )}
-                
-                {/* Single-page section navigation */}
-                {pages.length === 1 && sections && sections.length > 0 && (
-                  <nav className="flex gap-4">
-                    {sections
+                    ))
+                  ) : (
+                    // Single-page section navigation
+                    sections
                       .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
                       .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
                       .map((section, visibleIndex) => {
                         const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
+                        const navType = section.navType || 'section';
+                        
                         return (
                           <button
                             key={section.id}
                             onClick={() => {
-                              setSelectedSection(section.id);
-                              setSelectedComponent(null);
+                              if (navType === 'page' && section.navTarget) {
+                                // Navigate to another page
+                                const targetPage = pages.find(p => p.slug === section.navTarget);
+                                if (targetPage) {
+                                  handlePageSwitch(targetPage);
+                                  toast.success(`Navigating to ${targetPage.pageName}`);
+                                } else {
+                                  toast.error(`Page "${section.navTarget}" not found`);
+                                }
+                              } else {
+                                // Select this section (default behavior)
+                                setSelectedSection(section.id);
+                                setSelectedComponent(null);
+                              }
                             }}
                             className="text-sm font-medium transition-colors pb-1"
                             style={{
@@ -2016,9 +2019,9 @@ export default function EditorPage() {
                             {sectionName}
                           </button>
                         );
-                      })}
-                  </nav>
-                )}
+                      })
+                  )}
+                </nav>
               </div>
             </div>
 
@@ -2670,9 +2673,9 @@ export default function EditorPage() {
       {/* Navbar Settings Modal */}
       {showNavbarSettings && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6">
+          <div className="bg-white rounded-lg shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Navbar Section Names</h2>
+              <h2 className="text-xl font-bold text-gray-900">Navbar Navigation Settings</h2>
               <button
                 onClick={() => setShowNavbarSettings(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -2683,47 +2686,129 @@ export default function EditorPage() {
               </button>
             </div>
 
-            <p className="text-sm text-gray-600 mb-4">
-              Customize the navigation labels and visibility for each section. Toggle sections on/off to control what appears in the navbar.
+            <p className="text-sm text-gray-600 mb-6">
+              Customize navigation labels, visibility, and link destinations for each navbar item.
             </p>
 
-            <div className="space-y-3">
+            {/* Preview Section */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
+              <label className="text-xs font-semibold text-gray-600 mb-2 block">NAVBAR PREVIEW</label>
+              <div className="bg-white p-3 rounded shadow-sm flex items-center justify-center gap-6">
+                <div className="font-bold text-lg text-gray-900">{site?.siteName || 'Logo'}</div>
+                <div className="flex gap-4">
+                  {sections
+                    .filter(s => s.showInNavbar !== false)
+                    .map((section, index) => (
+                      <div
+                        key={section.id}
+                        className="text-sm text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
+                      >
+                        {section.sectionName || `Section ${index + 1}`}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Grid of Navigation Cards */}
+            <div 
+              className="grid gap-4 mb-6"
+              style={{
+                gridTemplateColumns: sections.length <= 4 
+                  ? 'repeat(2, 1fr)' 
+                  : sections.length <= 9 
+                  ? 'repeat(3, 1fr)' 
+                  : 'repeat(4, 1fr)'
+              }}
+            >
               {sections.map((section, index) => (
-                <div key={section.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
-                  <div className="shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold text-sm">
-                    {index + 1}
+                <div 
+                  key={section.id} 
+                  className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-400 transition-colors bg-white"
+                >
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="shrink-0 w-7 h-7 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold text-xs">
+                        {index + 1}
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={section.showInNavbar === true || section.showInNavbar === undefined}
+                          onChange={(e) => {
+                            updateSection(section.id, {
+                              ...section,
+                              showInNavbar: e.target.checked
+                            });
+                          }}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-xs font-semibold text-gray-600">Show</span>
+                      </label>
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    value={section.sectionName || ''}
-                    onChange={(e) => {
-                      updateSection(section.id, {
-                        ...section,
-                        sectionName: e.target.value
-                      });
-                    }}
-                    placeholder={`Section ${index + 1}`}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                  />
-                  <label className="flex items-center gap-2 cursor-pointer">
+
+                  {/* Label Input */}
+                  <div className="mb-3">
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Label</label>
                     <input
-                      type="checkbox"
-                      checked={section.showInNavbar === true || section.showInNavbar === undefined}
+                      type="text"
+                      value={section.sectionName || ''}
                       onChange={(e) => {
                         updateSection(section.id, {
                           ...section,
-                          showInNavbar: e.target.checked
+                          sectionName: e.target.value
                         });
                       }}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                      placeholder={`Section ${index + 1}`}
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     />
-                    <span className="text-sm text-gray-700">Show</span>
-                  </label>
+                  </div>
+
+                  {/* Navigation Type */}
+                  <div className="mb-3">
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Navigate To</label>
+                    <select
+                      value={section.navType || 'section'}
+                      onChange={(e) => {
+                        const newNavType = e.target.value as 'section' | 'page';
+                        updateSection(section.id, {
+                          ...section,
+                          navType: newNavType,
+                          navTarget: ''
+                        });
+                      }}
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    >
+                      <option value="section">This Section</option>
+                      <option value="page">Page</option>
+                    </select>
+                  </div>
+
+                  {/* Conditional Input based on Navigation Type */}
+                  {section.navType === 'page' && (
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">Page Slug</label>
+                      <input
+                        type="text"
+                        value={section.navTarget || ''}
+                        onChange={(e) => {
+                          updateSection(section.id, {
+                            ...section,
+                            navTarget: e.target.value
+                          });
+                        }}
+                        placeholder="page-slug"
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowNavbarSettings(false)}
                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"

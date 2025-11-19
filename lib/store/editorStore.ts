@@ -22,6 +22,8 @@ interface Section {
   order: number;
   sectionName?: string;
   showInNavbar?: boolean;
+  navType?: 'section' | 'page';
+  navTarget?: string;
 }
 
 interface Page {
@@ -210,27 +212,15 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     });
   },
 
-  updateComponent: (id, updates) => {
-    console.log('[EditorStore] updateComponent called:', { id, updates });
-    const { sections, history, historyIndex } = get();
-    const newSections = sections.map((section) => ({
-      ...section,
-      components: section.components.map((c) =>
-        c.id === id ? { ...c, ...updates } : c
-      ),
-    }));
-    console.log('[EditorStore] Updated sections:', newSections);
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(newSections);
-    
-    set({
-      sections: newSections,
-      history: newHistory,
-      historyIndex: historyIndex + 1,
-      isDirty: true,
-      selectedComponent: newSections
-        .flatMap((s) => s.components)
-        .find((c) => c.id === id) || null,
+  updateComponent: (componentId, updates) => {
+    set((state) => {
+      const newSections = state.sections.map((section) => ({
+        ...section,
+        components: section.components.map((c) =>
+          c.id === componentId ? { ...c, ...updates } : c
+        ),
+      }));
+      return { sections: newSections, isDirty: true };
     });
   },
 

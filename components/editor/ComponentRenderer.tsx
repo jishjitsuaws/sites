@@ -2567,7 +2567,14 @@ export default function ComponentRenderer({
       )}
 
       {/* Banner Component */}
-      {component.type === 'banner' && (
+      {component.type === 'banner' && (() => {
+        // Infer banner type from props if subType is missing (for backwards compatibility after reload)
+        const hasTextContent = component.props.heading || component.props.subheading || component.props.buttonText;
+        const inferredSubType = component.subType || (hasTextContent ? 'banner-full' : 'banner-minimal');
+        const isTextBanner = inferredSubType === 'banner-full';
+        const isImageBanner = inferredSubType === 'banner-minimal';
+        
+        return (
         <div 
           className="relative w-full flex flex-col items-center justify-center text-center"
           style={{
@@ -2593,8 +2600,8 @@ export default function ComponentRenderer({
             />
           )}
           
-          {/* Content overlay when there's an image - ONLY for Text Banner (banner-full) */}
-          {component.subType === 'banner-full' && component.props.backgroundImage && (component.props.heading !== null || component.props.subheading !== null || component.props.buttonText !== null) && (
+          {/* Content overlay when there's an image - for text banners */}
+          {isTextBanner && component.props.backgroundImage && (component.props.heading !== null || component.props.subheading !== null || component.props.buttonText !== null) && (
             <div 
               className="absolute inset-0 flex flex-col items-center justify-center text-center"
               style={{ 
@@ -2622,14 +2629,11 @@ export default function ComponentRenderer({
                     </button>
                   )}
                   <h1 
-                    contentEditable={isSelected}
+                    contentEditable={true}
                     suppressContentEditableWarning
                     onInput={(e) => {
                       const newHeading = e.currentTarget.textContent || '';
-                      console.log('[Banner] Heading onInput:', newHeading);
-                      console.log('[Banner] Current component.props.heading:', component.props.heading);
                       if (newHeading !== component.props.heading) {
-                        console.log('[Banner] Updating heading to:', newHeading);
                         onUpdateComponent(component.id, {
                           ...component,
                           props: { ...component.props, heading: newHeading }
@@ -2686,7 +2690,7 @@ export default function ComponentRenderer({
                     style={{ 
                       fontFamily: `'${themeFonts.heading}', sans-serif`,
                       color: component.props.textColor || '#ffffff',
-                      cursor: isSelected ? 'text' : 'default',
+                      cursor: 'text',
                     }}
                   >
                     {component.props.heading || (isSelected ? 'Add heading...' : '')}
@@ -2714,7 +2718,7 @@ export default function ComponentRenderer({
                     </button>
                   )}
                   <p 
-                    contentEditable={isSelected}
+                    contentEditable={true}
                     suppressContentEditableWarning
                     onInput={(e) => {
                       const newSubheading = e.currentTarget.textContent || '';
@@ -2770,7 +2774,7 @@ export default function ComponentRenderer({
                       fontFamily: `'${themeFonts.body}', sans-serif`,
                       color: component.props.textColor || '#ffffff',
                       opacity: 0.9,
-                      cursor: isSelected ? 'text' : 'default',
+                      cursor: 'text',
                     }}
                   >
                     {component.props.subheading || (isSelected ? 'Add subheading...' : '')}
@@ -2813,7 +2817,7 @@ export default function ComponentRenderer({
                     </a>
                   ) : (
                     <div
-                      contentEditable={isSelected}
+                      contentEditable={true}
                       suppressContentEditableWarning
                       onInput={(e) => {
                         const newButtonText = e.currentTarget.textContent || '';
@@ -2840,9 +2844,7 @@ export default function ComponentRenderer({
                         }
                       }}
                       onClick={(e) => {
-                        if (isSelected) {
-                          e.stopPropagation();
-                        }
+                        e.stopPropagation();
                       }}
                       className="px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105 outline-none focus:ring-2 focus:ring-offset-2 inline-block"
                       style={{
@@ -2857,8 +2859,8 @@ export default function ComponentRenderer({
                 </div>
               )}
               
-              {/* Add component buttons when selected and elements are deleted - ONLY for Text Banner */}
-              {isSelected && component.subType === 'banner-full' && (
+              {/* Add component buttons when selected and elements are deleted - for text banners */}
+              {isSelected && isTextBanner && (
                 <div className="mt-6 flex gap-2 flex-wrap justify-center" style={{ zIndex: 2 }}>
                   {(component.props.heading === null || component.props.heading === undefined) && (
                     <button
@@ -2913,11 +2915,11 @@ export default function ComponentRenderer({
           {/* Content when there's NO image */}
           {!component.props.backgroundImage && (
             <div style={{ 
-              padding: component.subType === 'banner-full' ? '60px 0' : '60px 40px', 
+              padding: isTextBanner ? '60px 0' : '60px 40px', 
               width: '100%' 
             }}>
-              {/* Image Banner (banner-minimal) - show upload prompt */}
-              {component.subType === 'banner-minimal' && (
+              {/* Image Banner - show upload prompt */}
+              {isImageBanner && (
                 <div className="text-center">
                   <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
                   <p className="text-lg mb-4 opacity-75">Click "Image" to upload a background image</p>
@@ -2935,15 +2937,48 @@ export default function ComponentRenderer({
                 </div>
               )}
               
-              {/* Text Banner (banner-full) - show text/button editing */}
-              {component.subType === 'banner-full' && (
+              {/* Text Banner - show text/button editing */}
+              {isTextBanner && (
                 <div className="text-center" style={{ padding: '0 40px' }}>
                   {component.props.heading && (
                     <h1 
-                      className="text-5xl font-bold mb-4"
+                      contentEditable={true}
+                      suppressContentEditableWarning
+                      onInput={(e) => {
+                        const newHeading = e.currentTarget.textContent || '';
+                        if (newHeading !== component.props.heading) {
+                          onUpdateComponent(component.id, {
+                            ...component,
+                            props: { ...component.props, heading: newHeading }
+                          });
+                        }
+                      }}
+                      onFocus={(e) => {
+                        if (!isSelected) {
+                          onComponentClick(component, e as any);
+                        }
+                        setSelectedComponent(component);
+                        const element = e.currentTarget as HTMLElement;
+                        const rect = element.getBoundingClientRect();
+                        const absoluteRect = {
+                          x: rect.left,
+                          y: rect.top,
+                          left: rect.left,
+                          top: rect.top,
+                          right: rect.right,
+                          bottom: rect.bottom,
+                          width: rect.width,
+                          height: rect.height,
+                          toJSON: () => ({})
+                        } as DOMRect;
+                        onShowTextToolbar(absoluteRect);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-5xl font-bold mb-4 outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
                       style={{ 
                         fontFamily: `'${themeFonts.heading}', sans-serif`,
                         color: component.props.textColor || '#ffffff',
+                        cursor: 'text',
                       }}
                     >
                       {component.props.heading}
@@ -2952,11 +2987,44 @@ export default function ComponentRenderer({
                   
                   {component.props.subheading && (
                     <p 
-                      className="text-xl mb-8 max-w-2xl mx-auto"
+                      contentEditable={true}
+                      suppressContentEditableWarning
+                      onInput={(e) => {
+                        const newSubheading = e.currentTarget.textContent || '';
+                        if (newSubheading !== component.props.subheading) {
+                          onUpdateComponent(component.id, {
+                            ...component,
+                            props: { ...component.props, subheading: newSubheading }
+                          });
+                        }
+                      }}
+                      onFocus={(e) => {
+                        if (!isSelected) {
+                          onComponentClick(component, e as any);
+                        }
+                        setSelectedComponent(component);
+                        const element = e.currentTarget as HTMLElement;
+                        const rect = element.getBoundingClientRect();
+                        const absoluteRect = {
+                          x: rect.left,
+                          y: rect.top,
+                          left: rect.left,
+                          top: rect.top,
+                          right: rect.right,
+                          bottom: rect.bottom,
+                          width: rect.width,
+                          height: rect.height,
+                          toJSON: () => ({})
+                        } as DOMRect;
+                        onShowTextToolbar(absoluteRect);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xl mb-8 max-w-2xl mx-auto outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
                       style={{ 
                         fontFamily: `'${themeFonts.body}', sans-serif`,
                         color: component.props.textColor || '#ffffff',
                         opacity: 0.9,
+                        cursor: 'text',
                       }}
                     >
                       {component.props.subheading}
@@ -2964,17 +3032,28 @@ export default function ComponentRenderer({
                   )}
                   
                   {component.props.buttonText && (
-                    <a
-                      href={component.props.buttonLink || '#'}
-                      className="px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105 inline-block"
+                    <div
+                      contentEditable={true}
+                      suppressContentEditableWarning
+                      onInput={(e) => {
+                        const newButtonText = e.currentTarget.textContent || '';
+                        if (newButtonText !== component.props.buttonText) {
+                          onUpdateComponent(component.id, {
+                            ...component,
+                            props: { ...component.props, buttonText: newButtonText }
+                          });
+                        }
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-8 py-3 rounded-lg font-semibold text-lg transition-all inline-block outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
                       style={{
                         backgroundColor: '#ffffff',
                         color: component.props.backgroundColor || themeColors.primary,
-                        textDecoration: 'none',
+                        cursor: 'text',
                       }}
                     >
                       {component.props.buttonText}
-                    </a>
+                    </div>
                   )}
                 </div>
               )}
@@ -3128,7 +3207,8 @@ export default function ComponentRenderer({
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {/* Footer Component (Immutable - matches C-DAC design) */}
       {component.type === 'footer' && (

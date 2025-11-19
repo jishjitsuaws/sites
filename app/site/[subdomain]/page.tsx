@@ -507,20 +507,43 @@ export default function PublishedSitePage() {
         ) : null;
 
       case 'button':
+        const linkType = component.props.linkType || 'url';
+        const handleButtonClick = (e: React.MouseEvent) => {
+          if (linkType === 'page' && component.props.pageSlug) {
+            e.preventDefault();
+            const targetPage = pages.find(p => p.slug === component.props.pageSlug);
+            if (targetPage) {
+              setCurrentPage(targetPage);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          } else if (linkType === 'section' && component.props.sectionId) {
+            e.preventDefault();
+            scrollToSection(component.props.sectionId);
+          }
+          // For 'url' type, let the href handle it naturally
+        };
+        
         return (
           <div style={{ textAlign: component.props.align || 'center' }}>
             <a 
-              href={component.props.href} 
-              className="inline-block px-6 py-2 font-medium transition-colors"
+              href={linkType === 'url' ? component.props.href : '#'} 
+              onClick={handleButtonClick}
+              className="inline-block font-medium transition-colors"
               style={{
-                backgroundColor: component.props.variant === 'primary' 
-                  ? themeColors.primary 
-                  : themeColors.secondary,
-                color: '#ffffff',
+                backgroundColor: component.props.buttonColor || themeColors.primary,
+                color: component.props.textColor || '#ffffff',
                 borderRadius: `${component.props.borderRadius || 8}px`,
+                padding: component.props.size === 'small' ? '0.25rem 0.75rem' :
+                         component.props.size === 'large' ? '0.75rem 2rem' :
+                         '0.5rem 1.5rem',
+                fontSize: component.props.size === 'small' ? '0.875rem' :
+                          component.props.size === 'large' ? '1.125rem' :
+                          '1rem',
               }}
+              target={linkType === 'url' && component.props.href ? '_blank' : undefined}
+              rel={linkType === 'url' && component.props.href ? 'noopener noreferrer' : undefined}
             >
-              {component.props.text}
+              {component.props.text ?? ''}
             </a>
           </div>
         );
@@ -1276,10 +1299,24 @@ export default function PublishedSitePage() {
                     const visibleSections = (currentPage.sections || []).filter(s => s.showInNavbar === true || s.showInNavbar === undefined);
                     const visibleIndex = visibleSections.findIndex(s => s.id === section.id);
                     const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
+                    const navType = (section as any).navType || 'section';
+                    const navTarget = (section as any).navTarget;
+                    
                     return (
                       <button
                         key={section.id}
-                        onClick={() => scrollToSection(section.id)}
+                        onClick={() => {
+                          if (navType === 'page' && navTarget) {
+                            // Navigate to another page
+                            const targetPage = pages.find(p => p.slug === navTarget);
+                            if (targetPage) {
+                              setCurrentPage(targetPage);
+                            }
+                          } else {
+                            // Scroll to this section (default behavior)
+                            scrollToSection(section.id);
+                          }
+                        }}
                         className="text-sm lg:text-base font-medium transition-colors pb-2"
                         style={{
                           color: activeSection === section.id ? themeColors.primary : themeColors.text,
