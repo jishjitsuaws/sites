@@ -548,7 +548,7 @@ export default function ComponentRenderer({
                   }}
                 >
                   <span
-                    contentEditable={isSelected}
+                    contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => {
                       const items = [...(component.props.items || [])];
@@ -556,6 +556,7 @@ export default function ComponentRenderer({
                       onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
                     }}
                     onFocus={(e) => {
+                      e.stopPropagation();
                       if (!isSelected) {
                         onComponentClick(component, e as any);
                       }
@@ -564,8 +565,8 @@ export default function ComponentRenderer({
                       const absoluteRect = { x: rect.left, y: rect.top, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height, toJSON: () => ({}) } as DOMRect;
                       onShowTextToolbar(absoluteRect);
                     }}
-                    onClick={(e) => { if (isSelected) e.stopPropagation(); }}
-                    className="outline-none"
+                    onClick={(e) => { e.stopPropagation(); }}
+                    className="outline-none cursor-text"
                     style={{ fontFamily: `'${themeFonts.heading}', sans-serif`, color: themeColors.text, textAlign: component.props.align || 'left' }}
                   >
                     {it.question || `Question ${idx + 1}`}
@@ -575,7 +576,7 @@ export default function ComponentRenderer({
                 {it.expanded && (
                   <div className="px-4 py-3 border-t bg-white">
                     <div
-                      contentEditable={isSelected}
+                      contentEditable
                       suppressContentEditableWarning
                       onBlur={(e) => {
                         const items = [...(component.props.items || [])];
@@ -583,6 +584,7 @@ export default function ComponentRenderer({
                         onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
                       }}
                       onFocus={(e) => {
+                        e.stopPropagation();
                         if (!isSelected) {
                           onComponentClick(component, e as any);
                         }
@@ -591,8 +593,8 @@ export default function ComponentRenderer({
                         const absoluteRect = { x: rect.left, y: rect.top, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height, toJSON: () => ({}) } as DOMRect;
                         onShowTextToolbar(absoluteRect);
                       }}
-                      onClick={(e) => { if (isSelected) e.stopPropagation(); }}
-                      className="outline-none"
+                      onClick={(e) => { e.stopPropagation(); }}
+                      className="outline-none cursor-text"
                       style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text, textAlign: component.props.align || 'left' }}
                     >
                       {it.answer || 'Answer goes here'}

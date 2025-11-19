@@ -1526,13 +1526,13 @@ export default function EditorPage() {
         };
       case 'banner':
         return {
-          heading: 'Welcome to our site',
-          subheading: 'Discover amazing features',
+          heading: null,
+          subheading: null,
           backgroundColor: getThemeColors().primary,
           textColor: '#ffffff',
           height: '600px',
           backgroundImage: '',
-          buttonText: 'Get Started',
+          buttonText: null,
           buttonLink: '#',
         };
       case 'heading':
@@ -1970,23 +1970,57 @@ export default function EditorPage() {
                     )
                   )}
                 </div>
-                <nav className="flex gap-4">
-                  {pages.map((page) => (
-                    <button
-                      key={page._id}
-                      onClick={() => handlePageSwitch(page)}
-                      className="text-sm font-medium transition-colors pb-1"
-                      style={{
-                        color: currentPage?._id === page._id ? getThemeColors().primary : getThemeColors().text,
-                        borderBottom: currentPage?._id === page._id ? `2px solid ${getThemeColors().primary}` : 'none',
-                        opacity: currentPage?._id === page._id ? 1 : 0.7,
-                        fontFamily: `'${getThemeFonts().body}', sans-serif`
-                      }}
-                    >
-                      {page.pageName}
-                    </button>
-                  ))}
-                </nav>
+                
+                {/* Multi-page navigation */}
+                {pages.length > 1 && (
+                  <nav className="flex gap-4">
+                    {pages.map((page) => (
+                      <button
+                        key={page._id}
+                        onClick={() => handlePageSwitch(page)}
+                        className="text-sm font-medium transition-colors pb-1"
+                        style={{
+                          color: currentPage?._id === page._id ? getThemeColors().primary : getThemeColors().text,
+                          borderBottom: currentPage?._id === page._id ? `2px solid ${getThemeColors().primary}` : 'none',
+                          opacity: currentPage?._id === page._id ? 1 : 0.7,
+                          fontFamily: `'${getThemeFonts().body}', sans-serif`
+                        }}
+                      >
+                        {page.pageName}
+                      </button>
+                    ))}
+                  </nav>
+                )}
+                
+                {/* Single-page section navigation */}
+                {pages.length === 1 && sections && sections.length > 0 && (
+                  <nav className="flex gap-4">
+                    {sections
+                      .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
+                      .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
+                      .map((section, visibleIndex) => {
+                        const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
+                        return (
+                          <button
+                            key={section.id}
+                            onClick={() => {
+                              setSelectedSection(section.id);
+                              setSelectedComponent(null);
+                            }}
+                            className="text-sm font-medium transition-colors pb-1"
+                            style={{
+                              color: selectedSection === section.id ? getThemeColors().primary : getThemeColors().text,
+                              borderBottom: selectedSection === section.id ? `2px solid ${getThemeColors().primary}` : 'none',
+                              opacity: selectedSection === section.id ? 1 : 0.7,
+                              fontFamily: `'${getThemeFonts().body}', sans-serif`
+                            }}
+                          >
+                            {sectionName}
+                          </button>
+                        );
+                      })}
+                  </nav>
+                )}
               </div>
             </div>
 
