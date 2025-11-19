@@ -2100,55 +2100,85 @@ export default function EditorPage() {
                   )}
                 </div>
                 
-                {/* Unified Navigation - Sections first, then Pages (amalgamation) */}
+                {/* Unified Navigation - Sections from ALL pages first, then Pages */}
                 <nav className="flex gap-4">
-                  {/* Always show sections first */}
-                  {sections
-                    .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
-                    .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
-                    .map((section, visibleIndex) => {
-                      const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
-                      const navType = section.navType || 'section';
-                      const isActive = activeSection === section.id || selectedSection === section.id;
-                      
-                      return (
-                        <button
-                          key={section.id}
-                          onClick={() => {
-                            if (navType === 'page' && section.navTarget) {
-                              // Navigate to another page
-                              const targetPage = pages.find(p => p.slug === section.navTarget);
+                  {/* Show sections from ALL pages */}
+                  {pages.flatMap(page => 
+                    (page.sections || [])
+                      .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
+                      .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
+                      .map((section, visibleIndex) => {
+                        const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
+                        const navType = section.navType || 'section';
+                        const isActive = activeSection === section.id || selectedSection === section.id;
+                        const isOnThisPage = currentPage?._id === page._id;
+                        
+                        return {
+                          ...section,
+                          pageId: page._id,
+                          pageName: page.pageName,
+                          isOnThisPage,
+                          sectionName,
+                          navType,
+                          isActive
+                        };
+                      })
+                  ).map((sectionData) => (
+                      <button
+                        key={`${sectionData.pageId}-${sectionData.id}`}
+                        onClick={() => {
+                          if (sectionData.navType === 'page' && sectionData.navTarget) {
+                            // Navigate to another page
+                            const targetPage = pages.find(p => p.slug === sectionData.navTarget);
+                            if (targetPage) {
+                              handlePageSwitch(targetPage);
+                              toast.success(`Navigating to ${targetPage.pageName}`);
+                            } else {
+                              toast.error(`Page "${sectionData.navTarget}" not found`);
+                            }
+                          } else {
+                            // If section is on a different page, switch to that page first
+                            if (!sectionData.isOnThisPage) {
+                              const targetPage = pages.find(p => p._id === sectionData.pageId);
                               if (targetPage) {
-                                handlePageSwitch(targetPage);
-                                toast.success(`Navigating to ${targetPage.pageName}`);
-                              } else {
-                                toast.error(`Page "${section.navTarget}" not found`);
+                                handlePageSwitch(targetPage).then(() => {
+                                  // After switching, scroll to the section
+                                  setTimeout(() => {
+                                    setSelectedSection(sectionData.id);
+                                    setActiveSection(sectionData.id);
+                                    setSelectedComponent(null);
+                                    
+                                    const sectionElement = document.getElementById(`section-${sectionData.id}`);
+                                    if (sectionElement) {
+                                      sectionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }
+                                  }, 300);
+                                });
                               }
                             } else {
-                              // Select and scroll to this section
-                              setSelectedSection(section.id);
-                              setActiveSection(section.id);
+                              // Section is on current page, just scroll
+                              setSelectedSection(sectionData.id);
+                              setActiveSection(sectionData.id);
                               setSelectedComponent(null);
                               
-                              // Scroll section into view
-                              const sectionElement = document.getElementById(`section-${section.id}`);
+                              const sectionElement = document.getElementById(`section-${sectionData.id}`);
                               if (sectionElement) {
                                 sectionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                               }
                             }
-                          }}
-                          className="text-sm font-medium transition-colors pb-1"
-                          style={{
-                            color: isActive ? getThemeColors().primary : getThemeColors().text,
-                            borderBottom: isActive ? `2px solid ${getThemeColors().primary}` : 'none',
-                            opacity: isActive ? 1 : 0.7,
-                            fontFamily: `'${getThemeFonts().body}', sans-serif`
-                          }}
-                        >
-                          {sectionName}
-                        </button>
-                      );
-                    })
+                          }
+                        }}
+                        className="text-sm font-medium transition-colors pb-1"
+                        style={{
+                          color: sectionData.isActive ? getThemeColors().primary : getThemeColors().text,
+                          borderBottom: sectionData.isActive ? `2px solid ${getThemeColors().primary}` : 'none',
+                          opacity: sectionData.isActive ? 1 : 0.7,
+                          fontFamily: `'${getThemeFonts().body}', sans-serif`
+                        }}
+                      >
+                        {sectionData.sectionName}
+                      </button>
+                    ))
                   }
                   
                   {/* Show pages after sections */}
@@ -2848,17 +2878,20 @@ export default function EditorPage() {
               <div className="bg-white p-3 rounded shadow-sm flex items-center justify-center gap-6">
                 <div className="font-bold text-lg text-gray-900">{site?.siteName || 'Logo'}</div>
                 <div className="flex gap-4">
-                  {sections
-                    .filter(s => !s.components?.some((c: any) => c.type === 'footer'))
-                    .filter(s => s.showInNavbar !== false)
-                    .map((section, index) => (
-                      <div
-                        key={section.id}
-                        className="text-sm text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
-                      >
-                        {section.sectionName || `Section ${index + 1}`}
-                      </div>
-                    ))}
+                  {/* Show sections from ALL pages */}
+                  {pages.flatMap(page => 
+                    (page.sections || [])
+                      .filter(s => !s.components?.some((c: any) => c.type === 'footer'))
+                      .filter(s => s.showInNavbar !== false)
+                      .map((section, index) => (
+                        <div
+                          key={`${page._id}-${section.id}`}
+                          className="text-sm text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
+                        >
+                          {section.sectionName || `Section ${index + 1}`}
+                        </div>
+                      ))
+                  )}
                   {pages
                     .filter(p => p.settings?.showInNavbar !== false)
                     .map((page) => (
@@ -2873,112 +2906,230 @@ export default function EditorPage() {
               </div>
             </div>
 
-            {/* Grid of Navigation Cards - Sections + Pages */}
+            {/* Grid of Navigation Cards - Sections grouped by page + Pages */}
+            <div className="space-y-6 mb-6">
+              {/* Sections from all pages - grouped by page with color coding */}
+              {pages.map((page, pageIndex) => {
+                const pageSections = page.sections?.filter(s => !s.components?.some((c: any) => c.type === 'footer')) || [];
+                if (pageSections.length === 0) return null;
+                
+                // Different color schemes for each page
+                const colorSchemes = [
+                  { border: 'border-blue-200', bg: 'bg-blue-50', badge: 'bg-blue-100 text-blue-600', hover: 'hover:border-blue-400', ring: 'focus:ring-blue-500', text: 'text-blue-600' },
+                  { border: 'border-purple-200', bg: 'bg-purple-50', badge: 'bg-purple-100 text-purple-600', hover: 'hover:border-purple-400', ring: 'focus:ring-purple-500', text: 'text-purple-600' },
+                  { border: 'border-pink-200', bg: 'bg-pink-50', badge: 'bg-pink-100 text-pink-600', hover: 'hover:border-pink-400', ring: 'focus:ring-pink-500', text: 'text-pink-600' },
+                  { border: 'border-orange-200', bg: 'bg-orange-50', badge: 'bg-orange-100 text-orange-600', hover: 'hover:border-orange-400', ring: 'focus:ring-orange-500', text: 'text-orange-600' },
+                  { border: 'border-teal-200', bg: 'bg-teal-50', badge: 'bg-teal-100 text-teal-600', hover: 'hover:border-teal-400', ring: 'focus:ring-teal-500', text: 'text-teal-600' },
+                ];
+                const colors = colorSchemes[pageIndex % colorSchemes.length];
+                
+                return (
+                  <div key={page._id}>
+                    <h3 className={`text-sm font-bold mb-3 ${colors.text}`}>
+                      {page.pageName} Page Sections
+                    </h3>
+                    <div 
+                      className="grid gap-4"
+                      style={{
+                        gridTemplateColumns: pageSections.length <= 4 
+                          ? 'repeat(2, 1fr)' 
+                          : pageSections.length <= 9 
+                          ? 'repeat(3, 1fr)' 
+                          : 'repeat(4, 1fr)'
+                      }}
+                    >
+                      {pageSections.map((section, index) => (
+                        <div 
+                          key={section.id} 
+                          className={`p-4 border-2 ${colors.border} rounded-lg ${colors.hover} transition-colors ${colors.bg}`}
+                        >
+                          {/* Card Header */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className={`shrink-0 w-7 h-7 ${colors.badge} rounded-full flex items-center justify-center font-semibold text-xs`}>
+                                {index + 1}
+                              </div>
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={section.showInNavbar === true || section.showInNavbar === undefined}
+                                  onChange={async (e) => {
+                                    // Update section in the page
+                                    const updatedSections = page.sections?.map(s => 
+                                      s.id === section.id ? { ...s, showInNavbar: e.target.checked } : s
+                                    );
+                                    
+                                    try {
+                                      await api.put(`/pages/${page._id}`, {
+                                        sections: updatedSections
+                                      });
+                                      
+                                      // Update local state
+                                      setPages(pages.map(p => 
+                                        p._id === page._id ? { ...p, sections: updatedSections } : p
+                                      ));
+                                      
+                                      // Update current page if it's this page
+                                      if (currentPage?._id === page._id) {
+                                        setCurrentPage({ ...currentPage, sections: updatedSections });
+                                        setSections(updatedSections || []);
+                                      }
+                                    } catch (err) {
+                                      toast.error('Failed to update section');
+                                    }
+                                  }}
+                                  className={`w-4 h-4 ${colors.text} rounded ${colors.ring} focus:ring-2`}
+                                />
+                                <span className="text-xs font-semibold text-gray-600">Show</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Label Input */}
+                          <div className="mb-3">
+                            <label className="text-xs font-medium text-gray-600 mb-1 block">Label</label>
+                            <input
+                              type="text"
+                              value={section.sectionName || ''}
+                              onChange={async (e) => {
+                                const updatedSections = page.sections?.map(s => 
+                                  s.id === section.id ? { ...s, sectionName: e.target.value } : s
+                                );
+                                
+                                try {
+                                  await api.put(`/pages/${page._id}`, {
+                                    sections: updatedSections
+                                  });
+                                  
+                                  setPages(pages.map(p => 
+                                    p._id === page._id ? { ...p, sections: updatedSections } : p
+                                  ));
+                                  
+                                  if (currentPage?._id === page._id) {
+                                    setCurrentPage({ ...currentPage, sections: updatedSections });
+                                    setSections(updatedSections || []);
+                                  }
+                                } catch (err) {
+                                  toast.error('Failed to update section');
+                                }
+                              }}
+                              placeholder={`Section ${index + 1}`}
+                              className={`w-full px-2 py-1.5 text-sm border border-gray-300 rounded ${colors.ring} focus:ring-2 focus:border-transparent text-gray-900`}
+                            />
+                          </div>
+
+                          {/* Navigation Type */}
+                          <div className="mb-3">
+                            <label className="text-xs font-medium text-gray-600 mb-1 block">Navigate To</label>
+                            <select
+                              value={section.navType || 'section'}
+                              onChange={async (e) => {
+                                const newNavType = e.target.value as 'section' | 'page';
+                                const updatedSections = page.sections?.map(s => 
+                                  s.id === section.id ? { ...s, navType: newNavType, navTarget: '' } : s
+                                );
+                                
+                                try {
+                                  await api.put(`/pages/${page._id}`, {
+                                    sections: updatedSections
+                                  });
+                                  
+                                  setPages(pages.map(p => 
+                                    p._id === page._id ? { ...p, sections: updatedSections } : p
+                                  ));
+                                  
+                                  if (currentPage?._id === page._id) {
+                                    setCurrentPage({ ...currentPage, sections: updatedSections });
+                                    setSections(updatedSections || []);
+                                  }
+                                } catch (err) {
+                                  toast.error('Failed to update section');
+                                }
+                              }}
+                              className={`w-full px-2 py-1.5 text-sm border border-gray-300 rounded ${colors.ring} focus:ring-2 focus:border-transparent text-gray-900`}
+                            >
+                              <option value="section">This Section</option>
+                              <option value="page">Page</option>
+                            </select>
+                          </div>
+
+                          {/* Conditional Input based on Navigation Type */}
+                          {section.navType === 'page' && (
+                            <div>
+                              <label className="text-xs font-medium text-gray-600 mb-1 block">Link to Page</label>
+                              <select
+                                value={section.navTarget || ''}
+                                onChange={async (e) => {
+                                  const updatedSections = page.sections?.map(s => 
+                                    s.id === section.id ? { ...s, navTarget: e.target.value } : s
+                                  );
+                                  
+                                  try {
+                                    await api.put(`/pages/${page._id}`, {
+                                      sections: updatedSections
+                                    });
+                                    
+                                    setPages(pages.map(p => 
+                                      p._id === page._id ? { ...p, sections: updatedSections } : p
+                                    ));
+                                    
+                                    if (currentPage?._id === page._id) {
+                                      setCurrentPage({ ...currentPage, sections: updatedSections });
+                                      setSections(updatedSections || []);
+                                    }
+                                  } catch (err) {
+                                    toast.error('Failed to update section');
+                                  }
+                                }}
+                                className={`w-full px-2 py-1.5 text-sm border border-gray-300 rounded ${colors.ring} focus:ring-2 focus:border-transparent text-gray-900`}
+                              >
+                                <option value="">Select a page</option>
+                                {pages.map((p) => (
+                                  <option key={p._id} value={p.slug || ''}>
+                                    {p.isHome ? 'Home' : p.pageName} ({p.isHome ? '/' : `/${p.slug}`})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                          
+                          {/* Page Badge */}
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <span className={`text-xs ${colors.badge} px-2 py-1 rounded`}>
+                              {page.pageName}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Divider between sections and pages */}
+              <div className="col-span-full">
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t-2 border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-white px-4 text-sm font-bold text-gray-600">PAGES</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Page Cards */}
             <div 
               className="grid gap-4 mb-6"
               style={{
-                gridTemplateColumns: (sections.filter(s => !s.components?.some((c: any) => c.type === 'footer')).length + pages.length) <= 4 
+                gridTemplateColumns: pages.length <= 4 
                   ? 'repeat(2, 1fr)' 
-                  : (sections.filter(s => !s.components?.some((c: any) => c.type === 'footer')).length + pages.length) <= 9 
+                  : pages.length <= 9 
                   ? 'repeat(3, 1fr)' 
                   : 'repeat(4, 1fr)'
               }}
             >
-              {/* Section Cards */}
-              {sections
-                .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
-                .map((section, index) => (
-                <div 
-                  key={section.id} 
-                  className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-400 transition-colors bg-white"
-                >
-                  {/* Card Header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="shrink-0 w-7 h-7 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold text-xs">
-                        {index + 1}
-                      </div>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={section.showInNavbar === true || section.showInNavbar === undefined}
-                          onChange={(e) => {
-                            updateSection(section.id, {
-                              ...section,
-                              showInNavbar: e.target.checked
-                            });
-                          }}
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="text-xs font-semibold text-gray-600">Show</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Label Input */}
-                  <div className="mb-3">
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">Label</label>
-                    <input
-                      type="text"
-                      value={section.sectionName || ''}
-                      onChange={(e) => {
-                        updateSection(section.id, {
-                          ...section,
-                          sectionName: e.target.value
-                        });
-                      }}
-                      placeholder={`Section ${index + 1}`}
-                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                    />
-                  </div>
-
-                  {/* Navigation Type */}
-                  <div className="mb-3">
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">Navigate To</label>
-                    <select
-                      value={section.navType || 'section'}
-                      onChange={(e) => {
-                        const newNavType = e.target.value as 'section' | 'page';
-                        updateSection(section.id, {
-                          ...section,
-                          navType: newNavType,
-                          navTarget: ''
-                        });
-                      }}
-                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                    >
-                      <option value="section">This Section</option>
-                      <option value="page">Page</option>
-                    </select>
-                  </div>
-
-                  {/* Conditional Input based on Navigation Type */}
-                  {section.navType === 'page' && (
-                    <div>
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">Link to Page</label>
-                      <select
-                        value={section.navTarget || ''}
-                        onChange={(e) => {
-                          updateSection(section.id, {
-                            ...section,
-                            navTarget: e.target.value
-                          });
-                        }}
-                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                      >
-                        <option value="">Select a page</option>
-                        {pages.map((page) => (
-                          <option key={page._id} value={page.slug || ''}>
-                            {page.isHome ? 'Home' : page.pageName} ({page.isHome ? '/' : `/${page.slug}`})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Page Cards */}
               {pages.map((page, index) => (
                 <div 
                   key={page._id} 
