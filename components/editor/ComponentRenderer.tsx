@@ -2624,6 +2624,15 @@ export default function ComponentRenderer({
                   <h1 
                     contentEditable={isSelected}
                     suppressContentEditableWarning
+                    onInput={(e) => {
+                      const newHeading = e.currentTarget.textContent || '';
+                      if (newHeading !== component.props.heading) {
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, heading: newHeading }
+                        });
+                      }
+                    }}
                     onBlur={(e) => {
                       const newHeading = e.currentTarget.textContent || '';
                       if (newHeading !== component.props.heading) {
@@ -2704,6 +2713,15 @@ export default function ComponentRenderer({
                   <p 
                     contentEditable={isSelected}
                     suppressContentEditableWarning
+                    onInput={(e) => {
+                      const newSubheading = e.currentTarget.textContent || '';
+                      if (newSubheading !== component.props.subheading) {
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, subheading: newSubheading }
+                        });
+                      }
+                    }}
                     onBlur={(e) => {
                       const newSubheading = e.currentTarget.textContent || '';
                       if (newSubheading !== component.props.subheading) {
@@ -2794,6 +2812,15 @@ export default function ComponentRenderer({
                     <div
                       contentEditable={isSelected}
                       suppressContentEditableWarning
+                      onInput={(e) => {
+                        const newButtonText = e.currentTarget.textContent || '';
+                        if (newButtonText !== component.props.buttonText) {
+                          onUpdateComponent(component.id, {
+                            ...component,
+                            props: { ...component.props, buttonText: newButtonText }
+                          });
+                        }
+                      }}
                       onBlur={(e) => {
                         const newButtonText = e.currentTarget.textContent || '';
                         if (newButtonText !== component.props.buttonText) {

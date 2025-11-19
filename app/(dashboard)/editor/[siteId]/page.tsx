@@ -2130,7 +2130,9 @@ export default function EditorPage() {
                       onShowTextToolbar={(componentId, rect) => {
                         const component = section.components.find(c => c.id === componentId);
                         if (component) {
-                          setSelectedComponent(component);
+                          // Close component selection/toolbar when text toolbar opens
+                          setSelectedComponent(null);
+                          setSelectedSection(null);
                           setToolbarPosition({ x: rect.left, y: rect.top });
                           setShowTextToolbar(true);
                         }
@@ -2263,7 +2265,9 @@ export default function EditorPage() {
                               setShowImageModal(true);
                             }}
                             onShowTextToolbar={(position) => {
-                              setSelectedComponent(footerComponent);
+                              // Close component selection/toolbar when text toolbar opens
+                              setSelectedComponent(null);
+                              setSelectedSection(null);
                               setToolbarPosition(position);
                               setShowTextToolbar(true);
                             }}
