@@ -172,6 +172,56 @@ export default function EditorPage() {
     }
   };
 
+  // Scrollspy for editor: highlight sections in navbar while scrolling
+  useEffect(() => {
+    const container = document.getElementById('editor-scroll-container');
+    if (!container || !currentPage || !sections.length) return;
+
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+
+      window.requestAnimationFrame(() => {
+        let current: string | null = null;
+        let lastPassed: string | null = null;
+
+        sections.forEach((section: any) => {
+          const el = document.getElementById(`section-${section.id}`);
+          if (!el) return;
+
+          const rect = el.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          const top = rect.top - containerRect.top; // position within scroll container
+
+          if (top <= 200 && rect.bottom - containerRect.top >= 0) {
+            current = section.id;
+          }
+          if (top <= 200) {
+            lastPassed = section.id;
+          }
+        });
+
+        if (!current && lastPassed) current = lastPassed;
+        if (!current && sections.length > 0) current = sections[0].id;
+
+        if (current && current !== activeSection) {
+          setActiveSection(current);
+        }
+
+        ticking = false;
+      });
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true as any });
+    handleScroll();
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll as any);
+    };
+  }, [currentPage, sections, activeSection]);
+
   const fetchSiteData = async () => {
     try {
       setLoading(true);
@@ -661,11 +711,12 @@ export default function EditorPage() {
       }
     }
     
-    // Load target page
-    setCurrentPage(page);
+  // Load target page
+  setCurrentPage(page);
+  setActiveSection(null);
     if (page.sections && page.sections.length > 0) {
-      console.log('Loading sections from page:', page.sections.length);
-      setSections(page.sections);
+  console.log('Loading sections from page:', page.sections.length);
+  setSections(page.sections);
       setComponents([]);
     } else if (page.content && page.content.length > 0) {
       console.log('Converting content to sections:', page.content.length);
@@ -1892,10 +1943,11 @@ export default function EditorPage() {
         </div>
       </header>
 
-      {/* Main Editor Area */}
-      <div className="flex-1 flex min-h-0 overflow-hidden">
+  {/* Main Editor Area */}
+  <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Center Canvas */}
         <div 
+          id="editor-scroll-container"
           className="flex-1 min-h-0 bg-gray-100 p-4 overflow-y-auto relative"
           onClick={(e) => {
             // Deselect component when clicking on canvas background (gray area)
@@ -2875,9 +2927,8 @@ export default function EditorPage() {
                   {/* Conditional Input based on Navigation Type */}
                   {section.navType === 'page' && (
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">Page Slug</label>
-                      <input
-                        type="text"
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">Link to Page</label>
+                      <select
                         value={section.navTarget || ''}
                         onChange={(e) => {
                           updateSection(section.id, {
@@ -2885,9 +2936,15 @@ export default function EditorPage() {
                             navTarget: e.target.value
                           });
                         }}
-                        placeholder="page-slug"
                         className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                      />
+                      >
+                        <option value="">Select a page</option>
+                        {pages.map((page) => (
+                          <option key={page._id} value={page.slug || ''}>
+                            {page.isHome ? 'Home' : page.pageName} ({page.isHome ? '/' : `/${page.slug}`})
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   )}
                 </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Trash2, Edit2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { toast } from 'sonner';
 import api from '@/lib/api';
@@ -96,32 +96,6 @@ export default function PagesPanel({
     }
   };
 
-  const handleToggleNavbar = async (pageId: string, currentShowInNavbar: boolean) => {
-    try {
-      await api.put(`/pages/${pageId}`, {
-        settings: {
-          showInNavbar: !currentShowInNavbar,
-        }
-      });
-      
-      const updatedPages = pages.map(p => 
-        p._id === pageId 
-          ? { 
-              ...p, 
-              settings: { 
-                ...p.settings, 
-                showInNavbar: !currentShowInNavbar 
-              } 
-            } 
-          : p
-      );
-      onPagesUpdate(updatedPages);
-      toast.success(!currentShowInNavbar ? 'Page shown in navbar' : 'Page hidden from navbar');
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to update page');
-    }
-  };
-
   return (
     <div>
       <div className="space-y-1.5">
@@ -176,20 +150,6 @@ export default function PagesPanel({
                     Home
                   </span>
                 )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleToggleNavbar(page._id, page.settings?.showInNavbar !== false);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded transition-opacity"
-                  title={page.settings?.showInNavbar === false ? 'Show in navbar' : 'Hide from navbar'}
-                >
-                  {page.settings?.showInNavbar === false ? (
-                    <EyeOff className="h-3.5 w-3.5 text-gray-600" />
-                  ) : (
-                    <Eye className="h-3.5 w-3.5 text-gray-600" />
-                  )}
-                </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
