@@ -1291,28 +1291,15 @@ export default function PublishedSitePage() {
       >
         <div className="container mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Mobile: Single page - centered logo */}
+            {/* Mobile: Single page - centered site name */}
             {pages.length === 1 && (
               <div className="md:hidden flex-1 flex justify-center">
-                {site.logo ? (
-                  <img 
-                    src={site.logo} 
-                    alt={site.siteName}
-                    style={{
-                      height: '32px',
-                      width: 'auto',
-                      maxWidth: site.logoWidth || '150px',
-                      objectFit: 'contain'
-                    }}
-                  />
-                ) : (
-                  <h1 
-                    className="text-lg font-bold"
-                    style={{ color: themeColors.primary }}
-                  >
-                    {site.siteName}
-                  </h1>
-                )}
+                <h1 
+                  className="text-lg font-bold"
+                  style={{ color: themeColors.primary }}
+                >
+                  {site.siteName}
+                </h1>
               </div>
             )}
 
@@ -1376,27 +1363,13 @@ export default function PublishedSitePage() {
                 }}
               />
               
-              {/* Site Logo or Name */}
-              {site.logo ? (
-                <img 
-                  src={site.logo} 
-                  alt={site.siteName}
-                  style={{
-                    height: '32px',
-                    width: 'auto',
-                    maxWidth: site.logoWidth || '150px',
-                    objectFit: 'contain'
-                  }}
-                  className="md:h-10"
-                />
-              ) : (
-                <h1 
-                  className="text-lg md:text-xl font-bold"
-                  style={{ color: themeColors.primary }}
-                >
-                  {site.siteName}
-                </h1>
-              )}
+              {/* Site Name - Always shown */}
+              <h1 
+                className="text-lg md:text-xl font-bold"
+                style={{ color: themeColors.primary }}
+              >
+                {site.siteName}
+              </h1>
             </div>
             
             {/* Desktop Navigation - Each page's sections followed by page name */}

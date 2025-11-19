@@ -854,11 +854,11 @@ export default function ComponentRenderer({
             {/* Inline Button Controls with Text and Color Editing */}
             {isSelected && (
               <div 
-                className="fixed bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
+                className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
                 style={{
-                  top: '50%',
+                  bottom: 'calc(100% + 12px)',
                   left: '50%',
-                  transform: 'translate(-50%, -50%)',
+                  transform: 'translateX(-50%)',
                   zIndex: 1000,
                   minWidth: '800px',
                   maxWidth: '90vw',
