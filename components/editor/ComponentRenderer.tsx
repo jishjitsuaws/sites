@@ -422,12 +422,12 @@ export default function ComponentRenderer({
 
       {/* FAQs Component */}
       {component.type === 'faqs' && (
-        <div style={{ position: 'relative', width: component.props.width || '100%', margin: component.props.align === 'center' ? '0 auto' : component.props.align === 'right' ? '0 0 0 auto' : '0', textAlign: component.props.align || 'left' }}>
+        <div style={{ position: 'relative', width: component.props.width || '100%', margin: component.props.align === 'center' ? '0 auto' : component.props.align === 'right' ? '0 0 0 auto' : '0', textAlign: component.props.align || 'left', minHeight: isSelected ? '80px' : 'auto' }}>
           {/* Inline toolbar - fat toolbar with many options */}
           {isSelected && (
             <div
-              className="fixed bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex flex-wrap gap-2 items-center"
-              style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000, maxWidth: '90vw' }}
+              className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex flex-wrap gap-2 items-center"
+              style={{ bottom: '100%', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, maxWidth: '90vw', marginBottom: '8px' }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Alignment */}
@@ -1364,18 +1364,19 @@ export default function ComponentRenderer({
 
       {/* Social Media Component */}
       {component.type === 'social' && (
-        <div className="relative flex justify-center items-center">
+        <div className="relative flex justify-center items-center" style={{ minHeight: isSelected ? '100px' : 'auto' }}>
           {/* Social Media Toolbar */}
           {isSelected && (
             <div 
-              className="fixed bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex flex-col gap-2 whitespace-nowrap"
+              className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex flex-col gap-2 whitespace-nowrap"
               style={{
-                top: '50%',
+                bottom: '100%',
                 left: '50%',
-                transform: 'translate(-50%, -50%)',
+                transform: 'translateX(-50%)',
                 zIndex: 1000,
                 minWidth: 'max-content',
-                maxWidth: '90vw'
+                maxWidth: '90vw',
+                marginBottom: '8px'
               }}
             >
               <div className="flex items-center gap-2">
@@ -2658,16 +2659,11 @@ export default function ComponentRenderer({
                       }
                     }}
                     onFocus={(e) => {
-                      // Select component first if not already selected
-                      if (!isSelected) {
-                        onComponentClick(component, e as any);
-                      }
-                      
-                      setSelectedComponent(component);
+                      // Show text toolbar for banner text editing
                       const element = e.currentTarget as HTMLElement;
                       const rect = element.getBoundingClientRect();
                       
-                      // Use absolute screen coordinates for fixed positioning
+                      // Use absolute screen coordinates for text toolbar positioning
                       const absoluteRect = {
                         x: rect.left,
                         y: rect.top,
@@ -2734,16 +2730,11 @@ export default function ComponentRenderer({
                       }
                     }}
                     onFocus={(e) => {
-                      // Select component first if not already selected
-                      if (!isSelected) {
-                        onComponentClick(component, e as any);
-                      }
-                      
-                      setSelectedComponent(component);
+                      // Show text toolbar for banner subheading editing
                       const element = e.currentTarget as HTMLElement;
                       const rect = element.getBoundingClientRect();
                       
-                      // Use absolute screen coordinates for fixed positioning
+                      // Use absolute screen coordinates for text toolbar positioning
                       const absoluteRect = {
                         x: rect.left,
                         y: rect.top,
@@ -2759,10 +2750,7 @@ export default function ComponentRenderer({
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Also select component on click
-                      if (!isSelected) {
-                        onComponentClick(component, e);
-                      }
+                      // Don't auto-select component when clicking text elements
                     }}
                     className="text-xl mb-8 max-w-2xl outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
                     style={{ 
@@ -2837,6 +2825,25 @@ export default function ComponentRenderer({
                           e.preventDefault();
                           e.currentTarget.blur();
                         }
+                      }}
+                      onFocus={(e) => {
+                        // Show text toolbar for banner button editing (treat as text)
+                        const element = e.currentTarget as HTMLElement;
+                        const rect = element.getBoundingClientRect();
+                        
+                        // Use absolute screen coordinates for text toolbar positioning
+                        const absoluteRect = {
+                          x: rect.left,
+                          y: rect.top,
+                          left: rect.left,
+                          top: rect.top,
+                          right: rect.right,
+                          bottom: rect.bottom,
+                          width: rect.width,
+                          height: rect.height,
+                          toJSON: () => ({})
+                        } as DOMRect;
+                        onShowTextToolbar(absoluteRect);
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
