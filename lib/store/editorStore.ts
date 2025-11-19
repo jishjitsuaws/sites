@@ -211,6 +211,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
 
   updateComponent: (id, updates) => {
+    console.log('[EditorStore] updateComponent called:', { id, updates });
     const { sections, history, historyIndex } = get();
     const newSections = sections.map((section) => ({
       ...section,
@@ -218,6 +219,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         c.id === id ? { ...c, ...updates } : c
       ),
     }));
+    console.log('[EditorStore] Updated sections:', newSections);
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push(newSections);
     

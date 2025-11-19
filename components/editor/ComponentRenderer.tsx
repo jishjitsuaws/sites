@@ -2626,7 +2626,10 @@ export default function ComponentRenderer({
                     suppressContentEditableWarning
                     onInput={(e) => {
                       const newHeading = e.currentTarget.textContent || '';
+                      console.log('[Banner] Heading onInput:', newHeading);
+                      console.log('[Banner] Current component.props.heading:', component.props.heading);
                       if (newHeading !== component.props.heading) {
+                        console.log('[Banner] Updating heading to:', newHeading);
                         onUpdateComponent(component.id, {
                           ...component,
                           props: { ...component.props, heading: newHeading }
