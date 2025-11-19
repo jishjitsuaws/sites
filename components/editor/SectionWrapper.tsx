@@ -142,6 +142,7 @@ export default function SectionWrapper({
 
   return (
     <div
+      id={`section-${section.id}`}
       draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
@@ -251,6 +252,22 @@ export default function SectionWrapper({
                   placeholder="e.g., Home, About, Features"
                   className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-gray-900"
                 />
+              </div>
+              
+              <div>
+                <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={(section as any).showInNavbar !== false}
+                    onChange={(e) =>
+                      onUpdate({
+                        showInNavbar: e.target.checked,
+                      } as any)
+                    }
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  Show in Navigation Bar
+                </label>
               </div>
               
               <div>

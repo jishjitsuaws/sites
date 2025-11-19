@@ -139,6 +139,7 @@ export default function EditorPage() {
   const [showNavbarSettings, setShowNavbarSettings] = useState(false);
   const [isEditingSiteName, setIsEditingSiteName] = useState(false);
   const [editedSiteName, setEditedSiteName] = useState('');
+  const [activeSection, setActiveSection] = useState<string | null>(null);
 
   const { 
     components, 
@@ -2031,6 +2032,7 @@ export default function EditorPage() {
                     .map((section, visibleIndex) => {
                       const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
                       const navType = section.navType || 'section';
+                      const isActive = activeSection === section.id || selectedSection === section.id;
                       
                       return (
                         <button
@@ -2046,16 +2048,23 @@ export default function EditorPage() {
                                 toast.error(`Page "${section.navTarget}" not found`);
                               }
                             } else {
-                              // Select this section (default behavior)
+                              // Select and scroll to this section
                               setSelectedSection(section.id);
+                              setActiveSection(section.id);
                               setSelectedComponent(null);
+                              
+                              // Scroll section into view
+                              const sectionElement = document.getElementById(`section-${section.id}`);
+                              if (sectionElement) {
+                                sectionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              }
                             }
                           }}
                           className="text-sm font-medium transition-colors pb-1"
                           style={{
-                            color: selectedSection === section.id ? getThemeColors().primary : getThemeColors().text,
-                            borderBottom: selectedSection === section.id ? `2px solid ${getThemeColors().primary}` : 'none',
-                            opacity: selectedSection === section.id ? 1 : 0.7,
+                            color: isActive ? getThemeColors().primary : getThemeColors().text,
+                            borderBottom: isActive ? `2px solid ${getThemeColors().primary}` : 'none',
+                            opacity: isActive ? 1 : 0.7,
                             fontFamily: `'${getThemeFonts().body}', sans-serif`
                           }}
                         >
@@ -2067,19 +2076,19 @@ export default function EditorPage() {
                   
                   {/* Show pages after sections if multiple pages exist */}
                   {/* Hide Home page when sections are shown in navbar */}
-                  {pages.length > 1 && pages
+                  {pages
                     .filter(page => {
                       // Filter out pages with showInNavbar = false
                       if (page.settings?.showInNavbar === false) return false;
                       
-                      // Check if there are any sections shown in navbar
+                      // Check if there are any sections shown in navbar for current page
                       const hasSectionsInNavbar = sections.some(section => 
                         (section.showInNavbar === true || section.showInNavbar === undefined) &&
                         !section.components?.some((c: any) => c.type === 'footer')
                       );
                       
-                      // If sections are shown, hide the Home page (since sections already point to it)
-                      if (hasSectionsInNavbar && page.isHome) return false;
+                      // If sections are shown and this is the home page AND it's the current page, hide it
+                      if (hasSectionsInNavbar && page.isHome && currentPage?._id === page._id) return false;
                       
                       return true;
                     })

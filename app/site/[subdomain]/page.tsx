@@ -1280,7 +1280,7 @@ export default function PublishedSitePage() {
             
             {/* Desktop Navigation - Sections first, then Pages (amalgamation) */}
             <nav className="hidden md:flex gap-4 lg:gap-6">
-              {/* Show sections first */}
+              {/* Show sections from current page first */}
               {currentPage?.sections && currentPage.sections.length > 0 && (
                 currentPage.sections
                   .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
@@ -1319,20 +1319,19 @@ export default function PublishedSitePage() {
                   })
               )}
               
-              {/* Show pages after sections if multiple pages exist */}
-              {/* Hide Home page when sections are shown in navbar */}
-              {pages.length > 1 && pages
+              {/* Always show pages (don't check pages.length > 1) */}
+              {pages
                 .filter(page => {
                   // Filter out pages with showInNavbar = false
                   if ((page as any).settings?.showInNavbar === false) return false;
                   
-                  // Check if there are any sections shown in navbar
+                  // Check if there are any sections shown in navbar for current page
                   const hasSectionsInNavbar = (currentPage?.sections || []).some(section => 
                     (section.showInNavbar === true || section.showInNavbar === undefined)
                   );
                   
-                  // If sections are shown, hide the Home page (since sections already point to it)
-                  if (hasSectionsInNavbar && page.isHome) return false;
+                  // If sections are shown and this is the home page AND it's the current page, hide it
+                  if (hasSectionsInNavbar && page.isHome && currentPage._id === page._id) return false;
                   
                   return true;
                 })
