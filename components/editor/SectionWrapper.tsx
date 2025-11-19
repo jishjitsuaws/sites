@@ -342,7 +342,6 @@ export default function SectionWrapper({
                   value={section.layout.gap}
                   onMouseDown={(e) => {
                     e.stopPropagation();
-                    e.preventDefault();
                   }}
                   onPointerDown={(e) => {
                     e.stopPropagation();
@@ -362,8 +361,7 @@ export default function SectionWrapper({
                       },
                     });
                   }}
-                  className="w-full cursor-grab active:cursor-grabbing"
-                  style={{ pointerEvents: 'auto' }}
+                  className="w-full"
                 />
               </div>
 
@@ -376,7 +374,6 @@ export default function SectionWrapper({
                   value={section.layout.padding}
                   onMouseDown={(e) => {
                     e.stopPropagation();
-                    e.preventDefault();
                   }}
                   onPointerDown={(e) => {
                     e.stopPropagation();
@@ -396,8 +393,7 @@ export default function SectionWrapper({
                       },
                     });
                   }}
-                  className="w-full cursor-grab active:cursor-grabbing"
-                  style={{ pointerEvents: 'auto' }}
+                  className="w-full"
                 />
               </div>
 

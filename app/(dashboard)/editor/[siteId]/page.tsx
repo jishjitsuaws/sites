@@ -2043,8 +2043,8 @@ export default function EditorPage() {
                     }}
                   />
                   
-                  {/* Site Logo or Name */}
-                  {site?.logo ? (
+                  {/* Site Logo AND Name - show both */}
+                  {site?.logo && (
                     <img 
                       src={site.logo} 
                       alt={site.siteName}
@@ -2055,47 +2055,48 @@ export default function EditorPage() {
                         objectFit: 'contain'
                       }}
                     />
+                  )}
+                  
+                  {/* Site Name - always show (editable when no logo or alongside logo) */}
+                  {isEditingSiteName ? (
+                    <input
+                      type="text"
+                      value={editedSiteName}
+                      onChange={(e) => setEditedSiteName(e.target.value)}
+                      onBlur={handleSaveSiteName}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSaveSiteName();
+                        } else if (e.key === 'Escape') {
+                          setIsEditingSiteName(false);
+                        }
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      autoFocus
+                      className="text-xl font-bold border-b-2 outline-none bg-transparent px-1"
+                      style={{
+                        color: getThemeColors().primary,
+                        borderColor: getThemeColors().primary,
+                        fontFamily: `'${getThemeFonts().heading}', sans-serif`,
+                        width: Math.max(150, editedSiteName.length * 12) + 'px'
+                      }}
+                    />
                   ) : (
-                    isEditingSiteName ? (
-                      <input
-                        type="text"
-                        value={editedSiteName}
-                        onChange={(e) => setEditedSiteName(e.target.value)}
-                        onBlur={handleSaveSiteName}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleSaveSiteName();
-                          } else if (e.key === 'Escape') {
-                            setIsEditingSiteName(false);
-                          }
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        autoFocus
-                        className="text-xl font-bold border-b-2 outline-none bg-transparent px-1"
-                        style={{
-                          color: getThemeColors().primary,
-                          borderColor: getThemeColors().primary,
-                          fontFamily: `'${getThemeFonts().heading}', sans-serif`,
-                          width: Math.max(150, editedSiteName.length * 12) + 'px'
-                        }}
-                      />
-                    ) : (
-                      <h1 
-                        className="text-xl font-bold cursor-pointer hover:opacity-70 transition-opacity"
-                        style={{
-                          color: getThemeColors().primary,
-                          fontFamily: `'${getThemeFonts().heading}', sans-serif`
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditedSiteName(site?.siteName || '');
-                          setIsEditingSiteName(true);
-                        }}
-                        title="Click to edit site name"
-                      >
-                        {site?.siteName || 'Untitled Site'}
-                      </h1>
-                    )
+                    <h1 
+                      className="text-xl font-bold cursor-pointer hover:opacity-70 transition-opacity"
+                      style={{
+                        color: getThemeColors().primary,
+                        fontFamily: `'${getThemeFonts().heading}', sans-serif`
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditedSiteName(site?.siteName || '');
+                        setIsEditingSiteName(true);
+                      }}
+                      title="Click to edit site name"
+                    >
+                      {site?.siteName || 'Untitled Site'}
+                    </h1>
                   )}
                 </div>
                 
@@ -2150,22 +2151,11 @@ export default function EditorPage() {
                     })
                   }
                   
-                  {/* Show pages after sections if multiple pages exist */}
-                  {/* Hide Home page when sections are shown in navbar */}
+                  {/* Show pages after sections */}
                   {pages
                     .filter(page => {
-                      // Filter out pages with showInNavbar = false
+                      // Only filter by showInNavbar setting, don't hide Home
                       if (page.settings?.showInNavbar === false) return false;
-                      
-                      // Check if there are any sections shown in navbar for current page
-                      const hasSectionsInNavbar = sections.some(section => 
-                        (section.showInNavbar === true || section.showInNavbar === undefined) &&
-                        !section.components?.some((c: any) => c.type === 'footer')
-                      );
-                      
-                      // If sections are shown and this is the home page AND it's the current page, hide it
-                      if (hasSectionsInNavbar && page.isHome && currentPage?._id === page._id) return false;
-                      
                       return true;
                     })
                     .map((page) => (
@@ -2870,7 +2860,7 @@ export default function EditorPage() {
                       </div>
                     ))}
                   {pages
-                    .filter(p => (p.settings?.showInNavbar === undefined ? true : p.settings?.showInNavbar))
+                    .filter(p => p.settings?.showInNavbar !== false)
                     .map((page) => (
                       <div
                         key={page._id}
@@ -2993,6 +2983,12 @@ export default function EditorPage() {
                 <div 
                   key={page._id} 
                   className="p-4 border-2 border-green-200 rounded-lg hover:border-green-400 transition-colors bg-green-50"
+                  onClick={(e) => {
+                    // Prevent any bubbling that might interfere with checkbox
+                    if ((e.target as HTMLElement).tagName !== 'INPUT') {
+                      e.stopPropagation();
+                    }
+                  }}
                 >
                   {/* Card Header */}
                   <div className="flex items-center justify-between mb-3">
@@ -3000,16 +2996,18 @@ export default function EditorPage() {
                       <div className="shrink-0 w-7 h-7 bg-green-100 text-green-600 rounded-full flex items-center justify-center font-semibold text-xs">
                         P{index + 1}
                       </div>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <div className="flex items-center gap-2">
                         <input
                           type="checkbox"
+                          id={`page-checkbox-${page._id}`}
                           checked={page.settings?.showInNavbar === undefined ? true : page.settings?.showInNavbar}
                           onChange={async (e) => {
                             try {
+                              const newValue = e.target.checked;
                               await api.put(`/pages/${page._id}`, {
                                 settings: {
                                   ...page.settings,
-                                  showInNavbar: e.target.checked,
+                                  showInNavbar: newValue,
                                 }
                               });
                               
@@ -3019,7 +3017,7 @@ export default function EditorPage() {
                                       ...p, 
                                       settings: { 
                                         ...p.settings, 
-                                        showInNavbar: e.target.checked 
+                                        showInNavbar: newValue 
                                       } 
                                     } 
                                   : p
@@ -3032,7 +3030,7 @@ export default function EditorPage() {
                                   ...currentPage,
                                   settings: {
                                     ...currentPage.settings,
-                                    showInNavbar: e.target.checked
+                                    showInNavbar: newValue
                                   }
                                 });
                               }
@@ -3040,10 +3038,15 @@ export default function EditorPage() {
                               toast.error('Failed to update page visibility');
                             }
                           }}
-                          className="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                          className="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500 cursor-pointer"
                         />
-                        <span className="text-xs font-semibold text-gray-600">Show</span>
-                      </label>
+                        <label 
+                          htmlFor={`page-checkbox-${page._id}`}
+                          className="text-xs font-semibold text-gray-600 cursor-pointer"
+                        >
+                          Show
+                        </label>
+                      </div>
                     </div>
                   </div>
 
