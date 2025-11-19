@@ -2679,19 +2679,6 @@ export default function ComponentRenderer({
                       } as DOMRect;
                       onShowTextToolbar(absoluteRect);
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        e.currentTarget.blur();
-                      }
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Also select component on click
-                      if (!isSelected) {
-                        onComponentClick(component, e);
-                      }
-                    }}
                     className="text-5xl font-bold mb-4 outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
                     style={{ 
                       fontFamily: `'${themeFonts.heading}', sans-serif`,
@@ -2851,6 +2838,7 @@ export default function ComponentRenderer({
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
+                        // Don't trigger button modal for banner buttons
                       }}
                       className="px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105 outline-none focus:ring-2 focus:ring-offset-2 inline-block"
                       style={{

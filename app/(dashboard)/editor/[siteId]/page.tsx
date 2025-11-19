@@ -711,33 +711,57 @@ export default function EditorPage() {
       }
     }
     
-  // Load target page
-  setCurrentPage(page);
-  setActiveSection(null);
-    if (page.sections && page.sections.length > 0) {
-  console.log('Loading sections from page:', page.sections.length);
-  setSections(page.sections);
-      setComponents([]);
-    } else if (page.content && page.content.length > 0) {
-      console.log('Converting content to sections:', page.content.length);
-      const convertedSections = page.content.map((component: any, index: number) => ({
-        id: `section-${component.id}`,
-        components: [component],
-        layout: {
-          direction: 'column' as const,
-          justifyContent: 'flex-start' as const,
-          alignItems: 'center' as const,
-          gap: 16,
-          padding: 24,
-        },
-        order: index,
-      }));
-      setSections(convertedSections);
-      setComponents(page.content);
-    } else {
-      console.log('Empty page');
-      setSections([]);
-      setComponents([]);
+    // Fetch fresh page data from backend to ensure we have latest sections
+    try {
+      const pageRes = await api.get(`/pages/${page._id}`);
+      const freshPage = pageRes.data.data;
+      
+      // Load target page with fresh data
+      setCurrentPage(freshPage);
+      setActiveSection(null);
+      
+      if (freshPage.sections && freshPage.sections.length > 0) {
+        console.log('Loading sections from fresh page data:', freshPage.sections.length);
+        setSections(freshPage.sections);
+        setComponents([]);
+      } else if (freshPage.content && freshPage.content.length > 0) {
+        console.log('Converting content to sections:', freshPage.content.length);
+        const convertedSections = freshPage.content.map((component: any, index: number) => ({
+          id: `section-${component.id}`,
+          components: [component],
+          layout: {
+            direction: 'column' as const,
+            justifyContent: 'flex-start' as const,
+            alignItems: 'center' as const,
+            gap: 16,
+            padding: 24,
+          },
+          order: index,
+        }));
+        setSections(convertedSections);
+        setComponents(freshPage.content);
+      } else {
+        console.log('Empty page');
+        setSections([]);
+        setComponents([]);
+      }
+      
+      // Update pages array with fresh data
+      setPages(pages.map(p => p._id === freshPage._id ? freshPage : p));
+    } catch (err) {
+      console.error('Failed to fetch fresh page data:', err);
+      // Fallback to cached page data
+      setCurrentPage(page);
+      setActiveSection(null);
+      
+      if (page.sections && page.sections.length > 0) {
+        console.log('Loading sections from cached page:', page.sections.length);
+        setSections(page.sections);
+        setComponents([]);
+      } else {
+        setSections([]);
+        setComponents([]);
+      }
     }
     
     setSelectedComponent(null);
@@ -2835,6 +2859,7 @@ export default function EditorPage() {
                 <div className="font-bold text-lg text-gray-900">{site?.siteName || 'Logo'}</div>
                 <div className="flex gap-4">
                   {sections
+                    .filter(s => !s.components?.some((c: any) => c.type === 'footer'))
                     .filter(s => s.showInNavbar !== false)
                     .map((section, index) => (
                       <div
@@ -2845,7 +2870,7 @@ export default function EditorPage() {
                       </div>
                     ))}
                   {pages
-                    .filter(p => p.settings?.showInNavbar !== false)
+                    .filter(p => (p.settings?.showInNavbar === undefined ? true : p.settings?.showInNavbar))
                     .map((page) => (
                       <div
                         key={page._id}
@@ -2862,15 +2887,17 @@ export default function EditorPage() {
             <div 
               className="grid gap-4 mb-6"
               style={{
-                gridTemplateColumns: (sections.length + pages.length) <= 4 
+                gridTemplateColumns: (sections.filter(s => !s.components?.some((c: any) => c.type === 'footer')).length + pages.length) <= 4 
                   ? 'repeat(2, 1fr)' 
-                  : (sections.length + pages.length) <= 9 
+                  : (sections.filter(s => !s.components?.some((c: any) => c.type === 'footer')).length + pages.length) <= 9 
                   ? 'repeat(3, 1fr)' 
                   : 'repeat(4, 1fr)'
               }}
             >
               {/* Section Cards */}
-              {sections.map((section, index) => (
+              {sections
+                .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
+                .map((section, index) => (
                 <div 
                   key={section.id} 
                   className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-400 transition-colors bg-white"
@@ -2976,11 +3003,12 @@ export default function EditorPage() {
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={page.settings?.showInNavbar !== false}
+                          checked={page.settings?.showInNavbar === undefined ? true : page.settings?.showInNavbar}
                           onChange={async (e) => {
                             try {
                               await api.put(`/pages/${page._id}`, {
                                 settings: {
+                                  ...page.settings,
                                   showInNavbar: e.target.checked,
                                 }
                               });
@@ -2997,6 +3025,17 @@ export default function EditorPage() {
                                   : p
                               );
                               setPages(updatedPages);
+                              
+                              // Also update currentPage if it's this page
+                              if (currentPage?._id === page._id) {
+                                setCurrentPage({
+                                  ...currentPage,
+                                  settings: {
+                                    ...currentPage.settings,
+                                    showInNavbar: e.target.checked
+                                  }
+                                });
+                              }
                             } catch (err: any) {
                               toast.error('Failed to update page visibility');
                             }

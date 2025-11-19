@@ -341,11 +341,16 @@ export default function SectionWrapper({
                   max="100"
                   value={section.layout.gap}
                   onMouseDown={(e) => {
-                    // Prevent starting a drag operation when interacting with the slider
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }}
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onTouchStart={(e) => {
                     e.stopPropagation();
                   }}
                   onClick={(e) => {
-                    // Avoid the section itself being (re)selected on slider clicks
                     e.stopPropagation();
                   }}
                   onChange={(e) => {
@@ -357,7 +362,8 @@ export default function SectionWrapper({
                       },
                     });
                   }}
-                  className="w-full"
+                  className="w-full cursor-grab active:cursor-grabbing"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
 
@@ -369,6 +375,13 @@ export default function SectionWrapper({
                   max="150"
                   value={section.layout.padding}
                   onMouseDown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }}
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onTouchStart={(e) => {
                     e.stopPropagation();
                   }}
                   onClick={(e) => {
@@ -383,7 +396,8 @@ export default function SectionWrapper({
                       },
                     });
                   }}
-                  className="w-full"
+                  className="w-full cursor-grab active:cursor-grabbing"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
 
