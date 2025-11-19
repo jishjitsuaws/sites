@@ -2100,109 +2100,103 @@ export default function EditorPage() {
                   )}
                 </div>
                 
-                {/* Unified Navigation - Sections from ALL pages first, then Pages */}
+                {/* Unified Navigation - Each page's sections followed by page name */}
                 <nav className="flex gap-4">
-                  {/* Show sections from ALL pages */}
-                  {pages.flatMap(page => 
-                    (page.sections || [])
-                      .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
-                      .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
-                      .map((section, visibleIndex) => {
-                        const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
-                        const navType = section.navType || 'section';
-                        const isActive = activeSection === section.id || selectedSection === section.id;
-                        const isOnThisPage = currentPage?._id === page._id;
-                        
-                        return {
-                          ...section,
-                          pageId: page._id,
-                          pageName: page.pageName,
-                          isOnThisPage,
-                          sectionName,
-                          navType,
-                          isActive
-                        };
-                      })
-                  ).map((sectionData) => (
-                      <button
-                        key={`${sectionData.pageId}-${sectionData.id}`}
-                        onClick={() => {
-                          if (sectionData.navType === 'page' && sectionData.navTarget) {
-                            // Navigate to another page
-                            const targetPage = pages.find(p => p.slug === sectionData.navTarget);
-                            if (targetPage) {
-                              handlePageSwitch(targetPage);
-                              toast.success(`Navigating to ${targetPage.pageName}`);
-                            } else {
-                              toast.error(`Page "${sectionData.navTarget}" not found`);
-                            }
-                          } else {
-                            // If section is on a different page, switch to that page first
-                            if (!sectionData.isOnThisPage) {
-                              const targetPage = pages.find(p => p._id === sectionData.pageId);
-                              if (targetPage) {
-                                handlePageSwitch(targetPage).then(() => {
-                                  // After switching, scroll to the section
-                                  setTimeout(() => {
-                                    setSelectedSection(sectionData.id);
-                                    setActiveSection(sectionData.id);
+                  {/* For each page: show its sections first, then the page name */}
+                  {pages
+                    .filter(page => page.settings?.showInNavbar !== false)
+                    .flatMap((page) => {
+                      const navItems = [];
+                      
+                      // Add all sections for this page
+                      const pageSections = (page.sections || [])
+                        .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
+                        .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
+                        .map((section, visibleIndex) => {
+                          const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
+                          const navType = section.navType || 'section';
+                          const isActive = activeSection === section.id || selectedSection === section.id;
+                          const isOnThisPage = currentPage?._id === page._id;
+                          
+                          return (
+                            <button
+                              key={`${page._id}-${section.id}`}
+                              onClick={() => {
+                                if (navType === 'page' && section.navTarget) {
+                                  // Navigate to another page
+                                  const targetPage = pages.find(p => p.slug === section.navTarget);
+                                  if (targetPage) {
+                                    handlePageSwitch(targetPage);
+                                    toast.success(`Navigating to ${targetPage.pageName}`);
+                                  } else {
+                                    toast.error(`Page "${section.navTarget}" not found`);
+                                  }
+                                } else {
+                                  // If section is on a different page, switch to that page first
+                                  if (!isOnThisPage) {
+                                    const targetPage = pages.find(p => p._id === page._id);
+                                    if (targetPage) {
+                                      handlePageSwitch(targetPage).then(() => {
+                                        // After switching, scroll to the section
+                                        setTimeout(() => {
+                                          setSelectedSection(section.id);
+                                          setActiveSection(section.id);
+                                          setSelectedComponent(null);
+                                          
+                                          const sectionElement = document.getElementById(`section-${section.id}`);
+                                          if (sectionElement) {
+                                            sectionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                          }
+                                        }, 300);
+                                      });
+                                    }
+                                  } else {
+                                    // Section is on current page, just scroll
+                                    setSelectedSection(section.id);
+                                    setActiveSection(section.id);
                                     setSelectedComponent(null);
                                     
-                                    const sectionElement = document.getElementById(`section-${sectionData.id}`);
+                                    const sectionElement = document.getElementById(`section-${section.id}`);
                                     if (sectionElement) {
                                       sectionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                     }
-                                  }, 300);
-                                });
-                              }
-                            } else {
-                              // Section is on current page, just scroll
-                              setSelectedSection(sectionData.id);
-                              setActiveSection(sectionData.id);
-                              setSelectedComponent(null);
-                              
-                              const sectionElement = document.getElementById(`section-${sectionData.id}`);
-                              if (sectionElement) {
-                                sectionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                              }
-                            }
-                          }
-                        }}
-                        className="text-sm font-medium transition-colors pb-1"
-                        style={{
-                          color: sectionData.isActive ? getThemeColors().primary : getThemeColors().text,
-                          borderBottom: sectionData.isActive ? `2px solid ${getThemeColors().primary}` : 'none',
-                          opacity: sectionData.isActive ? 1 : 0.7,
-                          fontFamily: `'${getThemeFonts().body}', sans-serif`
-                        }}
-                      >
-                        {sectionData.sectionName}
-                      </button>
-                    ))
-                  }
-                  
-                  {/* Show pages after sections */}
-                  {pages
-                    .filter(page => {
-                      // Only filter by showInNavbar setting, don't hide Home
-                      if (page.settings?.showInNavbar === false) return false;
-                      return true;
+                                  }
+                                }
+                              }}
+                              className="text-sm font-medium transition-colors pb-1"
+                              style={{
+                                color: isActive ? getThemeColors().primary : getThemeColors().text,
+                                borderBottom: isActive ? `2px solid ${getThemeColors().primary}` : 'none',
+                                opacity: isActive ? 1 : 0.7,
+                                fontFamily: `'${getThemeFonts().body}', sans-serif`
+                              }}
+                            >
+                              {sectionName}
+                            </button>
+                          );
+                        });
+                      
+                      navItems.push(...pageSections);
+                      
+                      // Add the page name button
+                      navItems.push(
+                        <button
+                          key={page._id}
+                          onClick={() => handlePageSwitch(page)}
+                          className="text-sm font-medium transition-colors pb-1"
+                          style={{
+                            color: currentPage?._id === page._id ? getThemeColors().primary : getThemeColors().text,
+                            borderBottom: currentPage?._id === page._id ? `2px solid ${getThemeColors().primary}` : 'none',
+                            opacity: currentPage?._id === page._id ? 1 : 0.7,
+                            fontFamily: `'${getThemeFonts().body}', sans-serif`
+                          }}
+                        >
+                          {page.pageName}
+                        </button>
+                      );
+                      
+                      return navItems;
                     })
-                    .map((page) => (
-                      <button
-                        key={page._id}
-                        onClick={() => handlePageSwitch(page)}
-                        className="text-sm font-medium transition-colors pb-1"
-                        style={{
-                          color: currentPage?._id === page._id ? getThemeColors().primary : getThemeColors().text,
-                          borderBottom: currentPage?._id === page._id ? `2px solid ${getThemeColors().primary}` : 'none',
-                          opacity: currentPage?._id === page._id ? 1 : 0.7,
-                          fontFamily: `'${getThemeFonts().body}', sans-serif`
-                        }}
-                      >
-                        {page.pageName}
-                      </button>
-                    ))
                   }
                 </nav>
               </div>
@@ -2878,30 +2872,40 @@ export default function EditorPage() {
               <div className="bg-white p-3 rounded shadow-sm flex items-center justify-center gap-6">
                 <div className="font-bold text-lg text-gray-900">{site?.siteName || 'Logo'}</div>
                 <div className="flex gap-4">
-                  {/* Show sections from ALL pages */}
-                  {pages.flatMap(page => 
-                    (page.sections || [])
-                      .filter(s => !s.components?.some((c: any) => c.type === 'footer'))
-                      .filter(s => s.showInNavbar !== false)
-                      .map((section, index) => (
-                        <div
-                          key={`${page._id}-${section.id}`}
-                          className="text-sm text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
-                        >
-                          {section.sectionName || `Section ${index + 1}`}
-                        </div>
-                      ))
-                  )}
+                  {/* For each page: show its sections first, then page name */}
                   {pages
                     .filter(p => p.settings?.showInNavbar !== false)
-                    .map((page) => (
-                      <div
-                        key={page._id}
-                        className="text-sm text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
-                      >
-                        {page.pageName}
-                      </div>
-                    ))}
+                    .flatMap(page => {
+                      const items = [];
+                      
+                      // Add page sections
+                      const pageSections = (page.sections || [])
+                        .filter(s => !s.components?.some((c: any) => c.type === 'footer'))
+                        .filter(s => s.showInNavbar !== false)
+                        .map((section, index) => (
+                          <div
+                            key={`${page._id}-${section.id}`}
+                            className="text-sm text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
+                          >
+                            {section.sectionName || `Section ${index + 1}`}
+                          </div>
+                        ));
+                      
+                      items.push(...pageSections);
+                      
+                      // Add page name
+                      items.push(
+                        <div
+                          key={page._id}
+                          className="text-sm text-gray-700 hover:text-blue-600 cursor-pointer transition-colors font-semibold"
+                        >
+                          {page.pageName}
+                        </div>
+                      );
+                      
+                      return items;
+                    })
+                  }
                 </div>
               </div>
             </div>

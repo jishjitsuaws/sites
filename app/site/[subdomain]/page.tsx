@@ -1286,91 +1286,84 @@ export default function PublishedSitePage() {
               )}
             </div>
             
-            {/* Desktop Navigation - Sections from ALL pages first, then Pages */}
+            {/* Desktop Navigation - Each page's sections followed by page name */}
             <nav className="hidden md:flex gap-4 lg:gap-6">
-              {/* Show sections from ALL pages */}
-              {pages.flatMap(page => 
-                (page.sections || [])
-                  .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
-                  .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
-                  .map((section, visibleIndex) => {
-                    const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
-                    const navType = (section as any).navType || 'section';
-                    const navTarget = (section as any).navTarget;
-                    const isActive = activeSection === section.id;
-                    const isOnThisPage = currentPage?._id === page._id;
-                    
-                    return {
-                      ...section,
-                      pageId: page._id,
-                      pageName: page.pageName,
-                      isOnThisPage,
-                      sectionName,
-                      navType,
-                      navTarget,
-                      isActive
-                    };
-                  })
-              ).map((sectionData) => (
-                  <button
-                    key={`${sectionData.pageId}-${sectionData.id}`}
-                    onClick={() => {
-                      if (sectionData.navType === 'page' && sectionData.navTarget) {
-                        // Navigate to another page
-                        const targetPage = pages.find(p => p.slug === sectionData.navTarget);
-                        if (targetPage) {
-                          setCurrentPage(targetPage);
-                        }
-                      } else {
-                        // If section is on a different page, switch to that page first
-                        if (!sectionData.isOnThisPage) {
-                          const targetPage = pages.find(p => p._id === sectionData.pageId);
-                          if (targetPage) {
-                            setCurrentPage(targetPage);
-                            // After switching, scroll to the section
-                            setTimeout(() => {
-                              scrollToSection(sectionData.id);
-                            }, 300);
-                          }
-                        } else {
-                          // Section is on current page, just scroll
-                          scrollToSection(sectionData.id);
-                        }
-                      }
-                    }}
-                    className="text-sm lg:text-base font-medium transition-colors pb-2"
-                    style={{
-                      color: sectionData.isActive ? themeColors.primary : themeColors.text,
-                      borderBottom: sectionData.isActive ? `2px solid ${themeColors.primary}` : 'none',
-                      opacity: sectionData.isActive ? 1 : 0.7
-                    }}
-                  >
-                    {sectionData.sectionName}
-                  </button>
-                ))
-              }
-              
-              {/* Show pages after sections */}
+              {/* For each page: show its sections first, then the page name */}
               {pages
-                .filter(page => {
-                  // Only filter by showInNavbar setting
-                  if ((page as any).settings?.showInNavbar === false) return false;
-                  return true;
+                .filter(page => (page as any).settings?.showInNavbar !== false)
+                .flatMap((page) => {
+                  const navItems = [];
+                  
+                  // Add all sections for this page
+                  const pageSections = (page.sections || [])
+                    .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
+                    .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
+                    .map((section, visibleIndex) => {
+                      const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
+                      const navType = (section as any).navType || 'section';
+                      const navTarget = (section as any).navTarget;
+                      const isActive = activeSection === section.id;
+                      const isOnThisPage = currentPage?._id === page._id;
+                      
+                      return (
+                        <button
+                          key={`${page._id}-${section.id}`}
+                          onClick={() => {
+                            if (navType === 'page' && navTarget) {
+                              // Navigate to another page
+                              const targetPage = pages.find(p => p.slug === navTarget);
+                              if (targetPage) {
+                                setCurrentPage(targetPage);
+                              }
+                            } else {
+                              // If section is on a different page, switch to that page first
+                              if (!isOnThisPage) {
+                                const targetPage = pages.find(p => p._id === page._id);
+                                if (targetPage) {
+                                  setCurrentPage(targetPage);
+                                  // After switching, scroll to the section
+                                  setTimeout(() => {
+                                    scrollToSection(section.id);
+                                  }, 300);
+                                }
+                              } else {
+                                // Section is on current page, just scroll
+                                scrollToSection(section.id);
+                              }
+                            }
+                          }}
+                          className="text-sm lg:text-base font-medium transition-colors pb-2"
+                          style={{
+                            color: isActive ? themeColors.primary : themeColors.text,
+                            borderBottom: isActive ? `2px solid ${themeColors.primary}` : 'none',
+                            opacity: isActive ? 1 : 0.7
+                          }}
+                        >
+                          {sectionName}
+                        </button>
+                      );
+                    });
+                  
+                  navItems.push(...pageSections);
+                  
+                  // Add the page name button
+                  navItems.push(
+                    <button
+                      key={page._id}
+                      onClick={() => setCurrentPage(page)}
+                      className="text-base font-medium transition-colors pb-2"
+                      style={{
+                        color: currentPage._id === page._id ? themeColors.primary : themeColors.text,
+                        borderBottom: currentPage._id === page._id ? `2px solid ${themeColors.primary}` : 'none',
+                        opacity: currentPage._id === page._id ? 1 : 0.7
+                      }}
+                    >
+                      {page.pageName}
+                    </button>
+                  );
+                  
+                  return navItems;
                 })
-                .map((page) => (
-                  <button
-                    key={page._id}
-                    onClick={() => setCurrentPage(page)}
-                    className="text-base font-medium transition-colors pb-2"
-                    style={{
-                      color: currentPage._id === page._id ? themeColors.primary : themeColors.text,
-                      borderBottom: currentPage._id === page._id ? `2px solid ${themeColors.primary}` : 'none',
-                      opacity: currentPage._id === page._id ? 1 : 0.7
-                    }}
-                  >
-                    {page.pageName}
-                  </button>
-                ))
               }
             </nav>
           </div>
@@ -1379,76 +1372,83 @@ export default function PublishedSitePage() {
           {mobileMenuOpen && (
             <div className="md:hidden mt-4 py-4 border-t" style={{ borderColor: themeColors.primary }}>
               <nav className="flex flex-col gap-3">
-                {/* Sections from all pages */}
-                {pages.flatMap(page => 
-                  (page.sections || [])
-                    .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
-                    .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
-                    .map((section, index) => {
-                      const sectionName = section.sectionName || `Section ${index + 1}`;
-                      const navType = (section as any).navType || 'section';
-                      const navTarget = (section as any).navTarget;
-                      const isOnThisPage = currentPage?._id === page._id;
-                      
-                      return (
-                        <button
-                          key={`${page._id}-${section.id}`}
-                          onClick={() => {
-                            if (navType === 'page' && navTarget) {
-                              const targetPage = pages.find(p => p.slug === navTarget);
-                              if (targetPage) {
-                                setCurrentPage(targetPage);
-                                setMobileMenuOpen(false);
-                              }
-                            } else {
-                              if (!isOnThisPage) {
-                                const targetPage = pages.find(p => p._id === page._id);
-                                if (targetPage) {
-                                  setCurrentPage(targetPage);
-                                  setTimeout(() => {
-                                    scrollToSection(section.id);
-                                    setMobileMenuOpen(false);
-                                  }, 300);
-                                }
-                              } else {
-                                scrollToSection(section.id);
-                                setMobileMenuOpen(false);
-                              }
-                            }
-                          }}
-                          className="text-left px-4 py-2 rounded-lg transition-colors"
-                          style={{
-                            backgroundColor: activeSection === section.id ? `${themeColors.primary}15` : 'transparent',
-                            color: activeSection === section.id ? themeColors.primary : themeColors.text,
-                            fontWeight: activeSection === section.id ? '600' : '400'
-                          }}
-                        >
-                          {sectionName}
-                        </button>
-                      );
-                    })
-                )}
-                
-                {/* Pages */}
+                {/* For each page: show its sections first, then the page name */}
                 {pages
                   .filter(page => (page as any).settings?.showInNavbar !== false)
-                  .map((page) => (
-                    <button
-                      key={page._id}
-                      onClick={() => {
-                        setCurrentPage(page);
-                        setMobileMenuOpen(false);
-                      }}
-                      className="text-left px-4 py-2 rounded-lg transition-colors"
-                      style={{
-                        backgroundColor: currentPage._id === page._id ? `${themeColors.primary}15` : 'transparent',
-                        color: currentPage._id === page._id ? themeColors.primary : themeColors.text,
-                        fontWeight: currentPage._id === page._id ? '600' : '400'
-                      }}
-                    >
-                      {page.pageName}
-                    </button>
-                  ))
+                  .flatMap((page) => {
+                    const navItems = [];
+                    
+                    // Add all sections for this page
+                    const pageSections = (page.sections || [])
+                      .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
+                      .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
+                      .map((section, index) => {
+                        const sectionName = section.sectionName || `Section ${index + 1}`;
+                        const navType = (section as any).navType || 'section';
+                        const navTarget = (section as any).navTarget;
+                        const isOnThisPage = currentPage?._id === page._id;
+                        
+                        return (
+                          <button
+                            key={`${page._id}-${section.id}`}
+                            onClick={() => {
+                              if (navType === 'page' && navTarget) {
+                                const targetPage = pages.find(p => p.slug === navTarget);
+                                if (targetPage) {
+                                  setCurrentPage(targetPage);
+                                  setMobileMenuOpen(false);
+                                }
+                              } else {
+                                if (!isOnThisPage) {
+                                  const targetPage = pages.find(p => p._id === page._id);
+                                  if (targetPage) {
+                                    setCurrentPage(targetPage);
+                                    setTimeout(() => {
+                                      scrollToSection(section.id);
+                                      setMobileMenuOpen(false);
+                                    }, 300);
+                                  }
+                                } else {
+                                  scrollToSection(section.id);
+                                  setMobileMenuOpen(false);
+                                }
+                              }
+                            }}
+                            className="text-left px-4 py-2 rounded-lg transition-colors"
+                            style={{
+                              backgroundColor: activeSection === section.id ? `${themeColors.primary}15` : 'transparent',
+                              color: activeSection === section.id ? themeColors.primary : themeColors.text,
+                              fontWeight: activeSection === section.id ? '600' : '400'
+                            }}
+                          >
+                            {sectionName}
+                          </button>
+                        );
+                      });
+                    
+                    navItems.push(...pageSections);
+                    
+                    // Add the page name button
+                    navItems.push(
+                      <button
+                        key={page._id}
+                        onClick={() => {
+                          setCurrentPage(page);
+                          setMobileMenuOpen(false);
+                        }}
+                        className="text-left px-4 py-2 rounded-lg transition-colors"
+                        style={{
+                          backgroundColor: currentPage._id === page._id ? `${themeColors.primary}15` : 'transparent',
+                          color: currentPage._id === page._id ? themeColors.primary : themeColors.text,
+                          fontWeight: currentPage._id === page._id ? '600' : '400'
+                        }}
+                      >
+                        {page.pageName}
+                      </button>
+                    );
+                    
+                    return navItems;
+                  })
                 }
               </nav>
             </div>
