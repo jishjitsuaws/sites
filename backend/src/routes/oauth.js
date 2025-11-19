@@ -571,7 +571,7 @@ router.post('/refresh', async (req, res) => {
     
     // Exchange refresh token with OAuth provider
     // IVP ISEA endpoint: POST /oauth/token with grant_type=refresh_token
-    const tokenUrl = `${OAUTH_BASE_URL}/oauth/token`;
+    const tokenUrl = `${OAUTH_BASE_URL}/tokengen`;
     console.log('[OAuth] Token URL:', tokenUrl);
     
     const tokenResponse = await axiosInstance.post(

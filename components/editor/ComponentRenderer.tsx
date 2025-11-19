@@ -848,7 +848,8 @@ export default function ComponentRenderer({
       {component.type === 'button' && (
         <div style={{ 
           textAlign: component.props.align || 'center',
-          position: 'relative'
+          position: 'relative',
+          minHeight: isSelected ? '100px' : 'auto', // Add space for toolbar
         }}>
           <div className="inline-block relative" style={{ zIndex: isSelected ? 10 : 'auto' }}>
             {/* Inline Button Controls with Text and Color Editing */}
@@ -856,12 +857,13 @@ export default function ComponentRenderer({
               <div 
                 className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
                 style={{
-                  bottom: 'calc(100% + 12px)',
+                  bottom: '100%',
                   left: '50%',
                   transform: 'translateX(-50%)',
                   zIndex: 1000,
                   minWidth: '800px',
                   maxWidth: '90vw',
+                  marginBottom: '8px',
                 }}
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}

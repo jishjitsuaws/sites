@@ -1170,11 +1170,12 @@ export default function PublishedSitePage() {
                 
                 {component.props.subheading && (
                   <p 
-                    className="text-lg md:text-xl mb-6 max-w-2xl"
+                    className="text-lg md:text-xl mb-6 max-w-2xl mx-auto text-center"
                     style={{ 
                       fontFamily: `'${themeFonts.body}', sans-serif`,
                       color: component.props.textColor || '#ffffff',
                       opacity: 0.9,
+                      textAlign: 'center',
                     }}
                   >
                     {component.props.subheading}
@@ -1213,11 +1214,12 @@ export default function PublishedSitePage() {
                 
                 {component.props.subheading && (
                   <p 
-                    className="text-lg md:text-xl mb-6"
+                    className="text-lg md:text-xl mb-6 mx-auto text-center"
                     style={{ 
                       fontFamily: `'${themeFonts.body}', sans-serif`,
                       color: component.props.textColor || '#ffffff',
                       opacity: 0.9,
+                      textAlign: 'center',
                     }}
                   >
                     {component.props.subheading}
@@ -1291,9 +1293,22 @@ export default function PublishedSitePage() {
       >
         <div className="container mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Mobile: Single page - centered site name */}
+            {/* Mobile: Single page - centered site name and logo */}
             {pages.length === 1 && (
-              <div className="md:hidden flex-1 flex justify-center">
+              <div className="md:hidden flex-1 flex flex-col items-center justify-center gap-2">
+                {/* Custom Site Logo - if exists */}
+                {site.logo && (
+                  <img 
+                    src={site.logo} 
+                    alt={`${site.siteName} Logo`}
+                    style={{
+                      height: '40px',
+                      width: 'auto',
+                      maxWidth: site.logoWidth || '150px',
+                      objectFit: 'contain'
+                    }}
+                  />
+                )}
                 <h1 
                   className="text-lg font-bold"
                   style={{ color: themeColors.primary }}
@@ -1306,18 +1321,34 @@ export default function PublishedSitePage() {
             {/* Mobile: Multi-page - logo left, site name center, hamburger right */}
             {pages.length > 1 && (
               <div className="md:hidden flex items-center justify-between w-full gap-3">
-                {/* ISEA Logo - Always displayed (immutable) */}
-                <img 
-                  src="/3.png" 
-                  alt="ISEA Logo"
-                  style={{ 
-                    height: '40px',
-                    width: 'auto',
-                    objectFit: 'contain'
-                  }}
-                />
+                {/* Left side: ISEA Logo + Custom Logo */}
+                <div className="flex items-center gap-2">
+                  <img 
+                    src="/3.png" 
+                    alt="ISEA Logo"
+                    style={{ 
+                      height: '40px',
+                      width: 'auto',
+                      objectFit: 'contain'
+                    }}
+                  />
+                  
+                  {/* Custom Site Logo - if exists */}
+                  {site.logo && (
+                    <img 
+                      src={site.logo} 
+                      alt={`${site.siteName} Logo`}
+                      style={{
+                        height: '32px',
+                        width: 'auto',
+                        maxWidth: site.logoWidth || '120px',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  )}
+                </div>
                 
-                {/* Site Name - Always centered (show logo separately if exists) */}
+                {/* Site Name - Always centered */}
                 <div className="flex-1 flex items-center justify-center">
                   <h1 
                     className="text-lg font-bold"
@@ -1362,6 +1393,20 @@ export default function PublishedSitePage() {
                   objectFit: 'contain'
                 }}
               />
+              
+              {/* Custom Site Logo - if exists */}
+              {site.logo && (
+                <img 
+                  src={site.logo} 
+                  alt={`${site.siteName} Logo`}
+                  style={{
+                    height: '40px',
+                    width: 'auto',
+                    maxWidth: site.logoWidth || '150px',
+                    objectFit: 'contain'
+                  }}
+                />
+              )}
               
               {/* Site Name - Always shown */}
               <h1 
