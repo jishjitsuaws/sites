@@ -20,7 +20,11 @@ export default function LogoModal({
   currentWidth = '120px' 
 }: LogoModalProps) {
   const [logo, setLogo] = useState(currentLogo);
-  const [logoWidth, setLogoWidth] = useState(currentWidth);
+  // Parse the width value, removing 'px' if present
+  const [logoWidth, setLogoWidth] = useState(() => {
+    const numericValue = parseInt(currentWidth) || 120;
+    return `${numericValue}px`;
+  });
   const [uploading, setUploading] = useState(false);
 
   if (!isOpen) return null;

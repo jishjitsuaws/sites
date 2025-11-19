@@ -1115,6 +1115,131 @@ export default function PublishedSitePage() {
           />
         );
 
+      case 'banner':
+        const hasTextContent = component.props.heading || component.props.subheading || component.props.buttonText;
+        const inferredSubType = component.subType || (hasTextContent ? 'banner-full' : 'banner-minimal');
+        const isTextBanner = inferredSubType === 'banner-full';
+        
+        return (
+          <div 
+            className="relative w-full flex flex-col items-center justify-center"
+            style={{
+              backgroundColor: component.props.backgroundColor || themeColors.primary,
+              paddingTop: component.props.backgroundImage ? '0' : '80px',
+              paddingBottom: component.props.backgroundImage ? '0' : '80px',
+              color: component.props.textColor || '#ffffff',
+            }}
+          >
+            {/* Background image layer */}
+            {component.props.backgroundImage && (
+              <img
+                src={component.props.backgroundImage}
+                alt="Banner background"
+                className="w-full h-auto block"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  height: 'auto',
+                  pointerEvents: 'none',
+                  zIndex: 0,
+                }}
+              />
+            )}
+            
+            {/* Content overlay when there's an image - for text banners */}
+            {isTextBanner && component.props.backgroundImage && (
+              <div 
+                className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 md:px-8"
+                style={{ 
+                  padding: '40px 20px',
+                  zIndex: 1,
+                }}
+              >
+                {component.props.heading && (
+                  <h1 
+                    className="text-3xl md:text-5xl font-bold mb-4"
+                    style={{ 
+                      fontFamily: `'${themeFonts.heading}', sans-serif`,
+                      color: component.props.textColor || '#ffffff',
+                    }}
+                  >
+                    {component.props.heading}
+                  </h1>
+                )}
+                
+                {component.props.subheading && (
+                  <p 
+                    className="text-lg md:text-xl mb-6 max-w-2xl"
+                    style={{ 
+                      fontFamily: `'${themeFonts.body}', sans-serif`,
+                      color: component.props.textColor || '#ffffff',
+                      opacity: 0.9,
+                    }}
+                  >
+                    {component.props.subheading}
+                  </p>
+                )}
+                
+                {component.props.buttonText && (
+                  <a
+                    href={component.props.buttonLink || '#'}
+                    className="inline-block px-6 py-3 rounded-lg font-medium transition-all hover:opacity-90"
+                    style={{
+                      backgroundColor: '#ffffff',
+                      color: component.props.backgroundColor || themeColors.primary,
+                    }}
+                  >
+                    {component.props.buttonText}
+                  </a>
+                )}
+              </div>
+            )}
+            
+            {/* Content when there's NO image OR for minimal banners */}
+            {(!component.props.backgroundImage || !isTextBanner) && isTextBanner && (
+              <div className="w-full max-w-4xl text-center px-4 md:px-8">
+                {component.props.heading && (
+                  <h1 
+                    className="text-3xl md:text-5xl font-bold mb-4"
+                    style={{ 
+                      fontFamily: `'${themeFonts.heading}', sans-serif`,
+                      color: component.props.textColor || '#ffffff',
+                    }}
+                  >
+                    {component.props.heading}
+                  </h1>
+                )}
+                
+                {component.props.subheading && (
+                  <p 
+                    className="text-lg md:text-xl mb-6"
+                    style={{ 
+                      fontFamily: `'${themeFonts.body}', sans-serif`,
+                      color: component.props.textColor || '#ffffff',
+                      opacity: 0.9,
+                    }}
+                  >
+                    {component.props.subheading}
+                  </p>
+                )}
+                
+                {component.props.buttonText && (
+                  <a
+                    href={component.props.buttonLink || '#'}
+                    className="inline-block px-6 py-3 rounded-lg font-medium transition-all hover:opacity-90"
+                    style={{
+                      backgroundColor: '#ffffff',
+                      color: component.props.backgroundColor || themeColors.primary,
+                    }}
+                  >
+                    {component.props.buttonText}
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
       default:
         return null;
     }
@@ -1190,22 +1315,22 @@ export default function PublishedSitePage() {
               </div>
             )}
 
-            {/* Mobile: Multi-page - logo left, hamburger right */}
+            {/* Mobile: Multi-page - logo left, site name center, hamburger right */}
             {pages.length > 1 && (
-              <>
-                <div className="md:hidden flex items-center gap-3">
-                  {/* ISEA Logo - Always displayed (immutable) */}
-                  <img 
-                    src="/3.png" 
-                    alt="ISEA Logo"
-                    style={{ 
-                      height: '40px',
-                      width: 'auto',
-                      objectFit: 'contain'
-                    }}
-                  />
-                  
-                  {/* Site Logo or Name */}
+              <div className="md:hidden flex items-center justify-between w-full gap-3">
+                {/* ISEA Logo - Always displayed (immutable) */}
+                <img 
+                  src="/3.png" 
+                  alt="ISEA Logo"
+                  style={{ 
+                    height: '40px',
+                    width: 'auto',
+                    objectFit: 'contain'
+                  }}
+                />
+                
+                {/* Site Logo or Name - Centered */}
+                <div className="flex-1 flex items-center justify-center">
                   {site.logo ? (
                     <img 
                       src={site.logo} 
@@ -1229,7 +1354,7 @@ export default function PublishedSitePage() {
                 
                 {/* Hamburger Menu Button */}
                 <button
-                  className="md:hidden p-2"
+                  className="p-2"
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   aria-label="Toggle menu"
                 >
@@ -1247,7 +1372,7 @@ export default function PublishedSitePage() {
                     )}
                   </svg>
                 </button>
-              </>
+              </div>
             )}
 
             {/* Desktop Logo/Title */}
@@ -1582,11 +1707,11 @@ export default function PublishedSitePage() {
         )}
       </main>
 
-      {/* Render Footer from page sections if available, otherwise show default */}
-      {currentPage && currentPage.sections ? (
-        // Find and render footer section
-        currentPage.sections
-          .filter((section: any) => section.components?.some((c: any) => c.type === 'footer'))
+      {/* Render Footer from any page's sections, prioritizing current page */}
+      {(() => {
+        // First, try to find footer in current page
+        const currentPageFooter = currentPage?.sections
+          ?.filter((section: any) => section.components?.some((c: any) => c.type === 'footer'))
           .map((footerSection: any) => {
             const footerComponent = footerSection.components.find((c: any) => c.type === 'footer');
             return footerComponent ? (
@@ -1594,45 +1719,33 @@ export default function PublishedSitePage() {
                 {renderComponent(footerComponent)}
               </div>
             ) : null;
-          })
-      ) : (
-        // Default hardcoded footer (fallback)
-        <footer 
-          style={{
-            backgroundColor: '#1f2937',
-            color: '#ffffff',
-            padding: '3rem 0',
-          }}
-        >
-          <div className="container mx-auto px-4 md:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div>
-                <h3 className="text-xl font-bold mb-4">Your Company</h3>
-                <p className="text-gray-300">Building amazing experiences for our customers.</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">Quick Links</h4>
-                <ul className="space-y-2 text-gray-300">
-                  <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Services</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">Connect</h4>
-                <ul className="space-y-2 text-gray-300">
-                  <li><a href="#" className="hover:text-white transition-colors">Twitter</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">LinkedIn</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Facebook</a></li>
-                </ul>
-              </div>
-            </div>
-            <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-              <p>© 2024 Your Company. All rights reserved.</p>
-            </div>
-          </div>
-        </footer>
-      )}
+          })[0];
+        
+        if (currentPageFooter) {
+          return currentPageFooter;
+        }
+        
+        // If no footer in current page, look in all pages (usually Home page has the footer)
+        for (const page of pages) {
+          const pageFooter = page.sections
+            ?.filter((section: any) => section.components?.some((c: any) => c.type === 'footer'))
+            .map((footerSection: any) => {
+              const footerComponent = footerSection.components.find((c: any) => c.type === 'footer');
+              return footerComponent ? (
+                <div key={footerSection.id}>
+                  {renderComponent(footerComponent)}
+                </div>
+              ) : null;
+            })[0];
+          
+          if (pageFooter) {
+            return pageFooter;
+          }
+        }
+        
+        // No footer found in any page - don't show default footer
+        return null;
+      })()}
       </div>
     </>
   );
