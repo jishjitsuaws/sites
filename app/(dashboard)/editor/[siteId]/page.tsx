@@ -2024,7 +2024,7 @@ export default function EditorPage() {
                 
                 {/* Unified Navigation - Sections first, then Pages (amalgamation) */}
                 <nav className="flex gap-4">
-                  {/* Always show sections first */}
+                  {/* Always show sections first from current page */}
                   {sections
                     .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
                     .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
@@ -2065,9 +2065,9 @@ export default function EditorPage() {
                     })
                   }
                   
-                  {/* Show pages after sections if multiple pages exist */}
+                  {/* Always show ALL pages (regardless of which page we're on) */}
                   {/* Hide Home page when sections are shown in navbar */}
-                  {pages.length > 1 && pages
+                  {pages
                     .filter(page => {
                       // Filter out pages with showInNavbar = false
                       if (page.settings?.showInNavbar === false) return false;
