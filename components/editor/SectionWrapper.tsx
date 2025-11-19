@@ -14,7 +14,6 @@ interface Component {
 interface Section {
   id: string;
   sectionName?: string;
-  showInNavbar?: boolean;
   components: Component[];
   layout: {
     direction: 'row' | 'column';
@@ -252,22 +251,6 @@ export default function SectionWrapper({
                   placeholder="e.g., Home, About, Features"
                   className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-gray-900"
                 />
-              </div>
-              
-              <div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={section.showInNavbar !== false}
-                    onChange={(e) =>
-                      onUpdate({
-                        showInNavbar: e.target.checked,
-                      })
-                    }
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                  <span className="text-xs font-medium text-gray-700">Show in Navbar</span>
-                </label>
               </div>
               
               <div>

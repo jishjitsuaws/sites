@@ -1280,7 +1280,7 @@ export default function PublishedSitePage() {
             
             {/* Desktop Navigation - Sections first, then Pages (amalgamation) */}
             <nav className="hidden md:flex gap-4 lg:gap-6">
-              {/* Show sections first from current page */}
+              {/* Show sections first */}
               {currentPage?.sections && currentPage.sections.length > 0 && (
                 currentPage.sections
                   .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
@@ -1319,14 +1319,14 @@ export default function PublishedSitePage() {
                   })
               )}
               
-              {/* Always show ALL pages (regardless of which page we're on) */}
+              {/* Show pages after sections if multiple pages exist */}
               {/* Hide Home page when sections are shown in navbar */}
-              {pages
+              {pages.length > 1 && pages
                 .filter(page => {
                   // Filter out pages with showInNavbar = false
                   if ((page as any).settings?.showInNavbar === false) return false;
                   
-                  // Check if there are any sections shown in navbar on current page
+                  // Check if there are any sections shown in navbar
                   const hasSectionsInNavbar = (currentPage?.sections || []).some(section => 
                     (section.showInNavbar === true || section.showInNavbar === undefined)
                   );
