@@ -22,15 +22,6 @@ export default function ComponentsPanel({
     <div className="pt-4 px-1">
       {/* Individual Components Section */}
       <div className="pb-4">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-            <Plus className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900">Components</h3>
-            <p className="text-xs text-gray-500">Build your page</p>
-          </div>
-        </div>
         <div className="grid grid-cols-2 gap-2.5">
           {insertComponentTypes.map((component) => {
             // Assign gradient colors based on component type
