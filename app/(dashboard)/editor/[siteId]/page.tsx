@@ -206,7 +206,7 @@ export default function EditorPage() {
         if (!current && lastPassed) current = lastPassed;
         if (!current && sections.length > 0) current = sections[0].id;
 
-        if (current && current !== activeSection) {
+        if (current) {
           setActiveSection(current);
         }
 
@@ -220,7 +220,7 @@ export default function EditorPage() {
     return () => {
       container.removeEventListener('scroll', handleScroll as any);
     };
-  }, [currentPage, sections, activeSection]);
+  }, [currentPage, sections]);
 
   const fetchSiteData = async () => {
     try {
@@ -2844,21 +2844,32 @@ export default function EditorPage() {
                         {section.sectionName || `Section ${index + 1}`}
                       </div>
                     ))}
+                  {pages
+                    .filter(p => p.settings?.showInNavbar !== false)
+                    .map((page) => (
+                      <div
+                        key={page._id}
+                        className="text-sm text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
+                      >
+                        {page.pageName}
+                      </div>
+                    ))}
                 </div>
               </div>
             </div>
 
-            {/* Grid of Navigation Cards */}
+            {/* Grid of Navigation Cards - Sections + Pages */}
             <div 
               className="grid gap-4 mb-6"
               style={{
-                gridTemplateColumns: sections.length <= 4 
+                gridTemplateColumns: (sections.length + pages.length) <= 4 
                   ? 'repeat(2, 1fr)' 
-                  : sections.length <= 9 
+                  : (sections.length + pages.length) <= 9 
                   ? 'repeat(3, 1fr)' 
                   : 'repeat(4, 1fr)'
               }}
             >
+              {/* Section Cards */}
               {sections.map((section, index) => (
                 <div 
                   key={section.id} 
@@ -2947,6 +2958,79 @@ export default function EditorPage() {
                       </select>
                     </div>
                   )}
+                </div>
+              ))}
+
+              {/* Page Cards */}
+              {pages.map((page, index) => (
+                <div 
+                  key={page._id} 
+                  className="p-4 border-2 border-green-200 rounded-lg hover:border-green-400 transition-colors bg-green-50"
+                >
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="shrink-0 w-7 h-7 bg-green-100 text-green-600 rounded-full flex items-center justify-center font-semibold text-xs">
+                        P{index + 1}
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={page.settings?.showInNavbar !== false}
+                          onChange={async (e) => {
+                            try {
+                              await api.put(`/pages/${page._id}`, {
+                                settings: {
+                                  showInNavbar: e.target.checked,
+                                }
+                              });
+                              
+                              const updatedPages = pages.map(p => 
+                                p._id === page._id 
+                                  ? { 
+                                      ...p, 
+                                      settings: { 
+                                        ...p.settings, 
+                                        showInNavbar: e.target.checked 
+                                      } 
+                                    } 
+                                  : p
+                              );
+                              setPages(updatedPages);
+                            } catch (err: any) {
+                              toast.error('Failed to update page visibility');
+                            }
+                          }}
+                          className="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                        />
+                        <span className="text-xs font-semibold text-gray-600">Show</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Page Name (read-only in navbar settings) */}
+                  <div className="mb-3">
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Page Name</label>
+                    <div className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded bg-gray-50 text-gray-900">
+                      {page.pageName}
+                    </div>
+                  </div>
+
+                  {/* Route Display */}
+                  <div className="mb-3">
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Route</label>
+                    <div className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded bg-gray-50 text-gray-900 font-mono">
+                      {page.isHome ? '/' : `/${page.slug}`}
+                    </div>
+                  </div>
+
+                  {/* Type Label */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Type</label>
+                    <div className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded inline-block">
+                      Page
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

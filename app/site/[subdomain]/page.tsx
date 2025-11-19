@@ -283,6 +283,14 @@ export default function PublishedSitePage() {
     }
   }, [subdomain]);
 
+  // Reset scroll and activeSection when page changes
+  useEffect(() => {
+    if (currentPage) {
+      window.scrollTo({ top: 0 });
+      setActiveSection('');
+    }
+  }, [currentPage?._id]);
+
   const fetchSite = async () => {
     try {
       setLoading(true);
@@ -331,9 +339,9 @@ export default function PublishedSitePage() {
     }
   };
 
-  // Scrollspy effect for single-page sites
+  // Scrollspy effect for section highlighting
   useEffect(() => {
-    if (!currentPage || !currentPage.sections || pages.length > 1) return;
+    if (!currentPage || !currentPage.sections) return;
 
     let ticking = false;
     
@@ -372,7 +380,7 @@ export default function PublishedSitePage() {
             current = sections[0].id;
           }
 
-          if (current && current !== activeSection) {
+          if (current) {
             setActiveSection(current);
           }
           
@@ -386,7 +394,7 @@ export default function PublishedSitePage() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll(); // Initial check
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [currentPage, pages.length, activeSection]);
+  }, [currentPage]);
 
   // Scroll to section
   const scrollToSection = (sectionId: string) => {
