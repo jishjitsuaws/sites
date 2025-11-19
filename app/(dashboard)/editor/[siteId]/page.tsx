@@ -198,11 +198,9 @@ export default function EditorPage() {
         if (firstPage) {
           setCurrentPage(firstPage);
           
-          console.log('[Editor] First page loaded:', firstPage.pageName);
-          console.log('[Editor] Page sections:', firstPage.sections);
-          console.log('[Editor] Sections count:', firstPage.sections?.length || 0);
-          console.log('[Editor] Sections is array?', Array.isArray(firstPage.sections));
-          console.log('[Editor] Sections value:', JSON.stringify(firstPage.sections));
+          console.log('[LOAD] First page loaded:', firstPage.pageName);
+          console.log('[LOAD] Page sections:', JSON.stringify(firstPage.sections, null, 2));
+          console.log('[LOAD] Sections count:', firstPage.sections?.length || 0);
           
           // ALWAYS prioritize sections if they exist
           if (firstPage.sections && firstPage.sections.length > 0) {
@@ -425,8 +423,8 @@ export default function EditorPage() {
 
     setSaving(true);
     try {
-      console.log('Saving page:', currentPage._id);
-      console.log('Current sections:', sections);
+      console.log('[SAVE] Saving page:', currentPage._id);
+      console.log('[SAVE] Current sections:', JSON.stringify(sections, null, 2));
       
       // Clean up and format sections for saving
       const cleanedSections = sections.map(section => ({
@@ -2130,9 +2128,11 @@ export default function EditorPage() {
                       onShowTextToolbar={(componentId, rect) => {
                         const component = section.components.find(c => c.id === componentId);
                         if (component) {
-                          // Close component selection/toolbar when text toolbar opens
-                          setSelectedComponent(null);
-                          setSelectedSection(null);
+                          // Don't close selection for banner/footer - they need to stay selected for contentEditable
+                          if (component.type !== 'banner' && component.type !== 'footer') {
+                            setSelectedComponent(null);
+                            setSelectedSection(null);
+                          }
                           setToolbarPosition({ x: rect.left, y: rect.top });
                           setShowTextToolbar(true);
                         }
@@ -2265,9 +2265,7 @@ export default function EditorPage() {
                               setShowImageModal(true);
                             }}
                             onShowTextToolbar={(position) => {
-                              // Close component selection/toolbar when text toolbar opens
-                              setSelectedComponent(null);
-                              setSelectedSection(null);
+                              // Don't close selection for footer - it needs to stay selected for contentEditable
                               setToolbarPosition(position);
                               setShowTextToolbar(true);
                             }}
