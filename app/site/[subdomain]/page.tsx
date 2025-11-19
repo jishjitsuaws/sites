@@ -206,6 +206,7 @@ function PublishedCarousel({ component }: any) {
 interface Component {
   id: string;
   type: string;
+  subType?: string;
   props: any;
 }
 
