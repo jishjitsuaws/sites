@@ -1278,30 +1278,11 @@ export default function PublishedSitePage() {
               )}
             </div>
             
-            {/* Desktop Multi-page navigation */}
-            {pages.length > 1 && (
-              <nav className="hidden md:flex gap-6">
-                {pages.map((page) => (
-                  <button
-                    key={page._id}
-                    onClick={() => setCurrentPage(page)}
-                    className="text-base font-medium transition-colors pb-2"
-                    style={{
-                      color: currentPage._id === page._id ? themeColors.primary : themeColors.text,
-                      borderBottom: currentPage._id === page._id ? `2px solid ${themeColors.primary}` : 'none',
-                      opacity: currentPage._id === page._id ? 1 : 0.7
-                    }}
-                  >
-                    {page.pageName}
-                  </button>
-                ))}
-              </nav>
-            )}
-            
-            {/* Desktop Single-page section navigation (scrollspy) */}
-            {pages.length === 1 && currentPage?.sections && currentPage.sections.length > 0 && (
-              <nav className="hidden md:flex gap-4 lg:gap-6">
-                {currentPage.sections
+            {/* Desktop Navigation - Sections first, then Pages (amalgamation) */}
+            <nav className="hidden md:flex gap-4 lg:gap-6">
+              {/* Show sections first */}
+              {currentPage?.sections && currentPage.sections.length > 0 && (
+                currentPage.sections
                   .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
                   .map((section) => {
                     const visibleSections = (currentPage.sections || []).filter(s => s.showInNavbar === true || s.showInNavbar === undefined);
@@ -1335,9 +1316,25 @@ export default function PublishedSitePage() {
                         {sectionName}
                       </button>
                     );
-                  })}
-              </nav>
-            )}
+                  })
+              )}
+              
+              {/* Show pages after sections if multiple pages exist */}
+              {pages.length > 1 && pages.map((page) => (
+                <button
+                  key={page._id}
+                  onClick={() => setCurrentPage(page)}
+                  className="text-base font-medium transition-colors pb-2"
+                  style={{
+                    color: currentPage._id === page._id ? themeColors.primary : themeColors.text,
+                    borderBottom: currentPage._id === page._id ? `2px solid ${themeColors.primary}` : 'none',
+                    opacity: currentPage._id === page._id ? 1 : 0.7
+                  }}
+                >
+                  {page.pageName}
+                </button>
+              ))}
+            </nav>
           </div>
 
           {/* Mobile Menu Dropdown */}

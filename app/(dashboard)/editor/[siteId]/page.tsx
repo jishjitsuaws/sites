@@ -2019,26 +2019,9 @@ export default function EditorPage() {
                   )}
                 </div>
                 
-                {/* Unified Navigation - Pages AND Sections (amalgamation) */}
+                {/* Unified Navigation - Sections first, then Pages (amalgamation) */}
                 <nav className="flex gap-4">
-                  {/* Always show pages if multiple pages exist */}
-                  {pages.length > 1 && pages.map((page) => (
-                    <button
-                      key={page._id}
-                      onClick={() => handlePageSwitch(page)}
-                      className="text-sm font-medium transition-colors pb-1"
-                      style={{
-                        color: currentPage?._id === page._id ? getThemeColors().primary : getThemeColors().text,
-                        borderBottom: currentPage?._id === page._id ? `2px solid ${getThemeColors().primary}` : 'none',
-                        opacity: currentPage?._id === page._id ? 1 : 0.7,
-                        fontFamily: `'${getThemeFonts().body}', sans-serif`
-                      }}
-                    >
-                      {page.pageName}
-                    </button>
-                  ))}
-                  
-                  {/* Always show sections that should appear in navbar */}
+                  {/* Always show sections first */}
                   {sections
                     .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
                     .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
@@ -2078,6 +2061,23 @@ export default function EditorPage() {
                       );
                     })
                   }
+                  
+                  {/* Show pages after sections if multiple pages exist */}
+                  {pages.length > 1 && pages.map((page) => (
+                    <button
+                      key={page._id}
+                      onClick={() => handlePageSwitch(page)}
+                      className="text-sm font-medium transition-colors pb-1"
+                      style={{
+                        color: currentPage?._id === page._id ? getThemeColors().primary : getThemeColors().text,
+                        borderBottom: currentPage?._id === page._id ? `2px solid ${getThemeColors().primary}` : 'none',
+                        opacity: currentPage?._id === page._id ? 1 : 0.7,
+                        fontFamily: `'${getThemeFonts().body}', sans-serif`
+                      }}
+                    >
+                      {page.pageName}
+                    </button>
+                  ))}
                 </nav>
               </div>
             </div>
