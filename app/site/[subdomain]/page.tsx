@@ -973,8 +973,8 @@ export default function PublishedSitePage() {
           >
             <div className="max-w-7xl mx-auto px-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
-                {/* Left: C-DAC Hyderabad Address */}
-                <div>
+                {/* Left: C-DAC Hyderabad Address - Centered on mobile, left on desktop */}
+                <div className="text-center md:text-left">
                   <h3 className="text-base font-bold mb-3" style={{ fontFamily: `'${themeFonts.heading}', sans-serif` }}>
                     CDAC Hyderabad
                   </h3>
@@ -983,7 +983,7 @@ export default function PublishedSitePage() {
                   </h3>
                 </div>
 
-                {/* Center: Social Network Links */}
+                {/* Center: Social Network Links - Always centered */}
                 <div className="text-center">
                   <h3 className="text-base font-bold mb-3" style={{ fontFamily: `'${themeFonts.heading}', sans-serif` }}>
                     Our Social Network
@@ -1034,12 +1034,12 @@ export default function PublishedSitePage() {
                   </div>
                 </div>
 
-                {/* Right: Supported By Logos */}
-                <div className="text-right">
+                {/* Right: Supported By Logos - Centered on mobile, right on desktop */}
+                <div className="text-center md:text-right">
                   <h3 className="text-base font-bold mb-3" style={{ fontFamily: `'${themeFonts.heading}', sans-serif` }}>
                     Supported By
                   </h3>
-                  <div className="flex justify-end items-center gap-4">
+                  <div className="flex justify-center md:justify-end items-center gap-4">
                     <img 
                       src="/3.png" 
                       alt="ISEA Logo"
@@ -1330,27 +1330,14 @@ export default function PublishedSitePage() {
                   }}
                 />
                 
-                {/* Site Logo or Name - Centered */}
+                {/* Site Name - Always centered (show logo separately if exists) */}
                 <div className="flex-1 flex items-center justify-center">
-                  {site.logo ? (
-                    <img 
-                      src={site.logo} 
-                      alt={site.siteName}
-                      style={{
-                        height: '32px',
-                        width: 'auto',
-                        maxWidth: site.logoWidth || '150px',
-                        objectFit: 'contain'
-                      }}
-                    />
-                  ) : (
-                    <h1 
-                      className="text-lg font-bold"
-                      style={{ color: themeColors.primary }}
-                    >
-                      {site.siteName}
-                    </h1>
-                  )}
+                  <h1 
+                    className="text-lg font-bold"
+                    style={{ color: themeColors.primary }}
+                  >
+                    {site.siteName}
+                  </h1>
                 </div>
                 
                 {/* Hamburger Menu Button */}
