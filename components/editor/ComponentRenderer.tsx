@@ -855,15 +855,14 @@ export default function ComponentRenderer({
             {/* Inline Button Controls with Text and Color Editing */}
             {isSelected && (
               <div 
-                className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
+                className="fixed bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
                 style={{
-                  bottom: '100%',
+                  top: '50%',
                   left: '50%',
-                  transform: 'translateX(-50%)',
+                  transform: 'translate(-50%, -50%)',
                   zIndex: 1000,
                   minWidth: '800px',
                   maxWidth: '90vw',
-                  marginBottom: '8px',
                 }}
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
@@ -2771,15 +2770,14 @@ export default function ComponentRenderer({
                   {/* Banner Button Inline Toolbar */}
                   {isSelected && (
                     <div 
-                      className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
+                      className="fixed bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
                       style={{
-                        bottom: '100%',
+                        top: '50%',
                         left: '50%',
-                        transform: 'translateX(-50%)',
+                        transform: 'translate(-50%, -50%)',
                         zIndex: 1000,
                         minWidth: '600px',
                         maxWidth: '90vw',
-                        marginBottom: '8px',
                       }}
                       onClick={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}

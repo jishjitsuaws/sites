@@ -20,12 +20,10 @@ export default function LogoModal({
   currentWidth = '120px' 
 }: LogoModalProps) {
   const [logo, setLogo] = useState(currentLogo);
-  // Parse the width value, removing 'px' if present
-  const [logoWidth, setLogoWidth] = useState(() => {
-    const numericValue = parseInt(currentWidth) || 120;
-    return `${numericValue}px`;
-  });
   const [uploading, setUploading] = useState(false);
+  
+  // Use original uploaded logo dimensions
+  const logoWidth = 'auto';
 
   if (!isOpen) return null;
 
@@ -79,7 +77,7 @@ export default function LogoModal({
               <img 
                 src={logo} 
                 alt="Logo preview" 
-                style={{ width: logoWidth, maxWidth: '100%' }}
+                style={{ maxWidth: '100%', maxHeight: '120px' }}
                 className="mx-auto"
               />
             </div>
@@ -117,24 +115,6 @@ export default function LogoModal({
                 Remove
               </button>
             )}
-          </div>
-        </div>
-
-        {/* Logo Width */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Logo Width
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="range"
-              min="60"
-              max="300"
-              value={parseInt(logoWidth)}
-              onChange={(e) => setLogoWidth(`${e.target.value}px`)}
-              className="flex-1"
-            />
-            <span className="text-sm text-gray-600 w-16 text-right">{logoWidth}</span>
           </div>
         </div>
 

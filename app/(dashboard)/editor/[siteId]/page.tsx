@@ -2250,11 +2250,7 @@ export default function EditorPage() {
                       onShowTextToolbar={(componentId, rect) => {
                         const component = section.components.find(c => c.id === componentId);
                         if (component) {
-                          // Don't close selection for banner/footer - they need to stay selected for contentEditable
-                          if (component.type !== 'banner' && component.type !== 'footer') {
-                            setSelectedComponent(null);
-                            setSelectedSection(null);
-                          }
+                          setSelectedComponent(component);
                           setToolbarPosition({ x: rect.left, y: rect.top });
                           setShowTextToolbar(true);
                         }
