@@ -258,7 +258,7 @@ export default function SectionWrapper({
                 <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
                   <input
                     type="checkbox"
-                    checked={(section as any).showInNavbar !== false}
+                    checked={(section as any).showInNavbar === true}
                     onChange={(e) =>
                       onUpdate({
                         showInNavbar: e.target.checked,

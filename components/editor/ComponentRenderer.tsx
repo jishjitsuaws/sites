@@ -289,71 +289,107 @@ export default function ComponentRenderer({
           textAlign: component.props.align,
           position: 'relative'
         }}>
-          <div
-            className="outline-none cursor-text min-h-[1.5em] inline-block relative"
-            style={{
-              fontSize: component.props.fontSize || 16,
-              fontFamily: `'${component.props.fontFamily || themeFonts.body}', sans-serif`,
-              fontWeight: component.props.bold ? 'bold' : 'normal',
-              fontStyle: component.props.italic ? 'italic' : 'normal',
-              textDecoration: component.props.underline ? 'underline' : 'none',
-              color: component.props.color || themeColors.text,
-              minWidth: '100px',
-              maxWidth: component.props.width || '100%',
-              width: component.props.width || 'auto',
-              textAlign: component.props.align,
-              border: component.props.borderWidth 
-                ? `${component.props.borderWidth}px ${component.props.borderStyle || 'solid'} ${component.props.borderColor || '#000000'}` 
-                : 'none',
-              borderRadius: component.props.borderRadius ? `${component.props.borderRadius}px` : '0',
-              padding: component.props.borderWidth ? '8px 12px' : '0',
-            }}
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={(e) => {
-              const rawText = e.currentTarget.textContent || '';
-              const newText = sanitizeText(rawText);
-              if (newText !== component.props.text) {
-                onUpdateComponent(component.id, {
-                  ...component,
-                  props: { ...component.props, text: newText }
-                });
-              }
-            }}
-            onFocus={(e) => {
-              // Select component first if not already selected
-              if (!isSelected) {
-                onComponentClick(component, e as any);
-              }
-              
-              setSelectedComponent(component);
-              const element = e.currentTarget as HTMLElement;
-              const rect = element.getBoundingClientRect();
-              
-              // Use absolute screen coordinates for fixed positioning
-              const absoluteRect = {
-                x: rect.left,
-                y: rect.top,
-                left: rect.left,
-                top: rect.top,
-                right: rect.right,
-                bottom: rect.bottom,
-                width: rect.width,
-                height: rect.height,
-                toJSON: () => ({})
-              } as DOMRect;
-              onShowTextToolbar(absoluteRect);
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              // Also select component on click
-              if (!isSelected) {
-                onComponentClick(component, e);
-              }
-            }}
-          >
-            {component.props.text}
-          </div>
+          {/* Wrap in anchor tag if link exists and not in editor mode */}
+          {component.props.link && !isSelected ? (
+            <a
+              href={component.props.link}
+              target={component.props.link.startsWith('http') ? '_blank' : '_self'}
+              rel={component.props.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+              style={{
+                textDecoration: 'none',
+                color: 'inherit',
+              }}
+            >
+              <div
+                className="outline-none cursor-pointer min-h-[1.5em] inline-block relative"
+                style={{
+                  fontSize: component.props.fontSize || 16,
+                  fontFamily: `'${component.props.fontFamily || themeFonts.body}', sans-serif`,
+                  fontWeight: component.props.bold ? 'bold' : 'normal',
+                  fontStyle: component.props.italic ? 'italic' : 'normal',
+                  textDecoration: component.props.underline ? 'underline' : 'none',
+                  color: component.props.color || themeColors.text,
+                  minWidth: '100px',
+                  maxWidth: component.props.width || '100%',
+                  width: component.props.width || 'auto',
+                  textAlign: component.props.align,
+                  border: component.props.borderWidth 
+                    ? `${component.props.borderWidth}px ${component.props.borderStyle || 'solid'} ${component.props.borderColor || '#000000'}` 
+                    : 'none',
+                  borderRadius: component.props.borderRadius ? `${component.props.borderRadius}px` : '0',
+                  padding: component.props.borderWidth ? '8px 12px' : '0',
+                }}
+              >
+                {component.props.text}
+              </div>
+            </a>
+          ) : (
+            <div
+              className="outline-none cursor-text min-h-[1.5em] inline-block relative"
+              style={{
+                fontSize: component.props.fontSize || 16,
+                fontFamily: `'${component.props.fontFamily || themeFonts.body}', sans-serif`,
+                fontWeight: component.props.bold ? 'bold' : 'normal',
+                fontStyle: component.props.italic ? 'italic' : 'normal',
+                textDecoration: component.props.underline ? 'underline' : 'none',
+                color: component.props.color || themeColors.text,
+                minWidth: '100px',
+                maxWidth: component.props.width || '100%',
+                width: component.props.width || 'auto',
+                textAlign: component.props.align,
+                border: component.props.borderWidth 
+                  ? `${component.props.borderWidth}px ${component.props.borderStyle || 'solid'} ${component.props.borderColor || '#000000'}` 
+                  : 'none',
+                borderRadius: component.props.borderRadius ? `${component.props.borderRadius}px` : '0',
+                padding: component.props.borderWidth ? '8px 12px' : '0',
+              }}
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => {
+                const rawText = e.currentTarget.textContent || '';
+                const newText = sanitizeText(rawText);
+                if (newText !== component.props.text) {
+                  onUpdateComponent(component.id, {
+                    ...component,
+                    props: { ...component.props, text: newText }
+                  });
+                }
+              }}
+              onFocus={(e) => {
+                // Select component first if not already selected
+                if (!isSelected) {
+                  onComponentClick(component, e as any);
+                }
+                
+                setSelectedComponent(component);
+                const element = e.currentTarget as HTMLElement;
+                const rect = element.getBoundingClientRect();
+                
+                // Use absolute screen coordinates for fixed positioning
+                const absoluteRect = {
+                  x: rect.left,
+                  y: rect.top,
+                  left: rect.left,
+                  top: rect.top,
+                  right: rect.right,
+                  bottom: rect.bottom,
+                  width: rect.width,
+                  height: rect.height,
+                  toJSON: () => ({})
+                } as DOMRect;
+                onShowTextToolbar(absoluteRect);
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                // Also select component on click
+                if (!isSelected) {
+                  onComponentClick(component, e);
+                }
+              }}
+            >
+              {component.props.text}
+            </div>
+          )}
           
           {/* Resize Handles for Text - Corner dots */}
           {isSelected && (
@@ -757,17 +793,37 @@ export default function ComponentRenderer({
                   maxWidth: '100%',
                 }}
               >
-                <img
-                  src={getImageUrl(component.props.src)}
-                  alt={component.props.alt || ''}
-                  className="w-full rounded"
-                  style={{
-                    objectFit: 'contain',
-                    width: '100%',
-                    height: 'auto',
-                    pointerEvents: isSelected ? 'none' : 'auto', // Disable clicks when selected to allow dragging
-                  }}
-                />
+                {/* Wrap in anchor tag if link exists and not in editor mode */}
+                {component.props.link && !isSelected ? (
+                  <a
+                    href={component.props.link}
+                    target={component.props.link.startsWith('http') ? '_blank' : '_self'}
+                    rel={component.props.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  >
+                    <img
+                      src={getImageUrl(component.props.src)}
+                      alt={component.props.alt || ''}
+                      className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity"
+                      style={{
+                        objectFit: 'contain',
+                        width: '100%',
+                        height: 'auto',
+                      }}
+                    />
+                  </a>
+                ) : (
+                  <img
+                    src={getImageUrl(component.props.src)}
+                    alt={component.props.alt || ''}
+                    className="w-full rounded"
+                    style={{
+                      objectFit: 'contain',
+                      width: '100%',
+                      height: 'auto',
+                      pointerEvents: isSelected ? 'none' : 'auto', // Disable clicks when selected to allow dragging
+                    }}
+                  />
+                )}
                 
                 {/* Resize Handle - Full surface draggable like video */}
                 {isSelected && (
@@ -1436,7 +1492,10 @@ export default function ComponentRenderer({
           )}
 
           {/* Social Icons Grid */}
-          <div className="flex gap-4 items-center justify-center py-8 min-w-[400px]">
+          <div 
+            className="flex items-center justify-center py-8 min-w-[400px]"
+            style={{ gap: `${component.props.iconGap || 16}px` }}
+          >
             {/* Show placeholder if no URLs are set */}
             {!component.props.instagramUrl && 
              !component.props.facebookUrl && 
@@ -2573,7 +2632,7 @@ export default function ComponentRenderer({
           )}
           
           {/* Content overlay when there's an image - for text banners */}
-          {isTextBanner && component.props.backgroundImage && (
+          {isTextBanner && component.props.backgroundImage && (component.props.heading !== null || component.props.subheading !== null || component.props.buttonText !== null) && (
             <div 
               className="absolute inset-0 flex flex-col items-center justify-center text-center"
               style={{ 
@@ -2582,7 +2641,7 @@ export default function ComponentRenderer({
               }}
             >
               {/* Heading with inline controls */}
-              {true && (
+              {(component.props.heading !== null && component.props.heading !== undefined) && (
                 <div className="relative group/heading" style={{ zIndex: 2, width: '100%', maxWidth: '1200px' }}>
                   {isSelected && (
                     <button
@@ -2590,7 +2649,7 @@ export default function ComponentRenderer({
                         e.stopPropagation();
                         onUpdateComponent(component.id, {
                           ...component,
-                          props: { ...component.props, heading: "" }
+                          props: { ...component.props, heading: null }
                         });
                       }}
                       className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-100 transition-all shadow-lg"
@@ -2604,23 +2663,28 @@ export default function ComponentRenderer({
                     contentEditable={true}
                     suppressContentEditableWarning
                     onBlur={(e) => {
-                      const rawText = e.currentTarget.textContent || '';
-                      const newHeading = sanitizeText(rawText);
-                      if (newHeading !== component.props.heading) {
+                      const newHeading = e.currentTarget.textContent || '';
+                      if (newHeading !== component.props.heading && newHeading.trim() !== '') {
                         onUpdateComponent(component.id, {
                           ...component,
                           props: { ...component.props, heading: newHeading }
                         });
+                      } else if (newHeading.trim() === '') {
+                        // If empty, set to null to show placeholder
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, heading: null }
+                        });
                       }
                     }}
                     onFocus={(e) => {
-                      // Select component first if not already selected
-                      if (!isSelected) {
-                        onComponentClick(component, e as any);
+                      // Clear placeholder text on focus if it's the placeholder
+                      const element = e.currentTarget as HTMLElement;
+                      if (element.textContent === 'Add heading...' || !component.props.heading) {
+                        element.textContent = '';
                       }
                       
-                      setSelectedComponent(component);
-                      const element = e.currentTarget as HTMLElement;
+                      // Show text toolbar for banner text editing
                       const rect = element.getBoundingClientRect();
                       
                       // Use absolute screen coordinates for text toolbar positioning
@@ -2637,7 +2701,6 @@ export default function ComponentRenderer({
                       } as DOMRect;
                       onShowTextToolbar(absoluteRect);
                     }}
-                    onClick={(e) => e.stopPropagation()}
                     className="text-5xl font-bold mb-4 outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
                     style={{ 
                       fontFamily: `'${themeFonts.heading}', sans-serif`,
@@ -2653,7 +2716,7 @@ export default function ComponentRenderer({
               )}
               
               {/* Subheading with inline controls */}
-              {true && (
+              {(component.props.subheading !== null && component.props.subheading !== undefined) && (
                 <div className="relative group/subheading" style={{ zIndex: 2, width: '100%', maxWidth: '800px' }}>
                   {isSelected && (
                     <button
@@ -2661,7 +2724,7 @@ export default function ComponentRenderer({
                         e.stopPropagation();
                         onUpdateComponent(component.id, {
                           ...component,
-                          props: { ...component.props, subheading: "" }
+                          props: { ...component.props, subheading: null }
                         });
                       }}
                       className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-100 transition-all shadow-lg"
@@ -2675,23 +2738,28 @@ export default function ComponentRenderer({
                     contentEditable={true}
                     suppressContentEditableWarning
                     onBlur={(e) => {
-                      const rawText = e.currentTarget.textContent || '';
-                      const newSubheading = sanitizeText(rawText);
-                      if (newSubheading !== component.props.subheading) {
+                      const newSubheading = e.currentTarget.textContent || '';
+                      if (newSubheading !== component.props.subheading && newSubheading.trim() !== '') {
                         onUpdateComponent(component.id, {
                           ...component,
                           props: { ...component.props, subheading: newSubheading }
                         });
+                      } else if (newSubheading.trim() === '') {
+                        // If empty, set to null to show placeholder
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, subheading: null }
+                        });
                       }
                     }}
                     onFocus={(e) => {
-                      // Select component first if not already selected
-                      if (!isSelected) {
-                        onComponentClick(component, e as any);
+                      // Clear placeholder text on focus if it's the placeholder
+                      const element = e.currentTarget as HTMLElement;
+                      if (element.textContent === 'Add subheading...' || !component.props.subheading) {
+                        element.textContent = '';
                       }
                       
-                      setSelectedComponent(component);
-                      const element = e.currentTarget as HTMLElement;
+                      // Show text toolbar for banner subheading editing
                       const rect = element.getBoundingClientRect();
                       
                       // Use absolute screen coordinates for text toolbar positioning
@@ -2726,7 +2794,7 @@ export default function ComponentRenderer({
               )}
               
               {/* Button with inline toolbar - like regular button component */}
-              {true && (
+              {(component.props.buttonText !== null && component.props.buttonText !== undefined) && (
                 <div className="relative group/button inline-block" style={{ zIndex: 2, minHeight: isSelected ? '100px' : 'auto' }}>
                   {/* Banner Button Inline Toolbar */}
                   {isSelected && (
@@ -2794,7 +2862,7 @@ export default function ComponentRenderer({
                           e.stopPropagation();
                           onUpdateComponent(component.id, {
                             ...component,
-                            props: { ...component.props, buttonText: "", buttonLink: "" }
+                            props: { ...component.props, buttonText: null, buttonLink: null }
                           });
                         }}
                         className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
@@ -2848,7 +2916,7 @@ export default function ComponentRenderer({
               {/* Add component buttons when selected and elements are deleted - for text banners */}
               {isSelected && isTextBanner && (
                 <div className="mt-6 flex gap-2 flex-wrap justify-center" style={{ zIndex: 2 }}>
-                  {!component.props.heading && (
+                  {(component.props.heading === null || component.props.heading === undefined) && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -2863,7 +2931,7 @@ export default function ComponentRenderer({
                       Add Heading
                     </button>
                   )}
-                  {!component.props.subheading && (
+                  {(component.props.subheading === null || component.props.subheading === undefined) && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -2878,7 +2946,7 @@ export default function ComponentRenderer({
                       Add Subheading
                     </button>
                   )}
-                  {!component.props.buttonText && (
+                  {(component.props.buttonText === null || component.props.buttonText === undefined) && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

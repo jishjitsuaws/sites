@@ -1799,33 +1799,8 @@ export default function EditorPage() {
 
   // Generate Google Fonts URL for editor
   const themeFonts = getThemeFonts();
-  
-  // Include all fonts available in the TextEditor component
-  const availableFonts = [
-    themeFonts.heading,
-    themeFonts.body,
-    'Inter',
-    'Roboto',
-    'Open Sans',
-    'Lato',
-    'Montserrat',
-    'Playfair Display',
-    'Poppins',
-    'Source Sans Pro',
-    'Nunito',
-    'Raleway',
-    'Ubuntu',
-    'Merriweather',
-    'Oswald',
-    'PT Sans',
-    'Slabo 27px',
-    'Crimson Pro',
-    'Libre Baskerville'
-  ];
-  
-  const fontFamilies = availableFonts
+  const fontFamilies = [themeFonts.heading, themeFonts.body]
     .filter((font, index, self) => self.indexOf(font) === index) // Remove duplicates
-    .filter(font => !['Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Courier New', 'Verdana'].includes(font)) // Exclude system fonts
     .map(font => font.replace(/ /g, '+'))
     .join('&family=');
   const googleFontsUrl = `https://fonts.googleapis.com/css2?family=${fontFamilies}&display=swap`;
@@ -2061,7 +2036,7 @@ export default function EditorPage() {
                       // Add all sections for this page
                       const pageSections = (page.sections || [])
                         .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
-                        .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
+                        .filter(section => section.showInNavbar === true)
                         .map((section, visibleIndex) => {
                           const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
                           const navType = section.navType || 'section';
@@ -2827,7 +2802,7 @@ export default function EditorPage() {
                       // Add page sections
                       const pageSections = (page.sections || [])
                         .filter(s => !s.components?.some((c: any) => c.type === 'footer'))
-                        .filter(s => s.showInNavbar !== false)
+                        .filter(s => s.showInNavbar === true)
                         .map((section, index) => (
                           <div
                             key={`${page._id}-${section.id}`}
@@ -2902,7 +2877,7 @@ export default function EditorPage() {
                               <label className="flex items-center gap-2 cursor-pointer">
                                 <input
                                   type="checkbox"
-                                  checked={section.showInNavbar === true || section.showInNavbar === undefined}
+                                  checked={section.showInNavbar === true}
                                   onChange={async (e) => {
                                     // Update section in the page
                                     const updatedSections = page.sections?.map(s => 

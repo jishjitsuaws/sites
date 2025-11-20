@@ -1254,32 +1254,8 @@ export default function PublishedSitePage() {
   const themeFonts = getThemeFonts();
 
   // Generate Google Fonts URL
-  // Include all fonts that might be used in components
-  const availableFonts = [
-    themeFonts.heading,
-    themeFonts.body,
-    'Inter',
-    'Roboto',
-    'Open Sans',
-    'Lato',
-    'Montserrat',
-    'Playfair Display',
-    'Poppins',
-    'Source Sans Pro',
-    'Nunito',
-    'Raleway',
-    'Ubuntu',
-    'Merriweather',
-    'Oswald',
-    'PT Sans',
-    'Slabo 27px',
-    'Crimson Pro',
-    'Libre Baskerville'
-  ];
-  
-  const fontFamilies = availableFonts
+  const fontFamilies = [themeFonts.heading, themeFonts.body]
     .filter((font, index, self) => self.indexOf(font) === index) // Remove duplicates
-    .filter(font => !['Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Courier New', 'Verdana'].includes(font)) // Exclude system fonts
     .map(font => font.replace(/ /g, '+'))
     .join('&family=');
   const googleFontsUrl = `https://fonts.googleapis.com/css2?family=${fontFamilies}&display=swap`;
@@ -1443,7 +1419,7 @@ export default function PublishedSitePage() {
                   // Add all sections for this page
                   const pageSections = (page.sections || [])
                     .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
-                    .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
+                    .filter(section => section.showInNavbar === true)
                     .map((section, visibleIndex) => {
                       const sectionName = section.sectionName || `Section ${visibleIndex + 1}`;
                       const navType = (section as any).navType || 'section';
@@ -1527,7 +1503,7 @@ export default function PublishedSitePage() {
                     // Add all sections for this page
                     const pageSections = (page.sections || [])
                       .filter(section => !section.components?.some((c: any) => c.type === 'footer'))
-                      .filter(section => section.showInNavbar === true || section.showInNavbar === undefined)
+                      .filter(section => section.showInNavbar === true)
                       .map((section, index) => {
                         const sectionName = section.sectionName || `Section ${index + 1}`;
                         const navType = (section as any).navType || 'section';

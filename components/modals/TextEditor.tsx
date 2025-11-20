@@ -49,6 +49,7 @@ export default function TextEditorToolbar({
   const [borderColor, setBorderColor] = useState(component.props.borderColor || '#000000');
   const [borderStyle, setBorderStyle] = useState(component.props.borderStyle || 'solid');
   const [borderRadius, setBorderRadius] = useState(component.props.borderRadius || 0);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   const toolbarRef = useRef<HTMLDivElement>(null);
 
@@ -245,67 +246,15 @@ export default function TextEditorToolbar({
 
         <div className="w-px h-6 bg-gray-300"></div>
 
-        {/* Border Options */}
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-600">Border:</label>
-          <input
-            type="number"
-            value={borderWidth}
-            onChange={(e) => {
-              const width = parseInt(e.target.value) || 0;
-              setBorderWidth(width);
-              updateProps({ borderWidth: width, borderColor, borderStyle, borderRadius });
-            }}
-            min="0"
-            max="20"
-            className="w-12 px-2 py-1 border border-gray-300 rounded text-xs"
-            title="Border Width (px)"
-          />
-          <span className="text-xs text-gray-500">px</span>
-          
-          {borderWidth > 0 && (
-            <>
-              <select
-                value={borderStyle}
-                onChange={(e) => {
-                  setBorderStyle(e.target.value);
-                  updateProps({ borderWidth, borderColor, borderStyle: e.target.value, borderRadius });
-                }}
-                className="px-2 py-1 border border-gray-300 rounded text-xs"
-              >
-                <option value="solid">Solid</option>
-                <option value="dashed">Dashed</option>
-                <option value="dotted">Dotted</option>
-              </select>
-              
-              <input
-                type="color"
-                value={borderColor}
-                onChange={(e) => {
-                  setBorderColor(e.target.value);
-                  updateProps({ borderWidth, borderColor: e.target.value, borderStyle, borderRadius });
-                }}
-                className="w-6 h-6 border border-gray-300 rounded cursor-pointer"
-                title="Border Color"
-              />
-              
-              <input
-                type="number"
-                value={borderRadius}
-                onChange={(e) => {
-                  const radius = parseInt(e.target.value) || 0;
-                  setBorderRadius(radius);
-                  updateProps({ borderWidth, borderColor, borderStyle, borderRadius: radius });
-                }}
-                min="0"
-                max="50"
-                placeholder="Radius"
-                className="w-12 px-2 py-1 border border-gray-300 rounded text-xs"
-                title="Border Radius (px)"
-              />
-            </>
-          )}
-        </div>
+        {/* Advanced Options Toggle */}
+        <button
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+          className={`px-2 py-1.5 rounded text-xs hover:bg-gray-100 transition-colors ${showAdvancedOptions ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+          title="Advanced Options"
+        >
+          More
+        </button>
 
         <div className="w-px h-6 bg-gray-300"></div>
 
@@ -377,6 +326,82 @@ export default function TextEditorToolbar({
           </button>
         )}
       </div>
+
+      {/* Advanced Options (shown when More button is clicked) */}
+      {showAdvancedOptions && (
+        <div className="mt-3 pt-3 border-t border-gray-200">
+          <label className="block text-xs font-medium text-gray-700 mb-2">Border & Styling</label>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1">
+              <label className="text-xs text-gray-600">Width:</label>
+              <input
+                type="number"
+                value={borderWidth}
+                onChange={(e) => {
+                  const width = parseInt(e.target.value) || 0;
+                  setBorderWidth(width);
+                  updateProps({ borderWidth: width, borderColor, borderStyle, borderRadius });
+                }}
+                min="0"
+                max="20"
+                className="w-12 px-2 py-1 border border-gray-300 rounded text-xs"
+                title="Border Width (px)"
+              />
+              <span className="text-xs text-gray-500">px</span>
+            </div>
+            
+            {borderWidth > 0 && (
+              <>
+                <select
+                  value={borderStyle}
+                  onChange={(e) => {
+                    setBorderStyle(e.target.value);
+                    updateProps({ borderWidth, borderColor, borderStyle: e.target.value, borderRadius });
+                  }}
+                  className="px-2 py-1 border border-gray-300 rounded text-xs"
+                >
+                  <option value="solid">Solid</option>
+                  <option value="dashed">Dashed</option>
+                  <option value="dotted">Dotted</option>
+                </select>
+                
+                <div className="flex items-center gap-1">
+                  <label className="text-xs text-gray-600">Color:</label>
+                  <input
+                    type="color"
+                    value={borderColor}
+                    onChange={(e) => {
+                      setBorderColor(e.target.value);
+                      updateProps({ borderWidth, borderColor: e.target.value, borderStyle, borderRadius });
+                    }}
+                    className="w-6 h-6 border border-gray-300 rounded cursor-pointer"
+                    title="Border Color"
+                  />
+                </div>
+              </>
+            )}
+            
+            <div className="flex items-center gap-1">
+              <label className="text-xs text-gray-600">Radius:</label>
+              <input
+                type="number"
+                value={borderRadius}
+                onChange={(e) => {
+                  const radius = parseInt(e.target.value) || 0;
+                  setBorderRadius(radius);
+                  updateProps({ borderWidth, borderColor, borderStyle, borderRadius: radius });
+                }}
+                min="0"
+                max="50"
+                placeholder="0"
+                className="w-12 px-2 py-1 border border-gray-300 rounded text-xs"
+                title="Border Radius (px)"
+              />
+              <span className="text-xs text-gray-500">px</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Link Input (shown when link button is clicked) */}
       {showLinkInput && (

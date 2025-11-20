@@ -55,7 +55,7 @@ const sectionSchema = new mongoose.Schema({
   title: { type: String, default: '' },
   subtitle: { type: String, default: '' },
   sectionName: { type: String, default: '' },
-  showInNavbar: { type: Boolean, default: true },
+  showInNavbar: { type: Boolean, default: false },
   backgroundColor: { type: String, default: 'transparent' },
   textColor: { type: String, default: 'inherit' },
   backgroundImage: { type: String, default: '' },
