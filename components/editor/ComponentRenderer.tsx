@@ -2573,7 +2573,7 @@ export default function ComponentRenderer({
           )}
           
           {/* Content overlay when there's an image - for text banners */}
-          {isTextBanner && component.props.backgroundImage && (component.props.heading !== null || component.props.subheading !== null || component.props.buttonText !== null) && (
+          {isTextBanner && component.props.backgroundImage && (
             <div 
               className="absolute inset-0 flex flex-col items-center justify-center text-center"
               style={{ 
@@ -2582,7 +2582,7 @@ export default function ComponentRenderer({
               }}
             >
               {/* Heading with inline controls */}
-              {(component.props.heading !== null && component.props.heading !== undefined) && (
+              {true && (
                 <div className="relative group/heading" style={{ zIndex: 2, width: '100%', maxWidth: '1200px' }}>
                   {isSelected && (
                     <button
@@ -2653,7 +2653,7 @@ export default function ComponentRenderer({
               )}
               
               {/* Subheading with inline controls */}
-              {(component.props.subheading !== null && component.props.subheading !== undefined) && (
+              {true && (
                 <div className="relative group/subheading" style={{ zIndex: 2, width: '100%', maxWidth: '800px' }}>
                   {isSelected && (
                     <button
@@ -2726,7 +2726,7 @@ export default function ComponentRenderer({
               )}
               
               {/* Button with inline toolbar - like regular button component */}
-              {(component.props.buttonText !== null && component.props.buttonText !== undefined) && (
+              {true && (
                 <div className="relative group/button inline-block" style={{ zIndex: 2, minHeight: isSelected ? '100px' : 'auto' }}>
                   {/* Banner Button Inline Toolbar */}
                   {isSelected && (
@@ -2848,7 +2848,7 @@ export default function ComponentRenderer({
               {/* Add component buttons when selected and elements are deleted - for text banners */}
               {isSelected && isTextBanner && (
                 <div className="mt-6 flex gap-2 flex-wrap justify-center" style={{ zIndex: 2 }}>
-                  {(component.props.heading === null || component.props.heading === undefined) && (
+                  {!component.props.heading && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -2863,7 +2863,7 @@ export default function ComponentRenderer({
                       Add Heading
                     </button>
                   )}
-                  {(component.props.subheading === null || component.props.subheading === undefined) && (
+                  {!component.props.subheading && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -2878,7 +2878,7 @@ export default function ComponentRenderer({
                       Add Subheading
                     </button>
                   )}
-                  {(component.props.buttonText === null || component.props.buttonText === undefined) && (
+                  {!component.props.buttonText && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
