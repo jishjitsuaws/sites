@@ -1799,8 +1799,33 @@ export default function EditorPage() {
 
   // Generate Google Fonts URL for editor
   const themeFonts = getThemeFonts();
-  const fontFamilies = [themeFonts.heading, themeFonts.body]
+  
+  // Include all fonts available in the TextEditor component
+  const availableFonts = [
+    themeFonts.heading,
+    themeFonts.body,
+    'Inter',
+    'Roboto',
+    'Open Sans',
+    'Lato',
+    'Montserrat',
+    'Playfair Display',
+    'Poppins',
+    'Source Sans Pro',
+    'Nunito',
+    'Raleway',
+    'Ubuntu',
+    'Merriweather',
+    'Oswald',
+    'PT Sans',
+    'Slabo 27px',
+    'Crimson Pro',
+    'Libre Baskerville'
+  ];
+  
+  const fontFamilies = availableFonts
     .filter((font, index, self) => self.indexOf(font) === index) // Remove duplicates
+    .filter(font => !['Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Courier New', 'Verdana'].includes(font)) // Exclude system fonts
     .map(font => font.replace(/ /g, '+'))
     .join('&family=');
   const googleFontsUrl = `https://fonts.googleapis.com/css2?family=${fontFamilies}&display=swap`;

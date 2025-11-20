@@ -2604,37 +2604,23 @@ export default function ComponentRenderer({
                     contentEditable={true}
                     suppressContentEditableWarning
                     onBlur={(e) => {
-                      const newHeading = e.currentTarget.textContent || '';
-                      if (newHeading !== component.props.heading && newHeading.trim() !== '') {
+                      const rawText = e.currentTarget.textContent || '';
+                      const newHeading = sanitizeText(rawText);
+                      if (newHeading !== component.props.heading) {
                         onUpdateComponent(component.id, {
                           ...component,
                           props: { ...component.props, heading: newHeading }
                         });
-                      } else if (newHeading.trim() === '') {
-                        // If empty, set to null to show placeholder
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, heading: null }
-                        });
                       }
                     }}
                     onFocus={(e) => {
-                      // Clear placeholder text on focus if it's the placeholder
-                      const element = e.currentTarget as HTMLElement;
-                      if (element.textContent === 'Add heading...' || !component.props.heading) {
-                        element.textContent = '';
-                        // Move cursor to the end after clearing
-                        setTimeout(() => {
-                          const range = document.createRange();
-                          const selection = window.getSelection();
-                          range.selectNodeContents(element);
-                          range.collapse(false);
-                          selection?.removeAllRanges();
-                          selection?.addRange(range);
-                        }, 0);
+                      // Select component first if not already selected
+                      if (!isSelected) {
+                        onComponentClick(component, e as any);
                       }
                       
-                      // Show text toolbar for banner text editing
+                      setSelectedComponent(component);
+                      const element = e.currentTarget as HTMLElement;
                       const rect = element.getBoundingClientRect();
                       
                       // Use absolute screen coordinates for text toolbar positioning
@@ -2688,37 +2674,23 @@ export default function ComponentRenderer({
                     contentEditable={true}
                     suppressContentEditableWarning
                     onBlur={(e) => {
-                      const newSubheading = e.currentTarget.textContent || '';
-                      if (newSubheading !== component.props.subheading && newSubheading.trim() !== '') {
+                      const rawText = e.currentTarget.textContent || '';
+                      const newSubheading = sanitizeText(rawText);
+                      if (newSubheading !== component.props.subheading) {
                         onUpdateComponent(component.id, {
                           ...component,
                           props: { ...component.props, subheading: newSubheading }
                         });
-                      } else if (newSubheading.trim() === '') {
-                        // If empty, set to null to show placeholder
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, subheading: null }
-                        });
                       }
                     }}
                     onFocus={(e) => {
-                      // Clear placeholder text on focus if it's the placeholder
-                      const element = e.currentTarget as HTMLElement;
-                      if (element.textContent === 'Add subheading...' || !component.props.subheading) {
-                        element.textContent = '';
-                        // Move cursor to the end after clearing
-                        setTimeout(() => {
-                          const range = document.createRange();
-                          const selection = window.getSelection();
-                          range.selectNodeContents(element);
-                          range.collapse(false);
-                          selection?.removeAllRanges();
-                          selection?.addRange(range);
-                        }, 0);
+                      // Select component first if not already selected
+                      if (!isSelected) {
+                        onComponentClick(component, e as any);
                       }
                       
-                      // Show text toolbar for banner subheading editing
+                      setSelectedComponent(component);
+                      const element = e.currentTarget as HTMLElement;
                       const rect = element.getBoundingClientRect();
                       
                       // Use absolute screen coordinates for text toolbar positioning
