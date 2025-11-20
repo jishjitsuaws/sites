@@ -139,7 +139,7 @@ const siteValidation = {
     
     body('logoWidth')
       .optional()
-      .matches(/^\d+(px|%|rem|em)$/).withMessage('Logo width must be a valid CSS size (e.g., 120px, 50%, 5rem)'),
+      .matches(/^(auto|\d+(px|%|rem|em))$/).withMessage('Logo width must be a valid CSS size (e.g., auto, 120px, 50%, 5rem)'),
 
     body('seo.title')
       .optional()

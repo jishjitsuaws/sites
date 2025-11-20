@@ -47,7 +47,7 @@ function TimerComponent({ component, themeColors, themeFonts, isSelected, onUpda
     >
       <h3 
         className="text-xl font-semibold mb-4"
-        style={{ fontFamily: themeFonts.heading }}
+        style={{ fontFamily: `'${themeFonts.heading}', sans-serif` }}
       >
         {component.props.title || 'Countdown Timer'}
       </h3>
@@ -1886,6 +1886,32 @@ export default function ComponentRenderer({
                 e.currentTarget.blur();
               }
             }}
+            onFocus={(e) => {
+              // Show text toolbar for card title editing
+              const element = e.currentTarget as HTMLElement;
+              const rect = element.getBoundingClientRect();
+              
+              // Use absolute screen coordinates for text toolbar positioning
+              const absoluteRect = {
+                x: rect.left,
+                y: rect.top,
+                left: rect.left,
+                top: rect.top,
+                right: rect.right,
+                bottom: rect.bottom,
+                width: rect.width,
+                height: rect.height,
+                toJSON: () => ({})
+              } as DOMRect;
+              if (onShowTextToolbar) {
+                onShowTextToolbar(absoluteRect);
+              }
+            }}
+            onMouseDown={(e) => {
+              if (isSelected) {
+                e.stopPropagation();
+              }
+            }}
             onClick={(e) => {
               if (isSelected) {
                 e.stopPropagation();
@@ -1896,6 +1922,8 @@ export default function ComponentRenderer({
               fontFamily: `'${themeFonts.heading}', sans-serif`,
               color: themeColors.text,
               cursor: isSelected ? 'text' : 'default',
+              userSelect: isSelected ? 'text' : 'none',
+              WebkitUserSelect: isSelected ? 'text' : 'none',
             }}
           >
             {component.props.title}
@@ -1913,6 +1941,32 @@ export default function ComponentRenderer({
                 });
               }
             }}
+            onFocus={(e) => {
+              // Show text toolbar for card description editing
+              const element = e.currentTarget as HTMLElement;
+              const rect = element.getBoundingClientRect();
+              
+              // Use absolute screen coordinates for text toolbar positioning
+              const absoluteRect = {
+                x: rect.left,
+                y: rect.top,
+                left: rect.left,
+                top: rect.top,
+                right: rect.right,
+                bottom: rect.bottom,
+                width: rect.width,
+                height: rect.height,
+                toJSON: () => ({})
+              } as DOMRect;
+              if (onShowTextToolbar) {
+                onShowTextToolbar(absoluteRect);
+              }
+            }}
+            onMouseDown={(e) => {
+              if (isSelected) {
+                e.stopPropagation();
+              }
+            }}
             onClick={(e) => {
               if (isSelected) {
                 e.stopPropagation();
@@ -1924,6 +1978,8 @@ export default function ComponentRenderer({
               color: themeColors.textSecondary,
               fontSize: '14px',
               cursor: isSelected ? 'text' : 'default',
+              userSelect: isSelected ? 'text' : 'none',
+              WebkitUserSelect: isSelected ? 'text' : 'none',
             }}
           >
             {component.props.description}
@@ -2547,27 +2603,29 @@ export default function ComponentRenderer({
                   <h1 
                     contentEditable={true}
                     suppressContentEditableWarning
-                    onInput={(e) => {
+                    onBlur={(e) => {
                       const newHeading = e.currentTarget.textContent || '';
-                      if (newHeading !== component.props.heading) {
+                      if (newHeading !== component.props.heading && newHeading.trim() !== '') {
                         onUpdateComponent(component.id, {
                           ...component,
                           props: { ...component.props, heading: newHeading }
                         });
-                      }
-                    }}
-                    onBlur={(e) => {
-                      const newHeading = e.currentTarget.textContent || '';
-                      if (newHeading !== component.props.heading) {
+                      } else if (newHeading.trim() === '') {
+                        // If empty, set to null to show placeholder
                         onUpdateComponent(component.id, {
                           ...component,
-                          props: { ...component.props, heading: newHeading }
+                          props: { ...component.props, heading: null }
                         });
                       }
                     }}
                     onFocus={(e) => {
-                      // Show text toolbar for banner text editing
+                      // Clear placeholder text on focus if it's the placeholder
                       const element = e.currentTarget as HTMLElement;
+                      if (element.textContent === 'Add heading...' || !component.props.heading) {
+                        element.textContent = '';
+                      }
+                      
+                      // Show text toolbar for banner text editing
                       const rect = element.getBoundingClientRect();
                       
                       // Use absolute screen coordinates for text toolbar positioning
@@ -2589,7 +2647,9 @@ export default function ComponentRenderer({
                       fontFamily: `'${themeFonts.heading}', sans-serif`,
                       color: component.props.textColor || '#ffffff',
                       cursor: 'text',
+                      opacity: (!component.props.heading && isSelected) ? 0.6 : 1,
                     }}
+                    data-placeholder={!component.props.heading && isSelected ? 'Add heading...' : ''}
                   >
                     {component.props.heading || (isSelected ? 'Add heading...' : '')}
                   </h1>
@@ -2618,27 +2678,29 @@ export default function ComponentRenderer({
                   <p 
                     contentEditable={true}
                     suppressContentEditableWarning
-                    onInput={(e) => {
+                    onBlur={(e) => {
                       const newSubheading = e.currentTarget.textContent || '';
-                      if (newSubheading !== component.props.subheading) {
+                      if (newSubheading !== component.props.subheading && newSubheading.trim() !== '') {
                         onUpdateComponent(component.id, {
                           ...component,
                           props: { ...component.props, subheading: newSubheading }
                         });
-                      }
-                    }}
-                    onBlur={(e) => {
-                      const newSubheading = e.currentTarget.textContent || '';
-                      if (newSubheading !== component.props.subheading) {
+                      } else if (newSubheading.trim() === '') {
+                        // If empty, set to null to show placeholder
                         onUpdateComponent(component.id, {
                           ...component,
-                          props: { ...component.props, subheading: newSubheading }
+                          props: { ...component.props, subheading: null }
                         });
                       }
                     }}
                     onFocus={(e) => {
-                      // Show text toolbar for banner subheading editing
+                      // Clear placeholder text on focus if it's the placeholder
                       const element = e.currentTarget as HTMLElement;
+                      if (element.textContent === 'Add subheading...' || !component.props.subheading) {
+                        element.textContent = '';
+                      }
+                      
+                      // Show text toolbar for banner subheading editing
                       const rect = element.getBoundingClientRect();
                       
                       // Use absolute screen coordinates for text toolbar positioning
@@ -2663,7 +2725,7 @@ export default function ComponentRenderer({
                     style={{ 
                       fontFamily: `'${themeFonts.body}', sans-serif`,
                       color: component.props.textColor || '#ffffff',
-                      opacity: 0.9,
+                      opacity: (!component.props.subheading && isSelected) ? 0.6 : 0.9,
                       cursor: 'text',
                     }}
                   >
@@ -2753,8 +2815,8 @@ export default function ComponentRenderer({
                     </div>
                   )}
                   
-                  {/* Button Element */}
-                  {component.props.buttonLink && !isSelected ? (
+                  {/* Button Element - Always show if button exists, even without text */}
+                  {component.props.buttonLink && !isSelected && component.props.buttonText ? (
                     <a
                       href={component.props.buttonLink}
                       target="_blank"
@@ -2776,6 +2838,7 @@ export default function ComponentRenderer({
                         color: component.props.backgroundColor || themeColors.primary,
                         cursor: 'pointer',
                         border: 'none',
+                        opacity: (!component.props.buttonText && isSelected) ? 0.6 : 1,
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -2785,7 +2848,7 @@ export default function ComponentRenderer({
                         }
                       }}
                     >
-                      {component.props.buttonText || 'Get Started'}
+                      {component.props.buttonText || (isSelected ? 'Add button text...' : 'Get Started')}
                     </button>
                   )}
                 </div>
@@ -3155,10 +3218,10 @@ export default function ComponentRenderer({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
               {/* Left: C-DAC Hyderabad Address */}
               <div>
-                <h3 className="text-base font-bold mb-2" style={{ fontFamily: themeFonts.heading, color: '#ffffff' }}>
+                <h3 className="text-base font-bold mb-2" style={{ fontFamily: `'${themeFonts.heading}', sans-serif`, color: '#ffffff' }}>
                   CDAC Hyderabad
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ fontFamily: themeFonts.body, color: '#ffffff' }}>
+                <p className="text-sm leading-relaxed" style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: '#ffffff' }}>
                   sites.isea - Build beautiful websites
                     Create stunning websites. No coding required.
                 </p>
@@ -3166,7 +3229,7 @@ export default function ComponentRenderer({
 
               {/* Center: Social Network Links */}
               <div className="text-center">
-                <h3 className="text-base font-bold mb-3" style={{ fontFamily: themeFonts.heading, color: '#ffffff' }}>
+                <h3 className="text-base font-bold mb-3" style={{ fontFamily: `'${themeFonts.heading}', sans-serif`, color: '#ffffff' }}>
                   Our Social Network
                 </h3>
                 <div className="flex justify-center gap-4">
@@ -3217,7 +3280,7 @@ export default function ComponentRenderer({
 
               {/* Right: Supported By Logos */}
               <div className="text-right">
-                <h3 className="text-base font-bold mb-3" style={{ fontFamily: themeFonts.heading, color: '#ffffff' }}>
+                <h3 className="text-base font-bold mb-3" style={{ fontFamily: `'${themeFonts.heading}', sans-serif`, color: '#ffffff' }}>
                   Supported By
                 </h3>
                 <div className="flex justify-end items-center gap-4">
