@@ -2590,7 +2590,7 @@ export default function ComponentRenderer({
                         e.stopPropagation();
                         onUpdateComponent(component.id, {
                           ...component,
-                          props: { ...component.props, heading: null }
+                          props: { ...component.props, heading: "" }
                         });
                       }}
                       className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-100 transition-all shadow-lg"
@@ -2637,6 +2637,7 @@ export default function ComponentRenderer({
                       } as DOMRect;
                       onShowTextToolbar(absoluteRect);
                     }}
+                    onClick={(e) => e.stopPropagation()}
                     className="text-5xl font-bold mb-4 outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
                     style={{ 
                       fontFamily: `'${themeFonts.heading}', sans-serif`,
@@ -2660,7 +2661,7 @@ export default function ComponentRenderer({
                         e.stopPropagation();
                         onUpdateComponent(component.id, {
                           ...component,
-                          props: { ...component.props, subheading: null }
+                          props: { ...component.props, subheading: "" }
                         });
                       }}
                       className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-100 transition-all shadow-lg"
@@ -2793,7 +2794,7 @@ export default function ComponentRenderer({
                           e.stopPropagation();
                           onUpdateComponent(component.id, {
                             ...component,
-                            props: { ...component.props, buttonText: null, buttonLink: null }
+                            props: { ...component.props, buttonText: "", buttonLink: "" }
                           });
                         }}
                         className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
