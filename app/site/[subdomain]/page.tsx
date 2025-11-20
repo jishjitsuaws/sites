@@ -172,7 +172,14 @@ function PublishedCarousel({ component }: any) {
 
   if (!images.length) {
     return (
-      <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-gray-200"></div>
+      <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-gray-200 flex items-center justify-center">
+        <div className="text-center text-gray-400">
+          <svg className="h-8 w-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <p className="text-sm">No images to display</p>
+        </div>
+      </div>
     );
   }
 
@@ -881,33 +888,76 @@ export default function PublishedSitePage() {
         );
 
       case 'bullet-list':
-        if (component.props.style === 'numbered') {
-          return (
-            <ol className="list-decimal pl-6" style={{ lineHeight: 1.6, textAlign: component.props.align || 'left' }}>
-              {(component.props.items || []).map((item: string, idx: number) => (
-                <li key={idx} className="mb-1" style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>{item}</li>
-              ))}
-            </ol>
-          );
-        }
-        if (component.props.style === 'none') {
-          return (
-            <div className="space-y-1" style={{ textAlign: component.props.align || 'left' }}>
-              {(component.props.items || []).map((item: string, idx: number) => (
-                <div key={idx} style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>{item}</div>
-              ))}
-            </div>
-          );
-        }
-        const bulletTextSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
-                             component.props.textSize === 'title' ? 'text-2xl' :
-                             component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
         return (
-          <ul className="list-disc pl-6" style={{ lineHeight: 1.6, textAlign: component.props.align || 'left' }}>
-            {(component.props.items || []).map((item: string, idx: number) => (
-              <li key={idx} className={`mb-1 ${bulletTextSizeClass}`} style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>{item}</li>
-            ))}
-          </ul>
+          <div style={{ textAlign: component.props.align || 'left' }}>
+            {component.props.style === 'numbered' ? (
+              <div className="space-y-1" style={{ lineHeight: 1.6 }}>
+                {(component.props.items || []).map((item: string, idx: number) => {
+                  const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
+                                       component.props.textSize === 'title' ? 'text-2xl' :
+                                       component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
+                  return (
+                    <div key={idx} className={`flex items-start mb-1 ${textSizeClass}`}>
+                      <span 
+                        className="shrink-0 w-6 font-medium"
+                        style={{ color: themeColors.text }}
+                      >
+                        {idx + 1}.
+                      </span>
+                      <span
+                        className="flex-1"
+                        style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
+                      >
+                        {item}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : component.props.style === 'none' ? (
+              <div className="space-y-1">
+                {(component.props.items || []).map((item: string, idx: number) => {
+                  const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
+                                       component.props.textSize === 'title' ? 'text-2xl' :
+                                       component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
+                  return (
+                    <div key={idx}>
+                      <span
+                        className={textSizeClass}
+                        style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
+                      >
+                        {item}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="space-y-1" style={{ lineHeight: 1.6 }}>
+                {(component.props.items || []).map((item: string, idx: number) => {
+                  const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
+                                       component.props.textSize === 'title' ? 'text-2xl' :
+                                       component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
+                  return (
+                    <div key={idx} className={`flex items-start mb-1 ${textSizeClass}`}>
+                      <span 
+                        className="shrink-0 w-6 flex justify-center items-start pt-1"
+                        style={{ color: themeColors.text }}
+                      >
+                        •
+                      </span>
+                      <span
+                        className="flex-1"
+                        style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
+                      >
+                        {item}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         );
 
       case 'collapsible-list':

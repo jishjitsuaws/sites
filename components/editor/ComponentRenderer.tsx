@@ -487,27 +487,6 @@ export default function ComponentRenderer({
               </div>
               <div className="w-px bg-gray-300 h-6" />
 
-              {/* Add/Remove */}
-              <button
-                className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-black"
-                onClick={() => {
-                  const items = Array.isArray(component.props.items) ? [...component.props.items] : [];
-                  items.push({ question: 'New question', answer: 'Answer goes here', expanded: false });
-                  onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
-                }}
-              >
-                + Add FAQ
-              </button>
-              <button
-                className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-black"
-                onClick={() => {
-                  const items = Array.isArray(component.props.items) ? [...component.props.items] : [];
-                  if (items.length > 0) items.pop();
-                  onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
-                }}
-              >
-                Remove Last
-              </button>
               <div className="w-px bg-gray-300 h-6" />
               <button
                 className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-black"
@@ -550,7 +529,22 @@ export default function ComponentRenderer({
           {/* FAQ items */}
           <div className="space-y-3 w-full">
             {(component.props.items || []).map((it: any, idx: number) => (
-              <div key={idx} className="border rounded-md bg-white w-full overflow-hidden">
+              <div key={idx} className="border rounded-md bg-white w-full overflow-hidden relative">
+                {/* Delete button - red circle with X */}
+                {isSelected && (component.props.items || []).length > 1 && (
+                  <button
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors z-10 shadow-md"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const items = [...(component.props.items || [])];
+                      items.splice(idx, 1);
+                      onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
+                    }}
+                    title={`Delete FAQ ${idx + 1}`}
+                  >
+                    ×
+                  </button>
+                )}
                 <button
                   className="w-full text-left px-4 py-3 font-medium flex justify-between items-center hover:bg-gray-50"
                   onClick={(e) => {
@@ -616,6 +610,22 @@ export default function ComponentRenderer({
                 )}
               </div>
             ))}
+            
+            {/* Add FAQ button - green plus button */}
+            {isSelected && (
+              <button
+                className="w-full border-2 border-dashed border-green-300 bg-green-50 hover:bg-green-100 rounded-md py-4 px-4 text-green-600 font-medium transition-colors flex items-center justify-center gap-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const items = Array.isArray(component.props.items) ? [...component.props.items] : [];
+                  items.push({ question: 'New question', answer: 'Answer goes here', expanded: false });
+                  onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
+                }}
+              >
+                <Plus className="h-5 w-5" />
+                Add New FAQ
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -2499,28 +2509,6 @@ export default function ComponentRenderer({
               />
               <div className="w-px bg-gray-300"></div>
               <button
-                className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-black"
-                onClick={() => {
-                  const items = Array.isArray(component.props.items) ? [...component.props.items] : [];
-                  items.push('New item');
-                  onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
-                }}
-              >
-                + Item
-              </button>
-              <div className="w-px bg-gray-300"></div>
-              <button
-                className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-black"
-                onClick={() => {
-                  const items = Array.isArray(component.props.items) ? [...component.props.items] : [];
-                  if (items.length > 0) items.pop();
-                  onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
-                }}
-              >
-                Remove
-              </button>
-              <div className="w-px bg-gray-300"></div>
-              <button
                 className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
                 onClick={() => onDeleteComponent()}
               >
@@ -2550,7 +2538,22 @@ export default function ComponentRenderer({
               {(component.props.items || []).map((raw: any, idx: number) => {
                 const text = typeof raw === 'string' ? raw : (raw?.title || '');
                 return (
-                  <div key={idx} className="border rounded-md p-3 bg-white w-full">
+                  <div key={idx} className="border rounded-md p-3 bg-white w-full relative">
+                    {/* Delete button - red circle with X */}
+                    {isSelected && (component.props.items || []).length > 1 && (
+                      <button
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors z-10 shadow-md"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const items = [...(component.props.items || [])];
+                          items.splice(idx, 1);
+                          onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
+                        }}
+                        title={`Delete item ${idx + 1}`}
+                      >
+                        ×
+                      </button>
+                    )}
                     <div
                       contentEditable={isSelected}
                       suppressContentEditableWarning
@@ -2568,6 +2571,22 @@ export default function ComponentRenderer({
                   </div>
                 );
               })}
+              
+              {/* Add item button - green plus button */}
+              {isSelected && (
+                <button
+                  className="w-full border-2 border-dashed border-green-300 bg-green-50 hover:bg-green-100 rounded-md py-3 px-4 text-green-600 font-medium transition-colors flex items-center justify-center gap-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const items = Array.isArray(component.props.items) ? [...component.props.items] : [];
+                    items.push('New item');
+                    onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New Item
+                </button>
+              )}
             </div>
           )}
         </div>
