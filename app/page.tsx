@@ -13,7 +13,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Globe className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">SiteBuilder</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">Sites.ISEA</span>
             </div>
             <div className="flex items-center gap-4">
               <Link href="/login">
@@ -121,9 +121,9 @@ export default function LandingPage() {
           <div className="text-center">
             <div className="flex items-center justify-center mb-4">
               <Globe className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-white">SiteBuilder</span>
+              <span className="ml-2 text-xl font-bold text-white">Sites.ISEA</span>
             </div>
-            <p>© 2025 SiteBuilder. All rights reserved.</p>
+            <p>© 2025 Sites.ISEA. All rights reserved.</p>
           </div>
         </div>
       </footer>

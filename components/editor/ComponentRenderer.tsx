@@ -529,11 +529,12 @@ export default function ComponentRenderer({
           {/* FAQ items */}
           <div className="space-y-3 w-full">
             {(component.props.items || []).map((it: any, idx: number) => (
-              <div key={idx} className="border rounded-md bg-white w-full overflow-hidden relative">
+              <div key={idx} className="border rounded-md bg-white w-full relative" style={{ overflow: 'visible' }}>
                 {/* Delete button - red circle with X */}
                 {isSelected && (component.props.items || []).length > 1 && (
                   <button
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors z-10 shadow-md"
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors shadow-md"
+                    style={{ zIndex: 50 }}
                     onClick={(e) => {
                       e.stopPropagation();
                       const items = [...(component.props.items || [])];
@@ -2538,11 +2539,12 @@ export default function ComponentRenderer({
               {(component.props.items || []).map((raw: any, idx: number) => {
                 const text = typeof raw === 'string' ? raw : (raw?.title || '');
                 return (
-                  <div key={idx} className="border rounded-md p-3 bg-white w-full relative">
+                  <div key={idx} className="border rounded-md p-3 bg-white w-full relative" style={{ overflow: 'visible' }}>
                     {/* Delete button - red circle with X */}
                     {isSelected && (component.props.items || []).length > 1 && (
                       <button
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors z-10 shadow-md"
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors shadow-md"
+                        style={{ zIndex: 50 }}
                         onClick={(e) => {
                           e.stopPropagation();
                           const items = [...(component.props.items || [])];
@@ -3276,7 +3278,7 @@ export default function ComponentRenderer({
                   CDAC Hyderabad
                 </h3>
                 <p className="text-sm leading-relaxed" style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: '#ffffff' }}>
-                  sites.isea - Build beautiful websites
+                  Sites.ISEA - Build beautiful websites
                     Create stunning websites. No coding required.
                 </p>
               </div>

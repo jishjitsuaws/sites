@@ -78,7 +78,7 @@ export default function CompleteProfilePage() {
       };
 
       // STEP 6: Update user profile
-      // Calls: POST http://sites.isea.in/api/oauth/update-profile
+      // Calls: POST http://Sites.ISEA.in/api/oauth/update-profile
       // Which calls: POST https://ivp.isea.in/backend/updateuserbyid
       await updateUserProfile(profileData);
 

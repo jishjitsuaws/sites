@@ -40,7 +40,7 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <Globe className="h-12 w-12 text-blue-600" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome to SiteBuilder</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome to Sites.ISEA</h1>
           <p className="text-gray-600">Sign in to continue building amazing websites</p>
         </div>
 

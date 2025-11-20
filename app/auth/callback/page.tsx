@@ -52,7 +52,7 @@ function CallbackContent() {
 
         // STEP 3: Exchange code for access token
         // SECURITY FIX (CVE-002): Backend stores token in HttpOnly cookie
-        // Calls: POST http://sites.isea.in/api/oauth/token
+        // Calls: POST http://Sites.ISEA.in/api/oauth/token
         // Which calls: POST https://ivp.isea.in/backend/tokengen
         const tokenData = await exchangeCodeForToken(code, state);
         
@@ -70,7 +70,7 @@ function CallbackContent() {
 
         // STEP 4: Fetch user info
         // SECURITY FIX (CVE-002): Token is sent via HttpOnly cookie, not passed as parameter
-        // Calls: POST http://sites.isea.in/api/oauth/userinfo
+        // Calls: POST http://Sites.ISEA.in/api/oauth/userinfo
         // Which calls: POST https://ivp.isea.in/backend/userinfo
         const userInfoResponse = await fetchUserInfo('', uid); // Empty string for accessToken (not used)
         
@@ -92,7 +92,7 @@ function CallbackContent() {
 
         // STEP 5: Check if user profile exists
         // SECURITY FIX (CVE-002): Token is sent via HttpOnly cookie
-        // Calls: POST http://sites.isea.in/api/oauth/profile
+        // Calls: POST http://Sites.ISEA.in/api/oauth/profile
         // Which calls: POST https://ivp.isea.in/backend/ivp/profile/
         const userProfile = await fetchUserProfile('', userInfo.uid); // Empty string for accessToken
 

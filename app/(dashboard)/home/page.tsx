@@ -298,7 +298,7 @@ function DashboardContent() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <img src="/3.png" alt="Logo" className="h-8 w-8" />
-              <span className="ml-2 text-xl font-bold text-gray-900">SITES.ISEA</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">Sites.ISEA</span>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">

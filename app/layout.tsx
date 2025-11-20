@@ -11,7 +11,7 @@ const inter = Inter({
 
 
 export const metadata: Metadata = {
-  title: "sites.isea - Build Beautiful Websites",
+  title: "Sites.ISEA - Build Beautiful Websites",
   description: "Create stunning websites. No coding required.",
   icons: {
     icon: [
