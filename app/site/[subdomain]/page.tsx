@@ -437,7 +437,8 @@ export default function PublishedSitePage() {
           : component.props.level === 2 
           ? 'text-2xl md:text-3xl font-bold' 
           : 'text-xl md:text-2xl font-bold';
-        return (
+        
+        const headingElement = (
           <HeadingTag 
             className={headingClasses}
             style={{ 
@@ -465,8 +466,23 @@ export default function PublishedSitePage() {
           </HeadingTag>
         );
 
+        // Wrap in link if link exists
+        return component.props.link ? (
+          <a
+            href={component.props.link}
+            target={component.props.link.startsWith('http') ? '_blank' : '_self'}
+            rel={component.props.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+            style={{
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            {headingElement}
+          </a>
+        ) : headingElement;
+
       case 'text':
-        return (
+        const textElement = (
           <p className="text-sm md:text-base" style={{ 
             textAlign: component.props.align,
             color: themeColors.text,
@@ -491,29 +507,63 @@ export default function PublishedSitePage() {
           </p>
         );
 
+        // Wrap in link if link exists
+        return component.props.link ? (
+          <a
+            href={component.props.link}
+            target={component.props.link.startsWith('http') ? '_blank' : '_self'}
+            rel={component.props.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+            style={{
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            {textElement}
+          </a>
+        ) : textElement;
+
       case 'image':
-        return component.props.src ? (
+        if (!component.props.src) return null;
+        
+        const imageElement = (
+          <img 
+            src={component.props.src} 
+            alt={component.props.alt || ''} 
+            className="inline-block rounded"
+            style={{
+              width: component.props.width || 'auto',
+              maxWidth: '100%',
+              height: 'auto', // Always auto to maintain aspect ratio
+              objectFit: 'contain',
+              float: (component.props.float && component.props.float !== 'none') ? component.props.float : 'none',
+              marginRight: (component.props.float === 'left') ? '20px' : '0',
+              marginLeft: (component.props.float === 'right') ? '20px' : '0',
+              marginBottom: (component.props.float && component.props.float !== 'none') ? '16px' : '0',
+              cursor: component.props.link ? 'pointer' : 'default',
+            }}
+          />
+        );
+
+        return (
           <div style={{ 
             textAlign: (!component.props.float || component.props.float === 'none') ? (component.props.align || 'center') : 'left',
             width: '100%'
           }}>
-            <img 
-              src={component.props.src} 
-              alt={component.props.alt || ''} 
-              className="inline-block rounded"
-              style={{
-                width: component.props.width || 'auto',
-                maxWidth: '100%',
-                height: 'auto', // Always auto to maintain aspect ratio
-                objectFit: 'contain',
-                float: (component.props.float && component.props.float !== 'none') ? component.props.float : 'none',
-                marginRight: (component.props.float === 'left') ? '20px' : '0',
-                marginLeft: (component.props.float === 'right') ? '20px' : '0',
-                marginBottom: (component.props.float && component.props.float !== 'none') ? '16px' : '0'
-              }}
-            />
+            {component.props.link ? (
+              <a
+                href={component.props.link}
+                target={component.props.link.startsWith('http') ? '_blank' : '_self'}
+                rel={component.props.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+                style={{
+                  textDecoration: 'none',
+                  color: 'inherit',
+                }}
+              >
+                {imageElement}
+              </a>
+            ) : imageElement}
           </div>
-        ) : null;
+        );
 
       case 'button':
         const linkType = component.props.linkType || 'url';

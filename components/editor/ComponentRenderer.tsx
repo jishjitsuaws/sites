@@ -289,42 +289,8 @@ export default function ComponentRenderer({
           textAlign: component.props.align,
           position: 'relative'
         }}>
-          {/* Wrap in anchor tag if link exists and not in editor mode */}
-          {component.props.link && !isSelected ? (
-            <a
-              href={component.props.link}
-              target={component.props.link.startsWith('http') ? '_blank' : '_self'}
-              rel={component.props.link.startsWith('http') ? 'noopener noreferrer' : undefined}
-              style={{
-                textDecoration: 'none',
-                color: 'inherit',
-              }}
-            >
-              <div
-                className="outline-none cursor-pointer min-h-[1.5em] inline-block relative"
-                style={{
-                  fontSize: component.props.fontSize || 16,
-                  fontFamily: `'${component.props.fontFamily || themeFonts.body}', sans-serif`,
-                  fontWeight: component.props.bold ? 'bold' : 'normal',
-                  fontStyle: component.props.italic ? 'italic' : 'normal',
-                  textDecoration: component.props.underline ? 'underline' : 'none',
-                  color: component.props.color || themeColors.text,
-                  minWidth: '100px',
-                  maxWidth: component.props.width || '100%',
-                  width: component.props.width || 'auto',
-                  textAlign: component.props.align,
-                  border: component.props.borderWidth 
-                    ? `${component.props.borderWidth}px ${component.props.borderStyle || 'solid'} ${component.props.borderColor || '#000000'}` 
-                    : 'none',
-                  borderRadius: component.props.borderRadius ? `${component.props.borderRadius}px` : '0',
-                  padding: component.props.borderWidth ? '8px 12px' : '0',
-                }}
-              >
-                {component.props.text}
-              </div>
-            </a>
-          ) : (
-            <div
+          {/* In editor mode, always render as editable div, never as link */}
+          <div
               className="outline-none cursor-text min-h-[1.5em] inline-block relative"
               style={{
                 fontSize: component.props.fontSize || 16,
@@ -389,7 +355,6 @@ export default function ComponentRenderer({
             >
               {component.props.text}
             </div>
-          )}
           
           {/* Resize Handles for Text - Corner dots */}
           {isSelected && (
@@ -793,37 +758,18 @@ export default function ComponentRenderer({
                   maxWidth: '100%',
                 }}
               >
-                {/* Wrap in anchor tag if link exists and not in editor mode */}
-                {component.props.link && !isSelected ? (
-                  <a
-                    href={component.props.link}
-                    target={component.props.link.startsWith('http') ? '_blank' : '_self'}
-                    rel={component.props.link.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  >
-                    <img
-                      src={getImageUrl(component.props.src)}
-                      alt={component.props.alt || ''}
-                      className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity"
-                      style={{
-                        objectFit: 'contain',
-                        width: '100%',
-                        height: 'auto',
-                      }}
-                    />
-                  </a>
-                ) : (
-                  <img
-                    src={getImageUrl(component.props.src)}
-                    alt={component.props.alt || ''}
-                    className="w-full rounded"
-                    style={{
-                      objectFit: 'contain',
-                      width: '100%',
-                      height: 'auto',
-                      pointerEvents: isSelected ? 'none' : 'auto', // Disable clicks when selected to allow dragging
-                    }}
-                  />
-                )}
+                {/* In editor mode, never wrap with link - always editable */}
+                <img
+                  src={getImageUrl(component.props.src)}
+                  alt={component.props.alt || ''}
+                  className="w-full rounded"
+                  style={{
+                    objectFit: 'contain',
+                    width: '100%',
+                    height: 'auto',
+                    pointerEvents: isSelected ? 'none' : 'auto', // Disable clicks when selected to allow dragging
+                  }}
+                />
                 
                 {/* Resize Handle - Full surface draggable like video */}
                 {isSelected && (
