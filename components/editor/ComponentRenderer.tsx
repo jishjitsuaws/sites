@@ -2140,7 +2140,40 @@ export default function ComponentRenderer({
                         <div className="w-full h-full flex items-center justify-center text-gray-400">
                           <div className="text-center">
                             <ImageIcon className="h-8 w-8 mx-auto mb-2" />
-                            <p className="text-sm">Upload to add image</p>
+                            <p className="text-sm mb-3">Upload to add image</p>
+                            <label 
+                              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors text-sm"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  e.stopPropagation();
+                                  const inputEl = e.currentTarget as HTMLInputElement;
+                                  const file = inputEl.files?.[0];
+                                  if (!file) return;
+                                  if (file.size > 5 * 1024 * 1024) return; // 5MB
+                                  try {
+                                    const formData = new FormData();
+                                    formData.append('file', file);
+                                    const res = await api.post('/assets/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                    const url = res.data?.data?.url;
+                                    if (!url) return;
+                                    const imgs = Array.isArray(component.props.images) ? [...component.props.images] : [];
+                                    imgs[idx] = { ...imgs[idx], src: url };
+                                    onUpdateComponent(component.id, { ...component, props: { ...component.props, images: imgs } });
+                                  } catch (err) {
+                                    console.error('Upload error:', err);
+                                  } finally {
+                                    if (inputEl) inputEl.value = '';
+                                  }
+                                }}
+                              />
+                            </label>
                           </div>
                         </div>
                       )}
