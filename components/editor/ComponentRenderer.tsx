@@ -848,7 +848,7 @@ export default function ComponentRenderer({
         <div style={{ 
           textAlign: component.props.align || 'center',
           position: 'relative',
-          minHeight: isSelected ? '100px' : 'auto', // Add space for toolbar
+          minHeight: isSelected ? '100px' : 'auto',
         }}>
           <div className="inline-block relative" style={{ zIndex: isSelected ? 10 : 'auto' }}>
             {/* Inline Button Controls with Text and Color Editing */}
@@ -1225,73 +1225,13 @@ export default function ComponentRenderer({
             <div 
               className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
               style={{
-                top: component.props.style === 'blank' ? '50%' : '-56px',
+                top: '-56px',
                 left: '50%',
-                transform: component.props.style === 'blank' ? 'translate(-50%, -50%)' : 'translateX(-50%)',
+                transform: 'translateX(-50%)',
                 zIndex: 1000,
                 minWidth: 'max-content',
               }}
             >
-              {component.props.style === 'blank' && (
-                <span className="px-2 py-1 text-sm text-gray-600">Page Break (invisible)</span>
-              )}
-              {component.props.style !== 'blank' && (
-                <>
-                  <select
-                    value={component.props.style || 'solid'}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      onUpdateComponent(component.id, {
-                        ...component,
-                        props: { ...component.props, style: e.target.value }
-                      });
-                    }}
-                    className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <option value="solid">Solid</option>
-                    <option value="dashed">Dashed</option>
-                    <option value="dotted">Dotted</option>
-                    <option value="blank">Blank</option>
-                  </select>
-                  <div className="w-px bg-gray-300"></div>
-                  {/* Thickness */}
-                  <span className="px-1 py-1 text-xs text-gray-600">Thickness</span>
-                  <input
-                    type="number"
-                    value={parseInt(component.props.thickness) || 2}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      const thickness = Math.max(1, Math.min(12, parseInt(e.target.value) || 2));
-                      onUpdateComponent(component.id, {
-                        ...component,
-                        props: { ...component.props, thickness }
-                      });
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
-                    min={1}
-                    max={12}
-                    title="Line Thickness (px)"
-                  />
-                  <div className="w-px bg-gray-300"></div>
-                  {/* Color */}
-                  <input
-                    type="color"
-                    value={component.props.color || '#94a3b8'}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      onUpdateComponent(component.id, {
-                        ...component,
-                        props: { ...component.props, color: e.target.value }
-                      });
-                    }}
-                    className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
-                    title="Line Color"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </>
-              )}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1317,19 +1257,15 @@ export default function ComponentRenderer({
             </div>
           )}
           
-          {component.props.style === 'blank' ? (
-            <div style={{ height: '20px', width: '100%', display: 'block' }} />
-          ) : (
-            <hr 
-              style={{
-                border: 'none',
-                borderTop: `${component.props.thickness || 2}px ${component.props.style || 'solid'} ${component.props.color || '#94a3b8'}`,
-                width: '100%',
-                margin: '0',
-                display: 'block'
-              }}
-            />
-          )}
+          <hr 
+            style={{
+              border: 'none',
+              borderTop: '1px solid #e5e7eb',
+              width: '100%',
+              margin: '0',
+              display: 'block'
+            }}
+          />
         </div>
       )}
 

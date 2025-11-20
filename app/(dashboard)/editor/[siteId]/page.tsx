@@ -1617,7 +1617,7 @@ export default function EditorPage() {
       case 'video':
         return { url: '', autoplay: false, height: 400 };
       case 'break':
-        return { style: 'solid', color: '#94a3b8', thickness: 2 };
+        return {};
       case 'social':
         return {
           instagramUrl: '',

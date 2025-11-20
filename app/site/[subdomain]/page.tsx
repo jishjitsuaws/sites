@@ -1220,15 +1220,11 @@ export default function PublishedSitePage() {
         );
 
       case 'break':
-        if (component.props.style === 'blank') {
-          return <div style={{ height: '20px', width: '100%' }}></div>;
-        }
-        
         return (
           <hr 
             style={{
               border: 'none',
-              borderTop: `${component.props.thickness || 2}px ${component.props.style || 'solid'} ${component.props.color || '#94a3b8'}`,
+              borderTop: '1px solid #e5e7eb',
               width: '100%',
               margin: '0',
               display: 'block'

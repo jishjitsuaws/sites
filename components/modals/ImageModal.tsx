@@ -64,7 +64,7 @@ export default function ImageModal({ isOpen, onClose, onSave, initialProps, onDe
       src: imageUrl,
       alt: altText,
       align: alignment,
-      width: `${Math.round(width * 4)}px`, // Convert percentage to pixels (400px at 100%)
+      width: `${width}%`, // Save as percentage
       link: link,
     });
     onClose();
