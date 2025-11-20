@@ -9,6 +9,7 @@ import { getImageUrl, getYouTubeEmbedUrl } from '@/lib/utils';
 // Timer Component with real-time countdown
 function TimerComponent({ component, themeColors, themeFonts, isSelected, onUpdateComponent, onDeleteComponent }: any) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -45,12 +46,40 @@ function TimerComponent({ component, themeColors, themeFonts, isSelected, onUpda
         color: component.props.textColor || themeColors.text,
       }}
     >
-      <h3 
-        className="text-xl font-semibold mb-4"
-        style={{ fontFamily: `'${themeFonts.heading}', sans-serif` }}
-      >
-        {component.props.title || 'Countdown Timer'}
-      </h3>
+      {isEditingTitle ? (
+        <input
+          type="text"
+          value={component.props.title || ''}
+          onChange={(e) => {
+            onUpdateComponent(component.id, {
+              ...component,
+              props: { ...component.props, title: e.target.value }
+            });
+          }}
+          onBlur={() => setIsEditingTitle(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              setIsEditingTitle(false);
+            }
+          }}
+          className="text-xl font-semibold mb-4 bg-transparent border-b-2 border-blue-500 outline-none text-center"
+          style={{ fontFamily: `'${themeFonts.heading}', sans-serif`, color: component.props.textColor || themeColors.text }}
+          autoFocus
+          onClick={(e) => e.stopPropagation()}
+        />
+      ) : (
+        <h3 
+          className="text-xl font-semibold mb-4 cursor-pointer hover:bg-gray-100/20 px-2 py-1 rounded"
+          style={{ fontFamily: `'${themeFonts.heading}', sans-serif` }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsEditingTitle(true);
+          }}
+          title="Click to edit title"
+        >
+          {component.props.title || 'Countdown Timer'}
+        </h3>
+      )}
       <div className="grid grid-cols-4 gap-4 max-w-md mx-auto">
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div 
@@ -101,39 +130,23 @@ function TimerComponent({ component, themeColors, themeFonts, isSelected, onUpda
       {/* Timer Settings Toolbar */}
       {isSelected && (
         <div className="absolute top-2 right-2 bg-white shadow-lg rounded-lg border p-2 flex items-center gap-2 text-gray-600 z-10">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              const title = prompt('Enter timer title:', component.props.title || '');
-              if (title !== null) {
+          <div className="flex items-center gap-2">
+            <span className="text-xs">Date:</span>
+            <input
+              type="date"
+              value={component.props.targetDate || ''}
+              onChange={(e) => {
+                e.stopPropagation();
                 onUpdateComponent(component.id, {
                   ...component,
-                  props: { ...component.props, title }
+                  props: { ...component.props, targetDate: e.target.value }
                 });
-              }
-            }}
-            className="px-2 py-1 hover:bg-gray-100 rounded text-sm"
-            title="Edit Title"
-          >
-            Title
-          </button>
-          <div className="w-px bg-gray-300"></div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              const targetDate = prompt('Enter target date (YYYY-MM-DD):', component.props.targetDate || '');
-              if (targetDate !== null) {
-                onUpdateComponent(component.id, {
-                  ...component,
-                  props: { ...component.props, targetDate }
-                });
-              }
-            }}
-            className="px-2 py-1 hover:bg-gray-100 rounded text-sm"
-            title="Set Target Date"
-          >
-            Date
-          </button>
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="px-2 py-1 text-xs border border-gray-300 rounded"
+              title="Set Target Date"
+            />
+          </div>
           <div className="w-px bg-gray-300"></div>
           <div className="px-2 py-1.5 flex items-center gap-2">
             <span className="text-xs">Color:</span>
@@ -2152,11 +2165,17 @@ export default function ComponentRenderer({
                 )}
               </>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+              <div 
+                className="absolute inset-0 flex items-center justify-center text-gray-400"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="text-center">
                   <ImageIcon className="h-8 w-8 mx-auto mb-2" />
                   <p className="text-sm mb-4">Add 1–5 images</p>
-                  <label className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors">
+                  <label 
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Image
                     <input
@@ -2164,6 +2183,7 @@ export default function ComponentRenderer({
                       accept="image/*"
                       className="hidden"
                       onChange={async (e) => {
+                        e.stopPropagation();
                         const inputEl = e.currentTarget as HTMLInputElement;
                         const file = inputEl.files?.[0];
                         if (!file) return;
@@ -2178,7 +2198,7 @@ export default function ComponentRenderer({
                           imgs.push({ src: url, alt: `Slide ${imgs.length + 1}` });
                           onUpdateComponent(component.id, { ...component, props: { ...component.props, images: imgs, currentIndex: imgs.length - 1 } });
                         } catch (err) {
-                          // swallow
+                          console.error('Upload error:', err);
                         } finally {
                           if (inputEl) inputEl.value = '';
                         }
@@ -2310,13 +2330,19 @@ export default function ComponentRenderer({
           )}
 
           {component.props.style === 'numbered' ? (
-            <ol className="list-decimal pl-6" style={{ lineHeight: 1.6, color: themeColors.text }}>
+            <div className="space-y-1" style={{ lineHeight: 1.6 }}>
               {(component.props.items || []).map((item: string, idx: number) => {
                 const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
                                      component.props.textSize === 'title' ? 'text-2xl' :
                                      component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
                 return (
-                  <li key={idx} className={`mb-1 ${textSizeClass}`}>
+                  <div key={idx} className={`flex items-start mb-1 ${textSizeClass}`}>
+                    <span 
+                      className="shrink-0 w-6 font-medium"
+                      style={{ color: themeColors.text }}
+                    >
+                      {idx + 1}.
+                    </span>
                     <span
                       contentEditable={isSelected}
                       suppressContentEditableWarning
@@ -2326,15 +2352,15 @@ export default function ComponentRenderer({
                         onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
                       }}
                       onClick={(e) => { if (isSelected) e.stopPropagation(); }}
-                      className="outline-none px-1 rounded"
+                      className="outline-none px-1 rounded flex-1"
                       style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
                     >
                       {item}
                     </span>
-                  </li>
+                  </div>
                 );
               })}
-            </ol>
+            </div>
           ) : component.props.style === 'none' ? (
             <div className="space-y-1">
               {(component.props.items || []).map((item: string, idx: number) => {
@@ -2362,13 +2388,19 @@ export default function ComponentRenderer({
               })}
             </div>
           ) : (
-            <ul className="list-disc pl-6" style={{ lineHeight: 1.6, color: themeColors.text }}>
+            <div className="space-y-1" style={{ lineHeight: 1.6 }}>
               {(component.props.items || []).map((item: string, idx: number) => {
                 const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
                                      component.props.textSize === 'title' ? 'text-2xl' :
                                      component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
                 return (
-                  <li key={idx} className={`mb-1 ${textSizeClass}`}>
+                  <div key={idx} className={`flex items-start mb-1 ${textSizeClass}`}>
+                    <span 
+                      className="shrink-0 w-6 flex justify-center items-start pt-1"
+                      style={{ color: themeColors.text }}
+                    >
+                      •
+                    </span>
                     <span
                       contentEditable={isSelected}
                       suppressContentEditableWarning
@@ -2378,15 +2410,15 @@ export default function ComponentRenderer({
                         onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
                       }}
                       onClick={(e) => { if (isSelected) e.stopPropagation(); }}
-                      className="outline-none px-1 rounded"
+                      className="outline-none px-1 rounded flex-1"
                       style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
                     >
                       {item}
                     </span>
-                  </li>
+                  </div>
                 );
               })}
-            </ul>
+            </div>
           )}
         </div>
       )}

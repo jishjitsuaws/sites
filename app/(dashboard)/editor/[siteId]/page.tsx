@@ -2626,8 +2626,8 @@ export default function EditorPage() {
 
       {/* Card Grid Modal (Create/Edit) */}
       {showCardGridModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 shadow-2xl border border-gray-200">
             <h2 className="text-xl font-bold mb-4 text-gray-900">
               {cardGridMode === 'create' ? 'Add Card Grid' : 'Edit Card Grid'}
             </h2>

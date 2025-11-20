@@ -1306,6 +1306,79 @@ export default function PublishedSitePage() {
           />
         );
 
+      case 'bullet-list':
+        return (
+          <div style={{ textAlign: component.props.align || 'left' }}>
+            {component.props.style === 'numbered' ? (
+              <div className="space-y-1" style={{ lineHeight: 1.6 }}>
+                {(component.props.items || []).map((item: string, idx: number) => {
+                  const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
+                                       component.props.textSize === 'title' ? 'text-2xl' :
+                                       component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
+                  return (
+                    <div key={idx} className={`flex items-start mb-1 ${textSizeClass}`}>
+                      <span 
+                        className="shrink-0 w-6 font-medium"
+                        style={{ color: themeColors.text }}
+                      >
+                        {idx + 1}.
+                      </span>
+                      <span
+                        className="flex-1"
+                        style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
+                      >
+                        {item}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : component.props.style === 'none' ? (
+              <div className="space-y-1">
+                {(component.props.items || []).map((item: string, idx: number) => {
+                  const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
+                                       component.props.textSize === 'title' ? 'text-2xl' :
+                                       component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
+                  return (
+                    <div key={idx}>
+                      <span
+                        className={textSizeClass}
+                        style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
+                      >
+                        {item}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="space-y-1" style={{ lineHeight: 1.6 }}>
+                {(component.props.items || []).map((item: string, idx: number) => {
+                  const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
+                                       component.props.textSize === 'title' ? 'text-2xl' :
+                                       component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
+                  return (
+                    <div key={idx} className={`flex items-start mb-1 ${textSizeClass}`}>
+                      <span 
+                        className="shrink-0 w-6 flex justify-center items-start pt-1"
+                        style={{ color: themeColors.text }}
+                      >
+                        •
+                      </span>
+                      <span
+                        className="flex-1"
+                        style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
+                      >
+                        {item}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+
       default:
         return null;
     }
