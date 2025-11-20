@@ -1,6 +1,6 @@
  'use client';
 
-import { Copy, Trash2, AlignLeft, AlignCenter, AlignRight, Settings, Link as LinkIcon, Image as ImageIcon, Video, Type, Plus } from 'lucide-react';
+import { Copy, Trash2, AlignLeft, AlignCenter, AlignRight, Settings, Link as LinkIcon, Image as ImageIcon, Video, Type, Plus, Upload } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { sanitizeText, sanitizeHtml, sanitizeUrl } from '@/lib/sanitize';
@@ -2054,37 +2054,6 @@ export default function ComponentRenderer({
                 Delete Slide
               </button>
               <div className="w-px bg-gray-300"></div>
-              <label className="px-2 py-1 hover:bg-gray-100 rounded text-sm cursor-pointer text-gray-900">
-                Upload
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const inputEl = e.currentTarget as HTMLInputElement;
-                    const file = inputEl.files?.[0];
-                    if (!file) return;
-                    if (file.size > 5 * 1024 * 1024) return; // 5MB
-                    try {
-                      const formData = new FormData();
-                      formData.append('file', file);
-                      const res = await api.post('/assets/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-                      const url = res.data?.data?.url;
-                      if (!url) return;
-                      const imgs = Array.isArray(component.props.images) ? [...component.props.images] : [];
-                      const idx = component.props.currentIndex || 0;
-                      if (!imgs[idx]) imgs[idx] = { src: '', alt: `Slide ${idx + 1}` };
-                      imgs[idx] = { ...imgs[idx], src: url };
-                      onUpdateComponent(component.id, { ...component, props: { ...component.props, images: imgs, currentIndex: idx } });
-                    } catch (err) {
-                      // swallow
-                    } finally {
-                      if (inputEl) inputEl.value = '';
-                    }
-                  }}
-                />
-              </label>
-              <div className="w-px bg-gray-300"></div>
               {/* Autoplay controls */}
               <button
                 className={`px-2 py-1 rounded text-sm ${component.props.autoplay ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-100 text-gray-900'}`}
@@ -2186,7 +2155,36 @@ export default function ComponentRenderer({
               <div className="absolute inset-0 flex items-center justify-center text-gray-400">
                 <div className="text-center">
                   <ImageIcon className="h-8 w-8 mx-auto mb-2" />
-                  <p className="text-sm">Add 1–5 images</p>
+                  <p className="text-sm mb-4">Add 1–5 images</p>
+                  <label className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const inputEl = e.currentTarget as HTMLInputElement;
+                        const file = inputEl.files?.[0];
+                        if (!file) return;
+                        if (file.size > 5 * 1024 * 1024) return; // 5MB
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          const res = await api.post('/assets/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+                          const url = res.data?.data?.url;
+                          if (!url) return;
+                          const imgs = Array.isArray(component.props.images) ? [...component.props.images] : [];
+                          imgs.push({ src: url, alt: `Slide ${imgs.length + 1}` });
+                          onUpdateComponent(component.id, { ...component, props: { ...component.props, images: imgs, currentIndex: imgs.length - 1 } });
+                        } catch (err) {
+                          // swallow
+                        } finally {
+                          if (inputEl) inputEl.value = '';
+                        }
+                      }}
+                    />
+                  </label>
                 </div>
               </div>
             )}

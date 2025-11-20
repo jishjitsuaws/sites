@@ -1855,10 +1855,6 @@ export default function EditorPage() {
             siteId={siteId} 
             onLogoUpdate={handleSaveLogo} 
           />
-          <Button variant="outline" size="sm" onClick={handlePreview} disabled={saving}>
-            <Eye className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Preview'}
-          </Button>
           <Button 
             variant="outline" 
             size="sm" 
@@ -2947,76 +2943,13 @@ export default function EditorPage() {
                           <div className="mb-3">
                             <label className="text-xs font-medium text-gray-600 mb-1 block">Navigate To</label>
                             <select
-                              value={section.navType || 'section'}
-                              onChange={async (e) => {
-                                const newNavType = e.target.value as 'section' | 'page';
-                                const updatedSections = page.sections?.map(s => 
-                                  s.id === section.id ? { ...s, navType: newNavType, navTarget: '' } : s
-                                );
-                                
-                                try {
-                                  await api.put(`/pages/${page._id}`, {
-                                    sections: updatedSections
-                                  });
-                                  
-                                  setPages(pages.map(p => 
-                                    p._id === page._id ? { ...p, sections: updatedSections } : p
-                                  ));
-                                  
-                                  if (currentPage?._id === page._id) {
-                                    setCurrentPage({ ...currentPage, sections: updatedSections });
-                                    setSections(updatedSections || []);
-                                  }
-                                } catch (err) {
-                                  toast.error('Failed to update section');
-                                }
-                              }}
-                              className={`w-full px-2 py-1.5 text-sm border border-gray-300 rounded ${colors.ring} focus:ring-2 focus:border-transparent text-gray-900`}
+                              value="section"
+                              disabled
+                              className={`w-full px-2 py-1.5 text-sm border border-gray-300 rounded bg-gray-50 text-gray-700`}
                             >
-                              <option value="section">This Section</option>
-                              <option value="page">Page</option>
+                              <option value="section">Section {index + 1}</option>
                             </select>
                           </div>
-
-                          {/* Conditional Input based on Navigation Type */}
-                          {section.navType === 'page' && (
-                            <div>
-                              <label className="text-xs font-medium text-gray-600 mb-1 block">Link to Page</label>
-                              <select
-                                value={section.navTarget || ''}
-                                onChange={async (e) => {
-                                  const updatedSections = page.sections?.map(s => 
-                                    s.id === section.id ? { ...s, navTarget: e.target.value } : s
-                                  );
-                                  
-                                  try {
-                                    await api.put(`/pages/${page._id}`, {
-                                      sections: updatedSections
-                                    });
-                                    
-                                    setPages(pages.map(p => 
-                                      p._id === page._id ? { ...p, sections: updatedSections } : p
-                                    ));
-                                    
-                                    if (currentPage?._id === page._id) {
-                                      setCurrentPage({ ...currentPage, sections: updatedSections });
-                                      setSections(updatedSections || []);
-                                    }
-                                  } catch (err) {
-                                    toast.error('Failed to update section');
-                                  }
-                                }}
-                                className={`w-full px-2 py-1.5 text-sm border border-gray-300 rounded ${colors.ring} focus:ring-2 focus:border-transparent text-gray-900`}
-                              >
-                                <option value="">Select a page</option>
-                                {pages.map((p) => (
-                                  <option key={p._id} value={p.slug || ''}>
-                                    {p.isHome ? 'Home' : p.pageName} ({p.isHome ? '/' : `/${p.slug}`})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
                           
                           {/* Page Badge */}
                           <div className="mt-3 pt-3 border-t border-gray-200">
