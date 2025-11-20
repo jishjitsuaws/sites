@@ -2680,13 +2680,13 @@ export default function ComponentRenderer({
                     <div 
                       className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
                       style={{
-                        bottom: '100%',
+                        position: 'fixed',
+                        top: '20%',
                         left: '50%',
                         transform: 'translateX(-50%)',
                         zIndex: 1000,
-                        minWidth: '600px',
+                        minWidth: '800px',
                         maxWidth: '90vw',
-                        marginBottom: '8px',
                       }}
                       onClick={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
