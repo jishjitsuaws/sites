@@ -1219,7 +1219,7 @@ export default function ComponentRenderer({
 
       {/* Break Component */}
       {component.type === 'break' && (
-        <div style={{ clear: 'both', position: 'relative', width: '100%', flex: '0 0 100%', padding: 0, margin: 0 }}>
+        <div style={{ clear: 'both', position: 'relative', width: '100%', display: 'block', padding: 0, margin: 0 }}>
           {/* Inline toolbar for breaks */}
           {isSelected && (
             <div 
@@ -1320,18 +1320,13 @@ export default function ComponentRenderer({
           {component.props.style === 'blank' ? (
             <div style={{ height: '20px', width: '100%', display: 'block' }} />
           ) : (
-            <div
+            <hr 
               style={{
+                border: 'none',
+                borderTop: `${component.props.thickness || 2}px ${component.props.style || 'solid'} ${component.props.color || '#94a3b8'}`,
                 width: '100%',
-                display: 'block',
-                height: `${component.props.thickness || 2}px`,
-                backgroundColor: component.props.color || '#94a3b8',
-                backgroundImage: component.props.style === 'dashed' 
-                  ? `repeating-linear-gradient(to right, ${component.props.color || '#94a3b8'} 0, ${component.props.color || '#94a3b8'} 10px, transparent 10px, transparent 20px)`
-                  : component.props.style === 'dotted'
-                  ? `repeating-linear-gradient(to right, ${component.props.color || '#94a3b8'} 0, ${component.props.color || '#94a3b8'} 5px, transparent 5px, transparent 10px)`
-                  : 'none',
-                minHeight: `${component.props.thickness || 2}px`,
+                margin: '0',
+                display: 'block'
               }}
             />
           )}

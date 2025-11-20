@@ -1221,20 +1221,19 @@ export default function PublishedSitePage() {
 
       case 'break':
         if (component.props.style === 'blank') {
-          return <div style={{ height: '20px' }}></div>;
+          return <div style={{ height: '20px', width: '100%' }}></div>;
         }
         
         return (
-          <div className="w-full flex justify-center">
-            <hr 
-              style={{
-                border: 'none',
-                borderTop: `${component.props.thickness || 2}px ${component.props.style || 'solid'} ${component.props.color || '#94a3b8'}`,
-                width: '100%',
-                margin: '0'
-              }}
-            />
-          </div>
+          <hr 
+            style={{
+              border: 'none',
+              borderTop: `${component.props.thickness || 2}px ${component.props.style || 'solid'} ${component.props.color || '#94a3b8'}`,
+              width: '100%',
+              margin: '0',
+              display: 'block'
+            }}
+          />
         );
 
       default:
