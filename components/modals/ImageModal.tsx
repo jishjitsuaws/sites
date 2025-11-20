@@ -19,7 +19,15 @@ export default function ImageModal({ isOpen, onClose, onSave, initialProps, onDe
   const [imageUrl, setImageUrl] = useState(initialProps?.src || '');
   const [altText, setAltText] = useState(initialProps?.alt || '');
   const [alignment, setAlignment] = useState(initialProps?.align || 'left');
-  const [width, setWidth] = useState(parseInt(initialProps?.width) || 100);
+  const [width, setWidth] = useState(() => {
+    if (!initialProps?.width) return 100;
+    if (typeof initialProps.width === 'string') {
+      // Extract number from "400px" or "100%" - treat both as percentage values
+      const numValue = parseInt(initialProps.width);
+      return numValue > 200 ? 100 : numValue; // If larger than 200, default to 100%
+    }
+    return initialProps.width;
+  });
   const [link, setLink] = useState(initialProps?.link || '');
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
