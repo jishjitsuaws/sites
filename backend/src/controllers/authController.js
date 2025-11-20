@@ -1,5 +1,6 @@
 const User = require('../models/User');
-const { asyncHandler, ApiError } = require('../utils/helpers');
+const asyncHandler = require('../utils/asyncHandler');
+const ApiError = require('../utils/ApiError');
 const { sendTokenResponse, verifyToken, generateAccessToken } = require('../utils/jwt');
 
 /**
@@ -233,6 +234,89 @@ exports.logout = asyncHandler(async (req, res, next) => {
       success: true,
       message: 'Logged out successfully'
     });
+});
+
+/**
+ * @desc    OAuth user login/register with role validation
+ * @route   POST /api/auth/oauth-login
+ * @access  Public
+ */
+exports.oauthLogin = asyncHandler(async (req, res, next) => {
+  const { userInfo, userProfile } = req.body;
+
+  if (!userInfo || !userInfo.uid) {
+    throw new ApiError('User information and UID are required', 400);
+  }
+
+  console.log('[OAuth Login] Processing user:', userInfo);
+
+  // Check if user role is admin
+  const userRole = userInfo.role || 'user';
+  
+  if (userRole !== 'admin' && userRole !== 'super_admin') {
+    console.log('[OAuth Login] Access denied - user role:', userRole);
+    return res.status(403).json({
+      success: false,
+      error: 'access_denied',
+      message: 'You do not have permission to access this application. Only administrators are allowed.',
+      role: userRole
+    });
+  }
+
+  console.log('[OAuth Login] Role check passed - user role:', userRole);
+
+  // Try to find existing user by UID or email
+  let user = await User.findOne({
+    $or: [
+      { email: userInfo.email },
+      { uid: userInfo.uid }
+    ]
+  });
+
+  if (user) {
+    // Update existing user with OAuth data
+    console.log('[OAuth Login] Updating existing user:', user._id);
+    user.role = userRole;
+    user.lastLogin = Date.now();
+    user.isActive = true;
+    
+    if (userProfile) {
+      user.name = `${userProfile.first_name} ${userProfile.last_name}`.trim();
+    } else if (userInfo.first_name && userInfo.last_name) {
+      user.name = `${userInfo.first_name} ${userInfo.last_name}`.trim();
+    }
+    
+    await user.save({ validateBeforeSave: false });
+  } else {
+    // Create new user
+    console.log('[OAuth Login] Creating new user');
+    
+    // Generate a secure random password since OAuth users don't need it
+    const crypto = require('crypto');
+    const randomPassword = crypto.randomBytes(32).toString('hex');
+    
+    const userName = userProfile 
+      ? `${userProfile.first_name} ${userProfile.last_name}`.trim()
+      : userInfo.first_name && userInfo.last_name
+        ? `${userInfo.first_name} ${userInfo.last_name}`.trim()
+        : userInfo.email.split('@')[0];
+
+    user = await User.create({
+      uid: userInfo.uid,
+      name: userName,
+      email: userInfo.email,
+      password: randomPassword, // Will be hashed by pre-save middleware
+      role: userRole,
+      isActive: true,
+      isEmailVerified: true, // OAuth users are pre-verified
+      lastLogin: Date.now()
+    });
+
+    console.log('[OAuth Login] User created successfully:', user._id);
+  }
+
+  // Generate JWT token for our app
+  sendTokenResponse(user, 200, res);
 });
 
 /**

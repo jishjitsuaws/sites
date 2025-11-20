@@ -65,9 +65,19 @@ export default function DashboardLayout({
         return;
       }
       
+      // Check user role for admin access
+      const userRole = userInfo?.role || 'user'; // Default to 'user' if role is missing
+      
+      if (userRole !== 'admin' && userRole !== 'super_admin') {
+        console.log('[Dashboard Layout] User role not authorized:', userRole);
+        router.push('/auth/unauthorized');
+        return;
+      }
+      
       // OAuth userinfo contains all necessary user data
       // No need for separate profile completion step
-      console.log('[Dashboard Layout] Authentication verified, rendering dashboard');
+      console.log('[Dashboard Layout] Authentication and authorization verified, rendering dashboard');
+      console.log('[Dashboard Layout] User role:', userRole);
       setIsReady(true);
       setLoading(false);
     };

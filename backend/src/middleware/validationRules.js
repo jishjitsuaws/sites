@@ -64,6 +64,21 @@ const authValidation = {
       .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
       .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
   ],
+
+  oauthLogin: [
+    body('userInfo.uid')
+      .notEmpty().withMessage('User ID is required')
+      .isLength({ max: 255 }).withMessage('User ID must not exceed 255 characters'),
+    
+    body('userInfo.email')
+      .trim()
+      .isEmail().withMessage('Invalid email address')
+      .normalizeEmail(),
+    
+    body('userInfo.role')
+      .optional()
+      .isIn(['user', 'admin', 'super_admin']).withMessage('Invalid role specified'),
+  ],
 };
 
 /**

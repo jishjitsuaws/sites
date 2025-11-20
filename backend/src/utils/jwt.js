@@ -60,7 +60,8 @@ const sendTokenResponse = (user, statusCode, res) => {
         name: user.name,
         email: user.email,
         avatar: user.avatar,
-        subscriptionPlan: user.subscriptionPlan
+        subscriptionPlan: user.subscriptionPlan,
+        role: user.role
       }
     });
 };

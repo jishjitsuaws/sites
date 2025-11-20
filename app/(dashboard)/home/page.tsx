@@ -301,9 +301,16 @@ function DashboardContent() {
               <span className="ml-2 text-xl font-bold text-gray-900">SiteBuilder</span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
-                {displayName}
-              </span>
+              <div className="text-right">
+                <div className="text-sm text-gray-600">
+                  {displayName}
+                </div>
+                <div className="text-xs text-blue-600 font-medium">
+                  {userInfo?.role === 'admin' ? 'Administrator' : 
+                   userInfo?.role === 'super_admin' ? 'Super Administrator' : 
+                   userInfo?.role || 'User'}
+                </div>
+              </div>
               <Button variant="ghost" size="sm" onClick={() => router.push('/settings')}>
                 <Settings className="h-4 w-4" />
               </Button>

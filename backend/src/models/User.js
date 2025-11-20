@@ -9,6 +9,11 @@ const userSchema = new mongoose.Schema({
     minlength: [2, 'Name must be at least 2 characters long'],
     maxlength: [50, 'Name cannot exceed 50 characters']
   },
+  uid: {
+    type: String,
+    unique: true,
+    sparse: true // Allows null values but enforces uniqueness when present
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -58,6 +63,11 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'super_admin'],
+    default: 'user'
   }
 }, {
   timestamps: true,
@@ -67,6 +77,8 @@ const userSchema = new mongoose.Schema({
 
 // Index for faster queries
 userSchema.index({ createdAt: -1 });
+userSchema.index({ uid: 1 }); // Index for OAuth UID lookups
+userSchema.index({ email: 1, uid: 1 }); // Compound index for OAuth user lookup
 
 // Virtual for user's sites
 userSchema.virtual('sites', {

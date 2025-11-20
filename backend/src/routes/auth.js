@@ -2,6 +2,7 @@ const express = require('express');
 const {
   register,
   login,
+  oauthLogin,
   getMe,
   updateProfile,
   updatePassword,
@@ -19,6 +20,7 @@ const router = express.Router();
 // Routes
 router.post('/register', authValidation.register, handleValidationErrors, register);
 router.post('/login', authValidation.login, handleValidationErrors, login);
+router.post('/oauth-login', authValidation.oauthLogin, handleValidationErrors, oauthLogin);
 router.get('/me', protect, getMe);
 router.put('/update-profile', protect, updateProfile);
 router.put('/update-password', protect, authValidation.updatePassword, handleValidationErrors, updatePassword);

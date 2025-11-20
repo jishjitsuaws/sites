@@ -9,6 +9,8 @@ import {
   authStorage 
 } from '@/lib/auth';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
 function CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -81,6 +83,52 @@ function CallbackContent() {
         // Which calls: POST https://ivp.isea.in/backend/ivp/profile/
         const userProfile = await fetchUserProfile('', userInfo.uid); // Empty string for accessToken
 
+        // STEP 6: Role-based access control - Check with backend
+        console.log('[Callback] Validating user access and role...');
+        setStatus('Validating access permissions...');
+        
+        try {
+          const oauthLoginResponse = await fetch(`${BACKEND_URL}/api/auth/oauth-login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              userInfo,
+              userProfile
+            }),
+          });
+
+          if (!oauthLoginResponse.ok) {
+            const errorData = await oauthLoginResponse.json();
+            
+            if (errorData.error === 'access_denied') {
+              console.log('[Callback] Access denied - redirecting to unauthorized page');
+              // Store user info for display on unauthorized page
+              authStorage.setAuth('', userInfo); 
+              router.push('/auth/unauthorized');
+              return;
+            }
+            
+            throw new Error(`OAuth login failed: ${errorData.message || oauthLoginResponse.status}`);
+          }
+
+          const loginData = await oauthLoginResponse.json();
+          console.log('[Callback] OAuth login successful, admin access granted');
+          
+          // Update userInfo with backend user data (includes role)
+          if (loginData.user) {
+            userInfo.role = loginData.user.role;
+            console.log('[Callback] Updated userInfo with backend role:', userInfo.role);
+          }
+          
+        } catch (oauthError) {
+          console.error('[Callback] OAuth login error:', oauthError);
+          setError(`Access validation failed: ${oauthError instanceof Error ? oauthError.message : 'Unknown error'}`);
+          return;
+        }
+
         if (!userProfile) {
           // Profile doesn't exist, redirect to complete profile
           console.log('[Callback] No profile found, redirecting to complete profile');
@@ -93,7 +141,8 @@ function CallbackContent() {
         console.log('[Callback] Profile found, authentication complete');
         console.log('[Callback] Storing auth data (token in HttpOnly cookie):', {
           hasUserInfo: !!userInfo,
-          hasUserProfile: !!userProfile
+          hasUserProfile: !!userProfile,
+          userRole: userInfo.role
         });
         
         authStorage.setAuth('', userInfo, userProfile); // Empty string for accessToken (not stored)
