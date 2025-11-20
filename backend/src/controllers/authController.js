@@ -244,14 +244,30 @@ exports.logout = asyncHandler(async (req, res, next) => {
 exports.oauthLogin = asyncHandler(async (req, res, next) => {
   const { userInfo, userProfile } = req.body;
 
-  if (!userInfo || !userInfo.uid) {
-    throw new ApiError('User information and UID are required', 400);
+  if (!userInfo) {
+    throw new ApiError('User information is required', 400);
   }
 
   console.log('[OAuth Login] Processing user:', userInfo);
 
+  // Extract data from nested OAuth response structure
+  const userData = userInfo.data || userInfo;
+  const uid = userInfo.uid || userData.user_id;
+  const email = userData.email || userInfo.email;
+  const role = userData.role || userInfo.role || 'user';
+
+  if (!uid) {
+    throw new ApiError('User ID is required', 400);
+  }
+
+  if (!email) {
+    throw new ApiError('Email is required', 400);
+  }
+
+  console.log('[OAuth Login] Extracted user data:', { uid, email, role });
+
   // Check if user role is admin
-  const userRole = userInfo.role || 'user';
+  const userRole = role;
   
   if (userRole !== 'admin' && userRole !== 'super_admin') {
     console.log('[OAuth Login] Access denied - user role:', userRole);
@@ -268,8 +284,8 @@ exports.oauthLogin = asyncHandler(async (req, res, next) => {
   // Try to find existing user by UID or email
   let user = await User.findOne({
     $or: [
-      { email: userInfo.email },
-      { uid: userInfo.uid }
+      { email: email },
+      { uid: uid }
     ]
   });
 
@@ -282,8 +298,8 @@ exports.oauthLogin = asyncHandler(async (req, res, next) => {
     
     if (userProfile) {
       user.name = `${userProfile.first_name} ${userProfile.last_name}`.trim();
-    } else if (userInfo.first_name && userInfo.last_name) {
-      user.name = `${userInfo.first_name} ${userInfo.last_name}`.trim();
+    } else if (userData.first_name && userData.last_name) {
+      user.name = `${userData.first_name} ${userData.last_name}`.trim();
     }
     
     await user.save({ validateBeforeSave: false });
@@ -297,14 +313,14 @@ exports.oauthLogin = asyncHandler(async (req, res, next) => {
     
     const userName = userProfile 
       ? `${userProfile.first_name} ${userProfile.last_name}`.trim()
-      : userInfo.first_name && userInfo.last_name
-        ? `${userInfo.first_name} ${userInfo.last_name}`.trim()
-        : userInfo.email.split('@')[0];
+      : userData.first_name && userData.last_name
+        ? `${userData.first_name} ${userData.last_name}`.trim()
+        : email.split('@')[0];
 
     user = await User.create({
-      uid: userInfo.uid,
+      uid: uid,
       name: userName,
-      email: userInfo.email,
+      email: email,
       password: randomPassword, // Will be hashed by pre-save middleware
       role: userRole,
       isActive: true,

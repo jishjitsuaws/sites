@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authStorage } from '@/lib/auth';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
 export default function UnauthorizedPage() {
   const router = useRouter();
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -30,14 +32,43 @@ export default function UnauthorizedPage() {
   const handleReturnHome = async () => {
     setIsReturningHome(true);
     try {
-      // Logout first to clear the session
-      await authStorage.logout();
+      console.log('[Unauthorized] Starting logout process for return home...');
+      
+      // Get user info for logout API call
+      const userInfo = authStorage.getUserInfo();
+      
+      if (userInfo?.uid) {
+        console.log('[Unauthorized] Calling OAuth logout API...');
+        // Call OAuth logout API directly
+        const response = await fetch(`${BACKEND_URL}/api/oauth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            user_id: userInfo.uid,
+          }),
+        });
+        
+        if (response.ok) {
+          console.log('[Unauthorized] OAuth logout successful');
+        } else {
+          console.warn('[Unauthorized] OAuth logout failed, continuing with local clear');
+        }
+      }
+      
+      // Always clear local storage
+      authStorage.clearAuth();
+      console.log('[Unauthorized] Auth storage cleared');
+      
     } catch (error) {
-      console.error('Logout error on return home:', error);
+      console.error('[Unauthorized] Logout error on return home:', error);
       // Force logout by clearing storage
       authStorage.clearAuth();
     } finally {
       // Always redirect to home page after logout
+      console.log('[Unauthorized] Redirecting to home page...');
       window.location.href = '/';
     }
   };

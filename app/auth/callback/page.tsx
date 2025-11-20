@@ -72,9 +72,22 @@ function CallbackContent() {
         // SECURITY FIX (CVE-002): Token is sent via HttpOnly cookie, not passed as parameter
         // Calls: POST http://sites.isea.in/api/oauth/userinfo
         // Which calls: POST https://ivp.isea.in/backend/userinfo
-        const userInfo = await fetchUserInfo('', uid); // Empty string for accessToken (not used)
+        const userInfoResponse = await fetchUserInfo('', uid); // Empty string for accessToken (not used)
         
-        console.log('[Callback] User info received:', userInfo);
+        console.log('[Callback] User info response received:', userInfoResponse);
+        
+        // Extract user data from nested OAuth response structure
+        const oauthResponse = userInfoResponse as any;
+        const userInfo = {
+          uid: oauthResponse.uid || oauthResponse.data?.user_id,
+          email: oauthResponse.data?.email || oauthResponse.email,
+          username: oauthResponse.data?.username || oauthResponse.username,
+          first_name: oauthResponse.data?.first_name || oauthResponse.first_name,
+          last_name: oauthResponse.data?.last_name || oauthResponse.last_name,
+          role: oauthResponse.data?.role || oauthResponse.role
+        };
+        
+        console.log('[Callback] Processed user info:', userInfo);
         setStatus('Checking user profile...');
 
         // STEP 5: Check if user profile exists

@@ -66,11 +66,15 @@ const authValidation = {
   ],
 
   oauthLogin: [
+    body('userInfo')
+      .notEmpty().withMessage('User information is required'),
+    
     body('userInfo.uid')
-      .notEmpty().withMessage('User ID is required')
+      .optional()
       .isLength({ max: 255 }).withMessage('User ID must not exceed 255 characters'),
     
     body('userInfo.email')
+      .optional()
       .trim()
       .isEmail().withMessage('Invalid email address')
       .normalizeEmail(),
