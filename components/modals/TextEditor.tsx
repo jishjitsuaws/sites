@@ -115,12 +115,11 @@ export default function TextEditorToolbar({
       className="absolute bg-white rounded-lg shadow-2xl border border-gray-300 p-3 z-50"
       style={{
         position: 'absolute',
-        bottom: '100%',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        marginBottom: '8px',
+        left: `${Math.max(10, position.x + window.scrollX)}px`,
+        top: `${Math.max(80, position.y + window.scrollY - 80)}px`,
         minWidth: '700px',
         maxWidth: 'calc(100vw - 20px)',
+        transform: position.x + 700 > window.innerWidth ? 'translateX(-50%)' : 'none',
       }}
       onClick={(e) => e.stopPropagation()}
     >
