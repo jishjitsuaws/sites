@@ -2127,6 +2127,7 @@ export default function ComponentRenderer({
                     <div
                       key={idx}
                       className={`absolute inset-0 transition-opacity duration-300 ${active ? 'opacity-100' : 'opacity-0'}`}
+                      style={{ pointerEvents: active ? 'auto' : 'none' }}
                     >
                       {img?.src ? (
                         <img
