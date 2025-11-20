@@ -183,18 +183,18 @@ function CallbackContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-gray-900 via-blue-900/20 to-purple-900/20 flex items-center justify-center p-6">
-        <div className="bg-red-900/20 backdrop-blur-lg rounded-2xl p-8 border border-red-500/30 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="min-h-screen bg-linear-to-br from-red-50 to-orange-100 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-red-200 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Authentication Failed</h2>
-          <p className="text-red-300 mb-4">{error}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Authentication Failed</h2>
+          <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={() => router.push('/')}
-            className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
           >
             Return to Home
           </button>
@@ -204,19 +204,19 @@ function CallbackContent() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-900 via-blue-900/20 to-purple-900/20 flex items-center justify-center p-6">
-      <div className="bg-gray-800/90 backdrop-blur-lg rounded-2xl p-8 border border-gray-600/30 max-w-md w-full text-center">
-        <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-          <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
+      <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200 max-w-md w-full text-center">
+        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+          <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Authenticating...</h2>
-        <p className="text-gray-400 mb-4">{status}</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Authenticating...</h2>
+        <p className="text-gray-600 mb-4">{status}</p>
         <div className="flex justify-center space-x-2">
-          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
         </div>
       </div>
     </div>
@@ -226,8 +226,8 @@ function CallbackContent() {
 export default function AuthCallback() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-linear-to-br from-gray-900 via-blue-900/20 to-purple-900/20 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-gray-900 text-lg font-medium">Loading...</div>
       </div>
     }>
       <CallbackContent />
