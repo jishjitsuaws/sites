@@ -8,6 +8,7 @@ export default function UnauthorizedPage() {
   const router = useRouter();
   const [userInfo, setUserInfo] = useState<any>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isReturningHome, setIsReturningHome] = useState(false);
 
   useEffect(() => {
     const info = authStorage.getUserInfo();
@@ -26,8 +27,19 @@ export default function UnauthorizedPage() {
     }
   };
 
-  const handleReturnHome = () => {
-    router.push('/');
+  const handleReturnHome = async () => {
+    setIsReturningHome(true);
+    try {
+      // Logout first to clear the session
+      await authStorage.logout();
+    } catch (error) {
+      console.error('Logout error on return home:', error);
+      // Force logout by clearing storage
+      authStorage.clearAuth();
+    } finally {
+      // Always redirect to home page after logout
+      window.location.href = '/';
+    }
   };
 
   return (
@@ -44,8 +56,12 @@ export default function UnauthorizedPage() {
         <h1 className="text-3xl font-bold text-white mb-4">Access Denied</h1>
         
         {/* Message */}
-        <p className="text-red-300 mb-6 leading-relaxed">
+        <p className="text-red-300 mb-4 leading-relaxed">
           You do not have permission to access this application. Only administrators are allowed to use this platform.
+        </p>
+        
+        <p className="text-gray-400 mb-6 text-sm">
+          If you have an administrator account, please logout and sign in with your admin credentials.
         </p>
 
         {/* User Info */}
@@ -90,9 +106,17 @@ export default function UnauthorizedPage() {
           
           <button
             onClick={handleReturnHome}
-            className="w-full px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            disabled={isReturningHome || isLoggingOut}
+            className="w-full px-6 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-600/50 text-white rounded-lg transition-colors"
           >
-            Return to Home
+            {isReturningHome ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span>Logging out...</span>
+              </div>
+            ) : (
+              'Logout & Return to Home'
+            )}
           </button>
         </div>
 
