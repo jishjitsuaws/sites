@@ -2623,6 +2623,15 @@ export default function ComponentRenderer({
                       const element = e.currentTarget as HTMLElement;
                       if (element.textContent === 'Add heading...' || !component.props.heading) {
                         element.textContent = '';
+                        // Move cursor to the end after clearing
+                        setTimeout(() => {
+                          const range = document.createRange();
+                          const selection = window.getSelection();
+                          range.selectNodeContents(element);
+                          range.collapse(false);
+                          selection?.removeAllRanges();
+                          selection?.addRange(range);
+                        }, 0);
                       }
                       
                       // Show text toolbar for banner text editing
@@ -2698,6 +2707,15 @@ export default function ComponentRenderer({
                       const element = e.currentTarget as HTMLElement;
                       if (element.textContent === 'Add subheading...' || !component.props.subheading) {
                         element.textContent = '';
+                        // Move cursor to the end after clearing
+                        setTimeout(() => {
+                          const range = document.createRange();
+                          const selection = window.getSelection();
+                          range.selectNodeContents(element);
+                          range.collapse(false);
+                          selection?.removeAllRanges();
+                          selection?.addRange(range);
+                        }, 0);
                       }
                       
                       // Show text toolbar for banner subheading editing
