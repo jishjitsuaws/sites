@@ -274,7 +274,6 @@ export default function ComponentRenderer({
         zIndex: isSelected ? 50 : 1,
         outline: (isBanner || isFooter) && isSelected ? '2px solid #60a5fa' : 'none',
         outlineOffset: (isBanner || isFooter) && isSelected ? '2px' : '0',
-        ...(component.type === 'divider' ? { alignSelf: 'stretch', flex: '0 0 100%', width: '100%' } : {}),
       }}
       onClick={(e) => {
         const target = e.target as HTMLElement;
@@ -773,7 +772,7 @@ export default function ComponentRenderer({
                 {/* Resize Handle - Full surface draggable like video */}
                 {isSelected && (
                   <div
-                    className="absolute top-0 -right-3 bottom-0 cursor-ew-resize"
+                    className="absolute top-0 right-0 bottom-0 cursor-ew-resize"
                     style={{
                       width: '100%', // Cover entire image area for easier dragging
                       userSelect: 'none',
@@ -821,9 +820,9 @@ export default function ComponentRenderer({
                     }}
                     title="Drag anywhere to resize width (maintains aspect ratio)"
                   >
-                    {/* Visual indicator on the right edge */}
+                    {/* Visual indicator on the right edge - inside border */}
                     <div 
-                      className="absolute top-0 -right-3 bottom-0 w-6 flex items-center justify-center hover:bg-blue-100 rounded transition-colors group"
+                      className="absolute top-0 right-0 bottom-0 w-6 flex items-center justify-center hover:bg-blue-100 hover:bg-opacity-50 rounded transition-colors group"
                     >
                       <div className="w-1 h-8 bg-blue-600 rounded group-hover:h-12 transition-all"></div>
                     </div>
@@ -855,14 +854,15 @@ export default function ComponentRenderer({
             {/* Inline Button Controls with Text and Color Editing */}
             {isSelected && (
               <div 
-                className="fixed bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
+                className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
                 style={{
-                  top: '50%',
+                  bottom: '100%',
                   left: '50%',
-                  transform: 'translate(-50%, -50%)',
+                  transform: 'translateX(-50%)',
                   zIndex: 1000,
                   minWidth: '800px',
                   maxWidth: '90vw',
+                  marginBottom: '8px',
                 }}
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
@@ -1217,48 +1217,25 @@ export default function ComponentRenderer({
         </div>
       )}
 
-      {/* Divider Component */}
-      {component.type === 'divider' && (
+      {/* Break Component */}
+      {component.type === 'break' && (
         <div style={{ clear: 'both', position: 'relative', width: '100%', flex: '0 0 100%', padding: 0, margin: 0 }}>
-          {/* Inline toolbar for dividers */}
+          {/* Inline toolbar for breaks */}
           {isSelected && (
             <div 
               className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
               style={{
-                top: component.props.style === 'none' || component.props.style === 'spacer' ? '50%' : '-56px',
+                top: component.props.style === 'blank' ? '50%' : '-56px',
                 left: '50%',
-                transform: component.props.style === 'none' || component.props.style === 'spacer' ? 'translate(-50%, -50%)' : 'translateX(-50%)',
+                transform: component.props.style === 'blank' ? 'translate(-50%, -50%)' : 'translateX(-50%)',
                 zIndex: 1000,
                 minWidth: 'max-content',
               }}
             >
-              {component.props.style === 'none' && (
-                <span className="px-2 py-1 text-sm text-gray-600">Float Clearfix (invisible)</span>
+              {component.props.style === 'blank' && (
+                <span className="px-2 py-1 text-sm text-gray-600">Page Break (invisible)</span>
               )}
-              {component.props.style === 'spacer' && (
-                <>
-                  <span className="px-2 py-1 text-sm text-gray-600">Spacer:</span>
-                  <input
-                    type="number"
-                    value={parseInt(component.props.height) || 40}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      const height = Math.max(10, Math.min(400, parseInt(e.target.value) || 40));
-                      onUpdateComponent(component.id, {
-                        ...component,
-                        props: { ...component.props, height: `${height}px` }
-                      });
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
-                    min={10}
-                    max={400}
-                    title="Spacer Height (px)"
-                  />
-                  <span className="text-xs text-gray-600">px</span>
-                </>
-              )}
-              {component.props.style !== 'none' && component.props.style !== 'spacer' && (
+              {component.props.style !== 'blank' && (
                 <>
                   <select
                     value={component.props.style || 'solid'}
@@ -1272,10 +1249,10 @@ export default function ComponentRenderer({
                     className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <option value="solid">Line</option>
+                    <option value="solid">Solid</option>
                     <option value="dashed">Dashed</option>
                     <option value="dotted">Dotted</option>
-                    <option value="spacer">Spacer</option>
+                    <option value="blank">Blank</option>
                   </select>
                   <div className="w-px bg-gray-300"></div>
                   {/* Thickness */}
@@ -1340,9 +1317,9 @@ export default function ComponentRenderer({
             </div>
           )}
           
-          {component.props.style === 'spacer' ? (
-            <div style={{ height: component.props.height || '40px', width: '100%', display: 'block' }} />
-          ) : component.props.style !== 'none' ? (
+          {component.props.style === 'blank' ? (
+            <div style={{ height: '20px', width: '100%', display: 'block' }} />
+          ) : (
             <div
               style={{
                 width: '100%',
@@ -1357,7 +1334,7 @@ export default function ComponentRenderer({
                 minHeight: `${component.props.thickness || 2}px`,
               }}
             />
-          ) : null}
+          )}
         </div>
       )}
 
@@ -2770,14 +2747,15 @@ export default function ComponentRenderer({
                   {/* Banner Button Inline Toolbar */}
                   {isSelected && (
                     <div 
-                      className="fixed bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
+                      className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
                       style={{
-                        top: '50%',
+                        bottom: '100%',
                         left: '50%',
-                        transform: 'translate(-50%, -50%)',
+                        transform: 'translateX(-50%)',
                         zIndex: 1000,
                         minWidth: '600px',
                         maxWidth: '90vw',
+                        marginBottom: '8px',
                       }}
                       onClick={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}

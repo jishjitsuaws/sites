@@ -829,7 +829,7 @@ export default function EditorPage() {
     { id: 'image', name: 'Image', icon: ImageIcon, description: 'Insert an image' },
     { id: 'button', name: 'Button', icon: LinkIcon, description: 'Add a clickable button' },
     { id: 'video', name: 'Video', icon: Video, description: 'Embed a video' },
-  { id: 'divider', name: 'Divider', icon: Minus, description: 'Line / Dashed / Dotted / Spacer' },
+    { id: 'break', name: 'Page Break', icon: Minus, description: 'Line break - dotted, dashed, solid or blank' },
     { id: 'social', name: 'Social Links', icon: LinkIcon, description: 'Instagram, Facebook, Twitter icons' },
     { id: 'timer', name: 'Countdown Timer', icon: Layout, description: 'Countdown to a specific date' },
     { id: 'card-grid', name: 'Card Grid', icon: Layout, description: 'Add 1-5 cards in a row' },
@@ -1236,16 +1236,6 @@ export default function EditorPage() {
           });
         }
       }
-      
-      // Add a divider to clear the float
-      newComponents.push({
-        id: `divider-${timestamp + 4}`,
-        type: 'divider',
-        props: {
-          style: 'none',
-          color: 'transparent',
-        }
-      });
     } else if (layout === 'feature-grid-3' || layout === 'feature-grid-4') {
       // Grid layouts: Create header section + grid section
       const gridCount = layout === 'feature-grid-3' ? 3 : 4;
@@ -1535,15 +1525,6 @@ export default function EditorPage() {
           color: getThemeColors().textSecondary,
         }
       });
-      // Add divider to clear float
-      newComponents.push({
-        id: `divider-${timestamp + 3}`,
-        type: 'divider',
-        props: {
-          style: 'none',
-          color: 'transparent',
-        }
-      });
     }
 
     // Create a new section with all template components
@@ -1635,8 +1616,8 @@ export default function EditorPage() {
         return { text: 'Button', href: '#', variant: 'primary', align: 'left', textColor: '#ffffff', buttonColor: getThemeColors().primary };
       case 'video':
         return { url: '', autoplay: false, height: 400 };
-      case 'divider':
-        return { style: 'solid', color: '#94a3b8', thickness: 2, height: '40px' };
+      case 'break':
+        return { style: 'solid', color: '#94a3b8', thickness: 2 };
       case 'social':
         return {
           instagramUrl: '',

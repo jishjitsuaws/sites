@@ -32,7 +32,6 @@ export default function ComponentsPanel({
               'image': 'from-pink-500 to-rose-600',
               'button': 'from-green-500 to-emerald-600',
               'video': 'from-red-500 to-orange-600',
-              'divider': 'from-gray-400 to-gray-500',
               'card': 'from-violet-500 to-purple-600',
               'carousel': 'from-amber-500 to-yellow-600',
               'bullet-list': 'from-teal-500 to-cyan-600',

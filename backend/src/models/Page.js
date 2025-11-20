@@ -13,7 +13,6 @@ const componentSchema = new mongoose.Schema({
       'embed',
       'layout',
       'form',
-      'divider',
       'spacer',
       'youtube',
       'map',

@@ -573,30 +573,6 @@ export default function PublishedSitePage() {
           </div>
         ) : null;
 
-      case 'divider':
-        return (
-          <div style={{ clear: 'both', width: '100%' }}>
-            {component.props.style === 'spacer' ? (
-              <div style={{ height: component.props.height || '40px', width: '100%', display: 'block' }} />
-            ) : component.props.style !== 'none' ? (
-              <div
-                style={{
-                  width: '100%',
-                  display: 'block',
-                  height: `${component.props.thickness || 2}px`,
-                  backgroundColor: component.props.color || themeColors.primary,
-                  backgroundImage: component.props.style === 'dashed' 
-                    ? `repeating-linear-gradient(to right, ${component.props.color || themeColors.primary} 0, ${component.props.color || themeColors.primary} 10px, transparent 10px, transparent 20px)`
-                    : component.props.style === 'dotted'
-                    ? `repeating-linear-gradient(to right, ${component.props.color || themeColors.primary} 0, ${component.props.color || themeColors.primary} 5px, transparent 5px, transparent 10px)`
-                    : 'none',
-                  minHeight: `${component.props.thickness || 2}px`,
-                }}
-              />
-            ) : null}
-          </div>
-        );
-
       case 'card':
         return (
           <div 
@@ -1240,6 +1216,24 @@ export default function PublishedSitePage() {
                 )}
               </div>
             )}
+          </div>
+        );
+
+      case 'break':
+        if (component.props.style === 'blank') {
+          return <div style={{ height: '20px' }}></div>;
+        }
+        
+        return (
+          <div className="w-full flex justify-center">
+            <hr 
+              style={{
+                border: 'none',
+                borderTop: `${component.props.thickness || 2}px ${component.props.style || 'solid'} ${component.props.color || '#94a3b8'}`,
+                width: '100%',
+                margin: '0'
+              }}
+            />
           </div>
         );
 
