@@ -822,7 +822,6 @@ export default function EditorPage() {
   };
 
   const insertComponentTypes = [
-    { id: 'hero-center', name: 'Hero Center', icon: Layout, description: 'Centered hero section' },
     { id: 'banner-full', name: 'Text Banner', icon: Layout, description: 'Banner with text & button' },
     { id: 'banner-minimal', name: 'Image Banner', icon: ImageIcon, description: 'Banner - image only' },
     { id: 'heading', name: 'Heading', icon: Type, description: 'Add a title or heading' },
@@ -841,63 +840,6 @@ export default function EditorPage() {
   ];
 
   const handleInsertComponent = (type: string) => {
-    // Handle hero-center template - creates a centered hero section
-    if (type === 'hero-center') {
-      const timestamp = Date.now();
-      const newComponents = [
-        {
-          id: `heading-${timestamp}`,
-          type: 'heading',
-          props: {
-            text: 'Welcome',
-            align: 'center',
-            fontSize: 48,
-            fontFamily: getThemeFonts().heading,
-            bold: true,
-            color: getThemeColors().primary,
-          }
-        },
-        {
-          id: `text-${timestamp + 1}`,
-          type: 'text',
-          props: {
-            text: 'Add your description here',
-            align: 'center',
-            fontSize: 18,
-            color: getThemeColors().textSecondary,
-          }
-        },
-        {
-          id: `button-${timestamp + 2}`,
-          type: 'button',
-          props: {
-            text: 'Get Started',
-            href: '#',
-            variant: 'primary',
-            align: 'center',
-          }
-        }
-      ];
-
-      const newSection = {
-        id: `section-${Date.now()}`,
-        components: newComponents,
-        layout: {
-          direction: 'column' as const,
-          justifyContent: 'center' as const,
-          alignItems: 'center' as const,
-          gap: 24,
-          padding: 80,
-        },
-        order: sections.length,
-      };
-
-      addSection(newSection);
-      setSelectedSection(newSection.id);
-      toast.success('Hero section added');
-      return;
-    }
-
     // Handle card grid specially - show modal to choose number of cards
     if (type === 'card-grid') {
       setCardGridMode('create');

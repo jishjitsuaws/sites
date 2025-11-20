@@ -2765,25 +2765,88 @@ export default function ComponentRenderer({
                 </div>
               )}
               
-              {/* Button with inline controls */}
+              {/* Button with inline toolbar - like regular button component */}
               {(component.props.buttonText !== null && component.props.buttonText !== undefined) && (
-                <div className="relative group/button inline-block" style={{ zIndex: 2 }}>
+                <div className="relative group/button inline-block" style={{ zIndex: 2, minHeight: isSelected ? '100px' : 'auto' }}>
+                  {/* Banner Button Inline Toolbar */}
                   {isSelected && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, buttonText: null }
-                        });
+                    <div 
+                      className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
+                      style={{
+                        bottom: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: 1000,
+                        minWidth: '600px',
+                        maxWidth: '90vw',
+                        marginBottom: '8px',
                       }}
-                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-100 transition-all shadow-lg"
-                      title="Delete Button"
-                      style={{ zIndex: 10 }}
+                      onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
                     >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+                      {/* Button Text Input */}
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-semibold text-gray-600">Button Text</label>
+                        <input
+                          type="text"
+                          value={component.props.buttonText || ''}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            onUpdateComponent(component.id, {
+                              ...component,
+                              props: { ...component.props, buttonText: e.target.value }
+                            });
+                          }}
+                          onFocus={(e) => e.stopPropagation()}
+                          onBlur={(e) => e.stopPropagation()}
+                          placeholder="Button text"
+                          className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-32"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      
+                      {/* Link Input */}
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-semibold text-gray-600">Link To</label>
+                        <input
+                          type="text"
+                          value={component.props.buttonLink || ''}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            onUpdateComponent(component.id, {
+                              ...component,
+                              props: { ...component.props, buttonLink: e.target.value }
+                            });
+                          }}
+                          onFocus={(e) => e.stopPropagation()}
+                          onBlur={(e) => e.stopPropagation()}
+                          placeholder="https://example.com"
+                          className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-48"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      
+                      <div className="w-px bg-gray-300 h-8"></div>
+                      
+                      {/* Delete Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateComponent(component.id, {
+                            ...component,
+                            props: { ...component.props, buttonText: null, buttonLink: null }
+                          });
+                        }}
+                        className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
+                        title="Delete Button"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete
+                      </button>
+                    </div>
                   )}
+                  
+                  {/* Button Element */}
                   {component.props.buttonLink && !isSelected ? (
                     <a
                       href={component.props.buttonLink}
@@ -2799,65 +2862,24 @@ export default function ComponentRenderer({
                       {component.props.buttonText || 'Get Started'}
                     </a>
                   ) : (
-                    <div
-                      contentEditable={true}
-                      suppressContentEditableWarning
-                      onInput={(e) => {
-                        const newButtonText = e.currentTarget.textContent || '';
-                        if (newButtonText !== component.props.buttonText) {
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, buttonText: newButtonText }
-                          });
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const newButtonText = e.currentTarget.textContent || '';
-                        if (newButtonText !== component.props.buttonText) {
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, buttonText: newButtonText }
-                          });
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          e.currentTarget.blur();
-                        }
-                      }}
-                      onFocus={(e) => {
-                        // Show text toolbar for banner button editing (treat as text)
-                        const element = e.currentTarget as HTMLElement;
-                        const rect = element.getBoundingClientRect();
-                        
-                        // Use absolute screen coordinates for text toolbar positioning
-                        const absoluteRect = {
-                          x: rect.left,
-                          y: rect.top,
-                          left: rect.left,
-                          top: rect.top,
-                          right: rect.right,
-                          bottom: rect.bottom,
-                          width: rect.width,
-                          height: rect.height,
-                          toJSON: () => ({})
-                        } as DOMRect;
-                        onShowTextToolbar(absoluteRect);
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Don't trigger button modal for banner buttons
-                      }}
-                      className="px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105 outline-none focus:ring-2 focus:ring-offset-2 inline-block"
+                    <button
+                      className="px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105 inline-block"
                       style={{
                         backgroundColor: '#ffffff',
                         color: component.props.backgroundColor || themeColors.primary,
-                        cursor: isSelected ? 'text' : 'pointer',
+                        cursor: 'pointer',
+                        border: 'none',
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Select this button for editing
+                        if (!isSelected) {
+                          onComponentClick(component, e as any);
+                        }
                       }}
                     >
-                      {component.props.buttonText || (isSelected ? 'Add button text...' : 'Get Started')}
-                    </div>
+                      {component.props.buttonText || 'Get Started'}
+                    </button>
                   )}
                 </div>
               )}
