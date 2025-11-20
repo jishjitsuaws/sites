@@ -22,9 +22,9 @@ export default function DashboardLayout({
       const hasOAuthParams = urlParams.has('code') && urlParams.has('state');
       
       if (hasOAuthParams && pathname === '/home') {
-        console.log('[Dashboard Layout] OAuth callback detected on /home, allowing through...');
-        setIsReady(true);
-        setLoading(false);
+        console.log('[Dashboard Layout] OAuth callback detected on /home, redirecting to callback handler...');
+        // Redirect to proper callback handler instead of bypassing security
+        window.location.href = `/auth/callback?code=${urlParams.get('code')}&state=${urlParams.get('state')}`;
         return;
       }
       
@@ -58,18 +58,20 @@ export default function DashboardLayout({
         } : null
       });
       
-      if (!isAuthenticated) {
-        // Not authenticated, redirect to login
-        console.log('[Dashboard Layout] User not authenticated, redirecting to login');
+      if (!isAuthenticated || !userInfo) {
+        // Not authenticated or no user info, redirect to login
+        console.log('[Dashboard Layout] User not authenticated or missing user info, redirecting to login');
         window.location.href = '/login';
         return;
       }
       
-      // Check user role for admin access
-      const userRole = userInfo?.role || 'user'; // Default to 'user' if role is missing
+      // Check user role for admin access - be strict about role checking
+      const userRole = userInfo.role; // Don't default - require explicit role
       
-      if (userRole !== 'admin' && userRole !== 'super_admin') {
-        console.log('[Dashboard Layout] User role not authorized:', userRole);
+      if (!userRole || (userRole !== 'admin' && userRole !== 'super_admin')) {
+        console.log('[Dashboard Layout] User role not authorized or missing:', userRole);
+        // Clear auth storage to prevent future access attempts
+        authStorage.clearAuth();
         router.push('/auth/unauthorized');
         return;
       }
