@@ -274,6 +274,18 @@ router.post('/token', async (req, res) => {
       console.log('[OAuth] Refresh token stored in HttpOnly cookie');
     }
     
+    // Store state parameter for token refresh (required by OAuth provider)
+    if (state) {
+      res.cookie('oauth_state', state, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: (tokenData.refresh_expires_in || 86400) * 1000, // Same expiry as refresh token
+        path: '/'
+      });
+      console.log('[OAuth] State parameter stored in HttpOnly cookie');
+    }
+    
     // Return non-sensitive data only (no tokens)
     // uid is extracted from refresh_token or media_token JWT
     res.json({
@@ -487,6 +499,12 @@ router.post('/logout', async (req, res) => {
       sameSite: 'strict',
       path: '/'
     });
+    res.clearCookie('oauth_state', { 
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/'
+    });
     console.log('[OAuth] HttpOnly cookies cleared');
     
     // Return OAuth provider response
@@ -554,8 +572,9 @@ router.post('/refresh', async (req, res) => {
     // SECURITY FIX (CVE-005): Implement refresh token flow
     console.log('[OAuth] Refresh token request received');
     
-    // Get refresh token from HttpOnly cookie
+    // Get refresh token and state from HttpOnly cookies
     const refreshToken = req.cookies.refresh_token;
+    const state = req.cookies.oauth_state;
     
     if (!refreshToken) {
       console.error('[OAuth] No refresh token in cookie');
@@ -566,8 +585,18 @@ router.post('/refresh', async (req, res) => {
       });
     }
     
-    console.log('[OAuth] Refresh token found, exchanging with OAuth provider...');
+    if (!state) {
+      console.error('[OAuth] No state in cookie');
+      return res.status(401).json({
+        success: false,
+        error: 'No state parameter available',
+        message: 'Please log in again'
+      });
+    }
+    
+    console.log('[OAuth] Refresh token and state found, exchanging with OAuth provider...');
     console.log('[OAuth] Using OAuth Base URL:', OAUTH_BASE_URL);
+    console.log('[OAuth] State:', state ? state.substring(0, 30) + '...' : 'missing');
     
     // Exchange refresh token with OAuth provider
     // IVP ISEA endpoint: POST /oauth/token with grant_type=refresh_token
@@ -580,6 +609,7 @@ router.post('/refresh', async (req, res) => {
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
         client_id: CLIENT_ID,
+        state: state,
       },
       {
         headers: {
@@ -653,6 +683,12 @@ router.post('/refresh', async (req, res) => {
         path: '/'
       });
       res.clearCookie('refresh_token', { 
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+      });
+      res.clearCookie('oauth_state', { 
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
