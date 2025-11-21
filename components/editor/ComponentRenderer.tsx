@@ -306,6 +306,171 @@ export default function ComponentRenderer({
           textAlign: component.props.align,
           position: 'relative'
         }}>
+          {/* Inline Text Toolbar */}
+          {isSelected && (
+            <div 
+              className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
+              style={{ top: '-56px', left: '0', zIndex: 1000, minWidth: 'max-content' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Font Size */}
+              <select
+                value={component.props.fontSize || 16}
+                onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, fontSize: Number(e.target.value) } })}
+                className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <option value="12">12px</option>
+                <option value="14">14px</option>
+                <option value="16">16px</option>
+                <option value="18">18px</option>
+                <option value="20">20px</option>
+                <option value="24">24px</option>
+                <option value="32">32px</option>
+                <option value="40">40px</option>
+                <option value="48">48px</option>
+              </select>
+
+              <div className="w-px bg-gray-300"></div>
+
+              {/* Font Family */}
+              <select
+                value={component.props.fontFamily || themeFonts.body}
+                onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, fontFamily: e.target.value } })}
+                className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <option value={themeFonts.heading}>Heading Font</option>
+                <option value={themeFonts.body}>Body Font</option>
+                <option value="Arial">Arial</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Courier New">Courier New</option>
+              </select>
+
+              <div className="w-px bg-gray-300"></div>
+
+              {/* Text Styling */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateComponent(component.id, { ...component, props: { ...component.props, bold: !component.props.bold } });
+                }}
+                className={`px-3 py-1.5 rounded text-sm font-bold transition-colors ${
+                  component.props.bold ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
+                }`}
+                title="Bold"
+              >
+                B
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateComponent(component.id, { ...component, props: { ...component.props, italic: !component.props.italic } });
+                }}
+                className={`px-3 py-1.5 rounded text-sm italic transition-colors ${
+                  component.props.italic ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
+                }`}
+                title="Italic"
+              >
+                I
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateComponent(component.id, { ...component, props: { ...component.props, underline: !component.props.underline } });
+                }}
+                className={`px-3 py-1.5 rounded text-sm underline transition-colors ${
+                  component.props.underline ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
+                }`}
+                title="Underline"
+              >
+                U
+              </button>
+
+              <div className="w-px bg-gray-300"></div>
+
+              {/* Text Color */}
+              <div className="px-2 py-1.5 flex items-center gap-2">
+                <label className="text-xs text-gray-700 whitespace-nowrap">Color:</label>
+                <input
+                  type="color"
+                  value={component.props.color || themeColors.text}
+                  onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, color: e.target.value } })}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-8 h-6 rounded cursor-pointer"
+                  title="Text Color"
+                />
+              </div>
+
+              <div className="w-px bg-gray-300"></div>
+
+              {/* Text Alignment */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateComponent(component.id, { ...component, props: { ...component.props, align: 'left' } });
+                }}
+                className={`px-3 py-1.5 hover:bg-gray-100 rounded text-sm transition-colors ${
+                  component.props.align === 'left' ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+                }`}
+                title="Align Left"
+              >
+                <AlignLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateComponent(component.id, { ...component, props: { ...component.props, align: 'center' } });
+                }}
+                className={`px-3 py-1.5 hover:bg-gray-100 rounded text-sm transition-colors ${
+                  component.props.align === 'center' ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+                }`}
+                title="Align Center"
+              >
+                <AlignCenter className="h-4 w-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateComponent(component.id, { ...component, props: { ...component.props, align: 'right' } });
+                }}
+                className={`px-3 py-1.5 hover:bg-gray-100 rounded text-sm transition-colors ${
+                  component.props.align === 'right' ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+                }`}
+                title="Align Right"
+              >
+                <AlignRight className="h-4 w-4" />
+              </button>
+
+              <div className="w-px bg-gray-300"></div>
+
+              {/* Copy & Delete */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCopyComponent();
+                }}
+                className="px-3 py-1.5 hover:bg-gray-100 rounded text-sm flex items-center gap-1.5 text-gray-700 transition-colors"
+                title="Copy"
+              >
+                <Copy className="h-4 w-4" />
+                Copy
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteComponent();
+                }}
+                className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
+                title="Delete"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
+            </div>
+          )}
+
           {/* In editor mode, always render as editable div, never as link */}
           <div
               className="outline-none cursor-text min-h-[1.5em] inline-block relative"
@@ -343,24 +508,7 @@ export default function ComponentRenderer({
                 if (!isSelected) {
                   onComponentClick(component, e as any);
                 }
-                
                 setSelectedComponent(component);
-                const element = e.currentTarget as HTMLElement;
-                const rect = element.getBoundingClientRect();
-                
-                // Use absolute screen coordinates for fixed positioning
-                const absoluteRect = {
-                  x: rect.left,
-                  y: rect.top,
-                  left: rect.left,
-                  top: rect.top,
-                  right: rect.right,
-                  bottom: rect.bottom,
-                  width: rect.width,
-                  height: rect.height,
-                  toJSON: () => ({})
-                } as DOMRect;
-                onShowTextToolbar(absoluteRect);
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -2934,21 +3082,85 @@ export default function ComponentRenderer({
             </div>
           )}
 
-          <div className="w-full max-w-4xl space-y-6">
+          <div className="w-full space-y-6" style={{ maxWidth: '100%' }}>
             {/* Title */}
             {component.props.title !== null && component.props.title !== undefined ? (
               <div className="relative">
                 {isSelected && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onUpdateComponent(component.id, { ...component, props: { ...component.props, title: null } });
-                    }}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-md"
-                    title="Remove Title"
-                  >
-                    ×
-                  </button>
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, { ...component, props: { ...component.props, title: null } });
+                      }}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-md"
+                      title="Remove Title"
+                    >
+                      ×
+                    </button>
+                    {/* Title Toolbar */}
+                    <div 
+                      className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
+                      style={{ top: '-56px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, minWidth: 'max-content' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Font Size */}
+                      <select
+                        value={component.props.titleFontSize || 48}
+                        onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, titleFontSize: Number(e.target.value) } })}
+                        className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <option value="24">24px</option>
+                        <option value="32">32px</option>
+                        <option value="40">40px</option>
+                        <option value="48">48px</option>
+                        <option value="56">56px</option>
+                        <option value="64">64px</option>
+                        <option value="72">72px</option>
+                      </select>
+
+                      <div className="w-px bg-gray-300"></div>
+
+                      {/* Text Styling */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateComponent(component.id, { ...component, props: { ...component.props, titleBold: !component.props.titleBold } });
+                        }}
+                        className={`px-3 py-1.5 rounded text-sm font-bold transition-colors ${
+                          component.props.titleBold !== false ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                        title="Bold"
+                      >
+                        B
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateComponent(component.id, { ...component, props: { ...component.props, titleItalic: !component.props.titleItalic } });
+                        }}
+                        className={`px-3 py-1.5 rounded text-sm italic transition-colors ${
+                          component.props.titleItalic ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                        title="Italic"
+                      >
+                        I
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateComponent(component.id, { ...component, props: { ...component.props, titleUnderline: !component.props.titleUnderline } });
+                        }}
+                        className={`px-3 py-1.5 rounded text-sm underline transition-colors ${
+                          component.props.titleUnderline ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                        title="Underline"
+                      >
+                        U
+                      </button>
+                    </div>
+                  </>
                 )}
                 <h1
                   contentEditable={isSelected}
@@ -2965,11 +3177,15 @@ export default function ComponentRenderer({
                     }
                   }}
                   onClick={(e) => { if (isSelected) e.stopPropagation(); }}
-                  className="text-5xl font-bold outline-none focus:ring-2 focus:ring-white rounded px-2 py-1"
+                  className="text-5xl outline-none focus:ring-2 focus:ring-white rounded px-2 py-1"
                   style={{ 
                     fontFamily: `'${themeFonts.heading}', sans-serif`,
                     color: 'inherit',
                     cursor: isSelected ? 'text' : 'default',
+                    fontSize: component.props.titleFontSize ? `${component.props.titleFontSize}px` : undefined,
+                    fontWeight: component.props.titleBold !== false ? 'bold' : 'normal',
+                    fontStyle: component.props.titleItalic ? 'italic' : 'normal',
+                    textDecoration: component.props.titleUnderline ? 'underline' : 'none',
                   }}
                 >
                   {component.props.title || 'WELCOME TO OUR SITE'}
@@ -2981,16 +3197,80 @@ export default function ComponentRenderer({
             {component.props.description !== null && component.props.description !== undefined ? (
               <div className="relative">
                 {isSelected && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onUpdateComponent(component.id, { ...component, props: { ...component.props, description: null } });
-                    }}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-md"
-                    title="Remove Description"
-                  >
-                    ×
-                  </button>
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, { ...component, props: { ...component.props, description: null } });
+                      }}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-md"
+                      title="Remove Description"
+                    >
+                      ×
+                    </button>
+                    {/* Description Toolbar */}
+                    <div 
+                      className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
+                      style={{ top: '-56px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, minWidth: 'max-content' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Font Size */}
+                      <select
+                        value={component.props.descriptionFontSize || 20}
+                        onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, descriptionFontSize: Number(e.target.value) } })}
+                        className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <option value="14">14px</option>
+                        <option value="16">16px</option>
+                        <option value="18">18px</option>
+                        <option value="20">20px</option>
+                        <option value="24">24px</option>
+                        <option value="28">28px</option>
+                        <option value="32">32px</option>
+                      </select>
+
+                      <div className="w-px bg-gray-300"></div>
+
+                      {/* Text Styling */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateComponent(component.id, { ...component, props: { ...component.props, descriptionBold: !component.props.descriptionBold } });
+                        }}
+                        className={`px-3 py-1.5 rounded text-sm font-bold transition-colors ${
+                          component.props.descriptionBold ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                        title="Bold"
+                      >
+                        B
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateComponent(component.id, { ...component, props: { ...component.props, descriptionItalic: !component.props.descriptionItalic } });
+                        }}
+                        className={`px-3 py-1.5 rounded text-sm italic transition-colors ${
+                          component.props.descriptionItalic ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                        title="Italic"
+                      >
+                        I
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateComponent(component.id, { ...component, props: { ...component.props, descriptionUnderline: !component.props.descriptionUnderline } });
+                        }}
+                        className={`px-3 py-1.5 rounded text-sm underline transition-colors ${
+                          component.props.descriptionUnderline ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                        title="Underline"
+                      >
+                        U
+                      </button>
+                    </div>
+                  </>
                 )}
                 <p
                   contentEditable={isSelected}
@@ -3013,6 +3293,10 @@ export default function ComponentRenderer({
                     color: 'inherit',
                     opacity: 0.9,
                     cursor: isSelected ? 'text' : 'default',
+                    fontSize: component.props.descriptionFontSize ? `${component.props.descriptionFontSize}px` : undefined,
+                    fontWeight: component.props.descriptionBold ? 'bold' : 'normal',
+                    fontStyle: component.props.descriptionItalic ? 'italic' : 'normal',
+                    textDecoration: component.props.descriptionUnderline ? 'underline' : 'none',
                   }}
                 >
                   {component.props.description || 'Get started with websites now'}

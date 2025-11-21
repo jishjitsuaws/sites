@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Link as LinkIcon, Copy, Trash2 } from 'lucide-react';
+import { X, Link as LinkIcon } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { toast } from 'sonner';
 
@@ -15,7 +15,7 @@ interface ButtonModalProps {
   themeColors?: any;
 }
 
-export default function ButtonModal({ isOpen, onClose, onSave, initialProps, onDelete, onCopy, themeColors }: ButtonModalProps) {
+export default function ButtonModal({ isOpen, onClose, onSave, initialProps }: ButtonModalProps) {
   const [text, setText] = useState(initialProps?.text || 'Click me');
   const [link, setLink] = useState(initialProps?.href || '#');
 
@@ -35,7 +35,7 @@ export default function ButtonModal({ isOpen, onClose, onSave, initialProps, onD
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 100 }} onClick={onClose}>
+    <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center" style={{ zIndex: 100 }} onClick={onClose}>
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Button Settings</h2>
@@ -76,24 +76,7 @@ export default function ButtonModal({ isOpen, onClose, onSave, initialProps, onD
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 mt-6">
-          {initialProps && (
-            <>
-              {onCopy && (
-                <Button variant="outline" onClick={onCopy} size="sm">
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy
-                </Button>
-              )}
-              {onDelete && (
-                <Button variant="destructive" onClick={onDelete} size="sm">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              )}
-            </>
-          )}
-          <div className="flex-1"></div>
+        <div className="flex gap-3 mt-6 justify-end">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>

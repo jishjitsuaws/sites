@@ -845,6 +845,14 @@ export default function EditorPage() {
       return;
     }
 
+    // Handle button specially - open modal first, create after save
+    if (type === 'button') {
+      // Set a temporary component to track that we're creating a button
+      setSelectedComponent({ type: 'button', isNew: true });
+      setShowButtonModal(true);
+      return;
+    }
+
     const newComponent: any = {
       id: `${type}-${Date.now()}`,
       type: type === 'banner-minimal' ? 'banner' : type,
@@ -2593,16 +2601,50 @@ export default function EditorPage() {
           isOpen={showButtonModal}
           onClose={closeAllModals}
           onSave={(props) => {
-            updateComponent(selectedComponent.id, {
-              ...selectedComponent,
-              props: { ...selectedComponent.props, ...props }
-            });
+            // Check if this is a new button being created
+            if (selectedComponent.isNew && selectedComponent.type === 'button') {
+              // Create the button component
+              const newComponent = {
+                id: `button-${Date.now()}`,
+                type: 'button',
+                props: {
+                  text: props.text,
+                  href: props.href,
+                  variant: 'primary',
+                  align: 'left',
+                  textColor: '#ffffff',
+                  buttonColor: getThemeColors().primary,
+                },
+              };
+
+              // Create section with the new button
+              const newSection = {
+                id: `section-${Date.now()}`,
+                components: [newComponent],
+                layout: {
+                  direction: 'column' as const,
+                  justifyContent: 'center' as const,
+                  alignItems: 'center' as const,
+                  gap: 16,
+                  padding: 24,
+                },
+                order: sections.length,
+              };
+
+              addSection(newSection);
+              setSelectedComponent(newComponent);
+              setSelectedSection(newSection.id);
+              toast.success('Button added');
+            } else {
+              // Update existing button
+              updateComponent(selectedComponent.id, {
+                ...selectedComponent,
+                props: { ...selectedComponent.props, ...props }
+              });
+            }
             closeAllModals();
           }}
-          initialProps={selectedComponent.props}
-          onDelete={handleDeleteComponent}
-          onCopy={handleCopyComponent}
-          themeColors={getThemeColors()}
+          initialProps={selectedComponent.isNew ? {} : selectedComponent.props}
         />
       )}
 
