@@ -219,6 +219,7 @@ interface ComponentRendererProps {
   onDeleteComponent: () => void;
   onShowImageModal: () => void;
   onShowTextToolbar: (rect: DOMRect) => void;
+  onShowButtonModal?: () => void;
   setSelectedComponent: (component: ComponentData) => void;
   onOpenCardGridModal?: () => void;
   onInteractionStateChange?: (isInteracting: boolean) => void;
@@ -235,6 +236,7 @@ export default function ComponentRenderer({
   onDeleteComponent,
   onShowImageModal,
   onShowTextToolbar,
+  onShowButtonModal,
   setSelectedComponent,
   onOpenCardGridModal,
   onInteractionStateChange,
@@ -876,260 +878,26 @@ export default function ComponentRenderer({
         <div style={{ 
           textAlign: component.props.align || 'center',
           position: 'relative',
-          minHeight: isSelected ? '100px' : 'auto',
         }}>
-          <div className="inline-block relative" style={{ zIndex: isSelected ? 10 : 'auto' }}>
-            {/* Inline Button Controls with Text and Color Editing */}
-            {isSelected && (
+          <div className="inline-block relative">
+            {/* Compact toolbar fixed to component */}
+            {isSelected && onShowButtonModal && (
               <div 
-                className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
-                style={{
-                  position: 'fixed',
-                  top: '10%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  zIndex: 1000,
-                  minWidth: '800px',
-                  maxWidth: '90vw',
-                }}
+                className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
+                style={{ top: '-56px', left: '0', zIndex: 1000, minWidth: 'max-content' }}
                 onClick={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
               >
-                {/* Button Text Input */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold text-gray-600">Button Text</label>
-                  <input
-                    type="text"
-                    value={component.props.text || ''}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      const newText = e.target.value;
-                      onUpdateComponent(component.id, {
-                        ...component,
-                        props: { ...component.props, text: newText }
-                      });
-                    }}
-                    onFocus={(e) => e.stopPropagation()}
-                    onBlur={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => {
-                      e.stopPropagation();
-                      e.nativeEvent.stopImmediatePropagation();
-                    }}
-                    onKeyUp={(e) => {
-                      e.stopPropagation();
-                      e.nativeEvent.stopImmediatePropagation();
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    placeholder="Button text"
-                    className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-32"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-                
-                {/* Link/Navigation Input */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold text-gray-600">Link To</label>
-                  <div className="flex gap-1">
-                    <select
-                      value={component.props.linkType || 'url'}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        const newLinkType = e.target.value;
-                        let newHref = '';
-                        
-                        if (newLinkType === 'url') {
-                          newHref = 'https://';
-                        } else if (newLinkType === 'page') {
-                          newHref = '/';
-                        } else if (newLinkType === 'section') {
-                          newHref = '#';
-                        }
-                        
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { 
-                            ...component.props, 
-                            linkType: newLinkType,
-                            href: newHref,
-                            pageSlug: '',
-                            sectionId: ''
-                          }
-                        });
-                      }}
-                      className="px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                      onClick={(e) => e.stopPropagation()}
-                      onMouseDown={(e) => e.stopPropagation()}
-                    >
-                      <option value="url">URL</option>
-                      <option value="page">Page</option>
-                      <option value="section">Section</option>
-                    </select>
-                    
-                    {component.props.linkType === 'url' || !component.props.linkType ? (
-                      <input
-                        type="text"
-                        value={component.props.href || 'https://'}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, href: e.target.value }
-                          });
-                        }}
-                        onFocus={(e) => e.stopPropagation()}
-                        onBlur={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => {
-                          e.stopPropagation();
-                          e.nativeEvent.stopImmediatePropagation();
-                        }}
-                        onKeyUp={(e) => {
-                          e.stopPropagation();
-                          e.nativeEvent.stopImmediatePropagation();
-                        }}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        placeholder="https://example.com"
-                        className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-48"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : component.props.linkType === 'page' ? (
-                      <input
-                        type="text"
-                        value={component.props.pageSlug || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          const slug = e.target.value;
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { 
-                              ...component.props, 
-                              pageSlug: slug, 
-                              href: slug ? `/${slug}` : '/'
-                            }
-                          });
-                        }}
-                        onFocus={(e) => e.stopPropagation()}
-                        onBlur={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => {
-                          e.stopPropagation();
-                          e.nativeEvent.stopImmediatePropagation();
-                        }}
-                        onKeyUp={(e) => {
-                          e.stopPropagation();
-                          e.nativeEvent.stopImmediatePropagation();
-                        }}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        placeholder="page-slug"
-                        className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-32"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      <input
-                        type="text"
-                        value={component.props.sectionId || ''}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          const sectionId = e.target.value;
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { 
-                              ...component.props, 
-                              sectionId: sectionId, 
-                              href: sectionId ? `#${sectionId}` : '#'
-                            }
-                          });
-                        }}
-                        onFocus={(e) => e.stopPropagation()}
-                        onBlur={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => {
-                          e.stopPropagation();
-                          e.nativeEvent.stopImmediatePropagation();
-                        }}
-                        onKeyUp={(e) => {
-                          e.stopPropagation();
-                          e.nativeEvent.stopImmediatePropagation();
-                        }}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        placeholder="section-id"
-                        className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-32"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    )}
-                  </div>
-                </div>
-                
-                <div className="w-px bg-gray-300 h-8"></div>
-                
-                {/* Size */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold text-gray-600">Size</label>
-                  <select
-                    value={component.props.size || 'medium'}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      onUpdateComponent(component.id, {
-                        ...component,
-                        props: { ...component.props, size: e.target.value }
-                      });
-                    }}
-                    className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <option value="small">Small</option>
-                    <option value="medium">Medium</option>
-                    <option value="large">Large</option>
-                  </select>
-                </div>
-                
-                <div className="w-px bg-gray-300 h-8"></div>
-                
-                {/* Text Color Picker */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold text-gray-600">Text Color</label>
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="color"
-                      value={component.props.textColor || '#ffffff'}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, textColor: e.target.value }
-                        });
-                      }}
-                      className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
-                      title="Text Color"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </div>
-                </div>
-                
-                {/* Button Background Color Picker */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold text-gray-600">BG Color</label>
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="color"
-                      value={component.props.buttonColor || themeColors.primary}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, buttonColor: e.target.value }
-                        });
-                      }}
-                      className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
-                      title="Button Background Color"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </div>
-                </div>
-                
-                <div className="w-px bg-gray-300 h-8"></div>
-                
-                {/* Alignment */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold text-gray-600">Alignment</label>
-                  <div className="flex gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShowButtonModal();
+                  }}
+                  className="px-3 py-1 hover:bg-gray-100 rounded text-sm text-gray-900"
+                  title="Edit Button"
+                >
+                  Edit
+                </button>
+                <div className="w-px bg-gray-300"></div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1138,10 +906,12 @@ export default function ComponentRenderer({
                       props: { ...component.props, align: 'left' }
                     });
                   }}
-                  className={`p-1.5 rounded transition-colors ${component.props.align === 'left' ? 'bg-blue-100 text-blue-600' : 'text-gray-900 hover:bg-gray-100'}`}
+                  className={`px-2 py-1 rounded text-sm ${component.props.align === 'left' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
                   title="Align Left"
                 >
-                  <AlignLeft className="h-4 w-4" />
+                  <svg className="h-4 w-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h10M4 18h16" />
+                  </svg>
                 </button>
                 <button
                   onClick={(e) => {
@@ -1151,10 +921,12 @@ export default function ComponentRenderer({
                       props: { ...component.props, align: 'center' }
                     });
                   }}
-                  className={`p-1.5 rounded transition-colors ${component.props.align === 'center' ? 'bg-blue-100 text-blue-600' : 'text-gray-900 hover:bg-gray-100'}`}
+                  className={`px-2 py-1 rounded text-sm ${component.props.align === 'center' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
                   title="Align Center"
                 >
-                  <AlignCenter className="h-4 w-4" />
+                  <svg className="h-4 w-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M7 12h10M4 18h16" />
+                  </svg>
                 </button>
                 <button
                   onClick={(e) => {
@@ -1164,49 +936,20 @@ export default function ComponentRenderer({
                       props: { ...component.props, align: 'right' }
                     });
                   }}
-                  className={`p-1.5 rounded transition-colors ${component.props.align === 'right' ? 'bg-blue-100 text-blue-600' : 'text-gray-900 hover:bg-gray-100'}`}
+                  className={`px-2 py-1 rounded text-sm ${component.props.align === 'right' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
                   title="Align Right"
                 >
-                  <AlignRight className="h-4 w-4" />
+                  <svg className="h-4 w-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M10 12h10M4 18h16" />
+                  </svg>
                 </button>
-                  </div>
-                </div>
-                
-                <div className="w-px bg-gray-300 h-8"></div>
-                
-                {/* Border Radius */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold text-gray-600">Rounding</label>
-                  <input
-                    type="number"
-                    value={component.props.borderRadius || 8}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      onUpdateComponent(component.id, {
-                        ...component,
-                        props: { ...component.props, borderRadius: parseInt(e.target.value) || 0 }
-                      });
-                    }}
-                    min="0"
-                    max="50"
-                    className="w-16 px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-                
-                <div className="w-px bg-gray-300 h-8"></div>
-                
-                {/* Actions */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold text-gray-600">Actions</label>
-                  <div className="flex gap-1">
-                
+                <div className="w-px bg-gray-300"></div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onCopyComponent();
                   }}
-                  className="p-1.5 hover:bg-gray-100 rounded transition-colors text-gray-900"
+                  className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-gray-900"
                   title="Duplicate"
                 >
                   <Copy className="h-4 w-4" />
@@ -1216,13 +959,11 @@ export default function ComponentRenderer({
                     e.stopPropagation();
                     onDeleteComponent();
                   }}
-                  className="p-1.5 hover:bg-red-100 rounded text-red-600 transition-colors"
+                  className="px-2 py-1 hover:bg-red-100 rounded text-sm text-red-600"
                   title="Delete"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
-                  </div>
-                </div>
               </div>
             )}
             
@@ -3060,12 +2801,13 @@ export default function ComponentRenderer({
           className="relative w-full flex flex-col items-center justify-center text-center px-8"
           style={{
             backgroundColor: component.props.backgroundColor || themeColors.primary,
-            paddingTop: '80px',
-            paddingBottom: '80px',
+            minHeight: '400px',
+            paddingTop: '120px',
+            paddingBottom: '120px',
             color: component.props.textColor || '#ffffff',
           }}
         >
-          {/* Inline toolbar */}
+          {/* Main Banner toolbar */}
           {isSelected && (
             <div 
               className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
@@ -3113,7 +2855,7 @@ export default function ComponentRenderer({
           <div className="w-full max-w-4xl space-y-6">
             {/* Title */}
             {component.props.title !== null && component.props.title !== undefined ? (
-              <div className="relative group">
+              <div className="relative">
                 {isSelected && (
                   <button
                     onClick={(e) => {
@@ -3135,6 +2877,13 @@ export default function ComponentRenderer({
                       onUpdateComponent(component.id, { ...component, props: { ...component.props, title: newTitle } });
                     }
                   }}
+                  onFocus={(e) => {
+                    if (isSelected) {
+                      e.stopPropagation();
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      onShowTextToolbar(rect as DOMRect);
+                    }
+                  }}
                   onClick={(e) => { if (isSelected) e.stopPropagation(); }}
                   className="text-5xl font-bold outline-none focus:ring-2 focus:ring-white rounded px-2 py-1"
                   style={{ 
@@ -3150,7 +2899,7 @@ export default function ComponentRenderer({
 
             {/* Description */}
             {component.props.description !== null && component.props.description !== undefined ? (
-              <div className="relative group">
+              <div className="relative">
                 {isSelected && (
                   <button
                     onClick={(e) => {
@@ -3172,6 +2921,13 @@ export default function ComponentRenderer({
                       onUpdateComponent(component.id, { ...component, props: { ...component.props, description: newDesc } });
                     }
                   }}
+                  onFocus={(e) => {
+                    if (isSelected) {
+                      e.stopPropagation();
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      onShowTextToolbar(rect as DOMRect);
+                    }
+                  }}
                   onClick={(e) => { if (isSelected) e.stopPropagation(); }}
                   className="text-xl outline-none focus:ring-2 focus:ring-white rounded px-2 py-1"
                   style={{ 
@@ -3186,63 +2942,39 @@ export default function ComponentRenderer({
               </div>
             ) : null}
 
-            {/* Button */}
+            {/* Button - uses button component style toolbar */}
             {component.props.buttonText !== null && component.props.buttonText !== undefined ? (
-              <div className="relative group inline-block">
+              <div className="relative inline-block">
                 {isSelected && (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onUpdateComponent(component.id, { ...component, props: { ...component.props, buttonText: null } });
-                      }}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-md"
-                      title="Remove Button"
-                    >
-                      ×
-                    </button>
-                    {/* Button toolbar */}
-                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg border border-gray-300 p-2 flex gap-2 whitespace-nowrap z-20">
-                      <input
-                        type="text"
-                        value={component.props.buttonLink || ''}
-                        onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, buttonLink: e.target.value } })}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="https://..."
-                        className="px-2 py-1 text-xs border border-gray-300 rounded w-32 text-gray-900"
-                        title="Button Link"
-                      />
-                      <input
-                        type="color"
-                        value={component.props.buttonColor || '#ffffff'}
-                        onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, buttonColor: e.target.value } })}
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-6 h-6 rounded cursor-pointer"
-                        title="Button Color"
-                      />
-                    </div>
-                  </>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, { ...component, props: { ...component.props, buttonText: null } });
+                    }}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-md"
+                    title="Remove Button"
+                  >
+                    ×
+                  </button>
                 )}
-                <a
-                  href={component.props.buttonLink || '#'}
-                  onClick={(e) => { if (isSelected) e.preventDefault(); e.stopPropagation(); }}
-                  contentEditable={isSelected}
-                  suppressContentEditableWarning
-                  onBlur={(e) => {
-                    const newText = e.currentTarget.textContent || '';
-                    if (newText.trim()) {
-                      onUpdateComponent(component.id, { ...component, props: { ...component.props, buttonText: newText } });
+                <button
+                  onClick={(e) => {
+                    if (isSelected) {
+                      e.stopPropagation();
+                      if (onShowButtonModal) {
+                        onShowButtonModal();
+                      }
                     }
                   }}
-                  className="inline-block px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:opacity-90 outline-none focus:ring-2 focus:ring-white"
+                  className="inline-block px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:opacity-90 cursor-pointer"
                   style={{
                     backgroundColor: component.props.buttonColor || '#ffffff',
-                    color: component.props.backgroundColor || themeColors.primary,
-                    cursor: isSelected ? 'text' : 'pointer',
+                    color: component.props.buttonTextColor || (component.props.backgroundColor || themeColors.primary),
+                    border: 'none',
                   }}
                 >
                   {component.props.buttonText || 'click here'}
-                </a>
+                </button>
               </div>
             ) : null}
 

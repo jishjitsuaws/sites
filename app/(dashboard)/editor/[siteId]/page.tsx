@@ -2236,6 +2236,13 @@ export default function EditorPage() {
                           setShowTextToolbar(true);
                         }
                       }}
+                      onShowButtonModal={(componentId) => {
+                        const component = section.components.find(c => c.id === componentId);
+                        if (component) {
+                          setSelectedComponent(component);
+                          setShowButtonModal(true);
+                        }
+                      }}
                       setSelectedComponent={setSelectedComponent}
                       selectedComponentId={selectedComponent?.id || null}
                       themeColors={getThemeColors()}
@@ -2367,6 +2374,10 @@ export default function EditorPage() {
                               // Don't close selection for footer - it needs to stay selected for contentEditable
                               setToolbarPosition(position);
                               setShowTextToolbar(true);
+                            }}
+                            onShowButtonModal={() => {
+                              setSelectedComponent(footerComponent);
+                              setShowButtonModal(true);
                             }}
                             setSelectedComponent={setStoreSelectedComponent}
                           />

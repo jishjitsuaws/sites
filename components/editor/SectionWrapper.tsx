@@ -42,6 +42,7 @@ interface SectionWrapperProps {
   onComponentClick: (component: Component, e: React.MouseEvent) => void;
   onShowImageModal: (componentId: string) => void;
   onShowTextToolbar: (componentId: string, rect: DOMRect) => void;
+  onShowButtonModal?: (componentId: string) => void;
   setSelectedComponent: (component: Component) => void;
   selectedComponentId: string | null;
   themeColors: any;
@@ -75,6 +76,7 @@ export default function SectionWrapper({
   onComponentClick,
   onShowImageModal,
   onShowTextToolbar,
+  onShowButtonModal,
   setSelectedComponent,
   selectedComponentId,
   themeColors,
@@ -516,6 +518,7 @@ export default function SectionWrapper({
                 onDeleteComponent={() => onDeleteComponent(component.id)}
                 onShowImageModal={() => onShowImageModal(component.id)}
                 onShowTextToolbar={(rect) => onShowTextToolbar(component.id, rect)}
+                onShowButtonModal={onShowButtonModal ? () => onShowButtonModal(component.id) : undefined}
                 setSelectedComponent={setSelectedComponent}
                 onOpenCardGridModal={onOpenCardGridModal ? () => onOpenCardGridModal(section.id) : undefined}
                 onInteractionStateChange={setIsInteractingWithSlider}
