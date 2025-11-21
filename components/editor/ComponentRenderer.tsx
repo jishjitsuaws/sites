@@ -2699,21 +2699,33 @@ export default function ComponentRenderer({
             </div>
           )}
 
-          {component.props.style === 'numbered' ? (
-            <div className="space-y-1" style={{ lineHeight: 1.6 }}>
-              {(component.props.items || []).map((item: string, idx: number) => {
-                const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
-                                     component.props.textSize === 'title' ? 'text-2xl' :
-                                     component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
-                return (
-                  <div key={idx} className={`flex items-start mb-1 ${textSizeClass}`}>
-                    <span 
-                      className="shrink-0 w-6 font-medium"
-                      style={{ color: themeColors.text }}
-                    >
-                      {idx + 1}.
-                    </span>
-                    <span
+          {(() => {
+            const listStyle = component.props.style || 'bulleted';
+            const align = component.props.align || 'left';
+            const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
+                                 component.props.textSize === 'title' ? 'text-2xl' :
+                                 component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
+            const listTypeClass = listStyle === 'numbered'
+              ? 'list-decimal'
+              : listStyle === 'none'
+                ? 'list-none'
+                : 'list-disc';
+            const useInsideBullets = align !== 'left' || listStyle === 'none';
+            const paddingClass = listStyle === 'none' ? 'pl-0' : (align === 'left' ? 'pl-5' : 'pl-0');
+
+            return (
+              <ul
+                className={`${listTypeClass} ${useInsideBullets ? 'list-inside' : 'list-outside'} ${paddingClass} space-y-2`}
+                style={{
+                  lineHeight: 1.6,
+                  listStylePosition: useInsideBullets ? 'inside' : 'outside',
+                  fontFamily: `'${themeFonts.body}', sans-serif`,
+                  color: themeColors.text,
+                }}
+              >
+                {(component.props.items || []).map((item: string, idx: number) => (
+                  <li key={idx} className={`${textSizeClass} break-words`}>
+                    <div
                       contentEditable={isSelected}
                       suppressContentEditableWarning
                       onBlur={(e) => {
@@ -2722,74 +2734,15 @@ export default function ComponentRenderer({
                         onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
                       }}
                       onClick={(e) => { if (isSelected) e.stopPropagation(); }}
-                      className="outline-none px-1 rounded flex-1"
-                      style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
+                      className="outline-none px-1 rounded"
                     >
                       {item}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          ) : component.props.style === 'none' ? (
-            <div className="space-y-1">
-              {(component.props.items || []).map((item: string, idx: number) => {
-                const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
-                                     component.props.textSize === 'title' ? 'text-2xl' :
-                                     component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
-                return (
-                  <div key={idx}>
-                    <span
-                      contentEditable={isSelected}
-                      suppressContentEditableWarning
-                      onBlur={(e) => {
-                        const items = [...(component.props.items || [])];
-                        items[idx] = e.currentTarget.textContent || '';
-                        onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
-                      }}
-                      onClick={(e) => { if (isSelected) e.stopPropagation(); }}
-                      className={`outline-none px-1 rounded ${textSizeClass}`}
-                      style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
-                    >
-                      {item}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="space-y-1" style={{ lineHeight: 1.6 }}>
-              {(component.props.items || []).map((item: string, idx: number) => {
-                const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
-                                     component.props.textSize === 'title' ? 'text-2xl' :
-                                     component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
-                return (
-                  <div key={idx} className={`flex items-start mb-1 ${textSizeClass}`}>
-                    <span 
-                      className="shrink-0 w-6 flex justify-center items-start pt-1"
-                      style={{ color: themeColors.text }}
-                    >
-                      •
-                    </span>
-                    <span
-                      contentEditable={isSelected}
-                      suppressContentEditableWarning
-                      onBlur={(e) => {
-                        const items = [...(component.props.items || [])];
-                        items[idx] = e.currentTarget.textContent || '';
-                        onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
-                      }}
-                      onClick={(e) => { if (isSelected) e.stopPropagation(); }}
-                      className="outline-none px-1 rounded flex-1"
-                      style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
-                    >
-                      {item}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            );
+          })()}
         </div>
       )}
 
