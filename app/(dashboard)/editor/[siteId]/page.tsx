@@ -21,7 +21,6 @@ import {
   Eye,
   Settings,
   ChevronLeft,
-  Plus,
   FileText,
   Image as ImageIcon,
   Type,
@@ -29,12 +28,9 @@ import {
   Link as LinkIcon,
   Layout,
   Palette,
-  Trash2,
-  Upload,
-  Layers,
   Minus,
+  ChevronRight,
 } from 'lucide-react';
-import { ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Site {
@@ -110,14 +106,14 @@ export default function EditorPage() {
   const [selectedComponent, setSelectedComponent] = useState<any | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [draggedSection, setDraggedSection] = useState<string | null>(null);
-  const [dragOverSection, setDragOverSection] = useState<string | null>(null);
+  const [_dragOverSection, setDragOverSection] = useState<string | null>(null);
   const [draggedComponent, setDraggedComponent] = useState<{componentId: string, sectionId: string} | null>(null);
-  const [dragOverComponent, setDragOverComponent] = useState<string | null>(null);
+  const [_dragOverComponent, setDragOverComponent] = useState<string | null>(null);
   const [themes, setThemes] = useState<any[]>([]);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishName, setPublishName] = useState('');
   const [publishSubdomain, setPublishSubdomain] = useState('');
-  const [showAddPageForm, setShowAddPageForm] = useState(false);
+  const [_showAddPageForm, setShowAddPageForm] = useState(false);
   const [newPageName, setNewPageName] = useState('');
   
   // Modal states
@@ -143,7 +139,6 @@ export default function EditorPage() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   const { 
-    components, 
     sections,
     addComponent, 
     addSection,
@@ -521,7 +516,7 @@ export default function EditorPage() {
     }
   };
 
-  const handlePreview = async () => {
+  const _handlePreview = async () => {
     try {
       // First, save the current page
       if (currentPage) {
@@ -606,7 +601,7 @@ export default function EditorPage() {
       // Open published site in new tab
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       window.open(`${siteUrl}/site/${site.subdomain}`, '_blank');
-    } catch (err: any) {
+    } catch {
       toast.error('Failed to publish site');
     }
   };
@@ -671,7 +666,7 @@ export default function EditorPage() {
     }
   };
 
-  const handleAddPage = async () => {
+  const _handleAddPage = async () => {
     if (!newPageName.trim()) {
       toast.error('Please enter a page name');
       return;
@@ -769,7 +764,7 @@ export default function EditorPage() {
     setSelectedSection(null);
   };
 
-  const handleDeletePage = async (pageId: string, pageName: string) => {
+  const _handleDeletePage = async (pageId: string, pageName: string) => {
     if (!confirm(`Are you sure you want to delete "${pageName}"?`)) {
       return;
     }
@@ -1025,7 +1020,7 @@ export default function EditorPage() {
     }
 
     // Update props for all cards
-    cards = cards.map((c: any, idx: number) => ({
+    cards = cards.map((c: any) => ({
       ...c,
       props: {
         ...c.props,
@@ -1055,7 +1050,7 @@ export default function EditorPage() {
     toast.success(`Updated grid: ${desired} ${form.cardType} card(s)`);
   };
 
-  const handleAddEmptySection = () => {
+  const _handleAddEmptySection = () => {
     const newSection = {
       id: `section-${Date.now()}`,
       components: [],
@@ -1083,7 +1078,7 @@ export default function EditorPage() {
     const data = template.structure;
     
     // Force all new sections to maintain their structure
-    const preserveSection = true;
+    const _preserveSection = true;
 
     if (layout === 'hero-center') {
       newComponents.push({
@@ -1623,6 +1618,7 @@ export default function EditorPage() {
           height: 32,
           lineColor: '#e5e7eb',
           width: '100%',
+          thickness: 2,
         };
       case 'social':
         return {
@@ -1856,6 +1852,7 @@ export default function EditorPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <LogoutButton variant="icon" />
           <LogoHandler 
             site={site} 
             siteId={siteId} 
@@ -1891,7 +1888,6 @@ export default function EditorPage() {
               Publish
             </Button>
           )}
-          <LogoutButton variant="icon" />
         </div>
       </header>
 
@@ -2249,7 +2245,7 @@ export default function EditorPage() {
                         setDraggedSection(section.id);
                         e.dataTransfer.effectAllowed = 'move';
                       }}
-                      onDragEnd={(e) => {
+                      onDragEnd={() => {
                         setDraggedSection(null);
                         setDragOverSection(null);
                       }}
@@ -2902,7 +2898,7 @@ export default function EditorPage() {
                                         setCurrentPage({ ...currentPage, sections: updatedSections });
                                         setSections(updatedSections || []);
                                       }
-                                    } catch (err) {
+                                    } catch {
                                       toast.error('Failed to update section');
                                     }
                                   }}
@@ -2937,7 +2933,7 @@ export default function EditorPage() {
                                     setCurrentPage({ ...currentPage, sections: updatedSections });
                                     setSections(updatedSections || []);
                                   }
-                                } catch (err) {
+                                } catch {
                                   toast.error('Failed to update section');
                                 }
                               }}
@@ -3050,7 +3046,7 @@ export default function EditorPage() {
                                   }
                                 });
                               }
-                            } catch (err: any) {
+                            } catch {
                               toast.error('Failed to update page visibility');
                             }
                           }}

@@ -35,7 +35,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      const { confirmPassword, ...registerData } = data;
+      const { confirmPassword: _confirmPassword, ...registerData } = data;
       const response = await authAPI.register(registerData);
       const { user, accessToken, refreshToken } = response.data;
 

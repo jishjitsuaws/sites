@@ -1348,15 +1348,16 @@ export default function PublishedSitePage() {
         const heightValue = component.props.height ?? 32;
         const lineColor = component.props.lineColor || '#e5e7eb';
         const lineWidth = component.props.width || '60%';
-        const isBlank = lineStyle === 'blank';
-        const borderStyle = lineStyle === 'dotted' ? 'dotted' : lineStyle === 'dashed' ? 'dashed' : 'solid';
+  const isBlank = lineStyle === 'blank';
+  const borderStyle = lineStyle === 'dotted' ? 'dotted' : lineStyle === 'dashed' ? 'dashed' : 'solid';
+  const thickness = component.props.thickness ?? 2;
 
         return (
           <div style={{ width: '100%', padding: `${heightValue}px 0` }}>
             {!isBlank && (
               <div
                 style={{
-                  borderTop: `2px ${borderStyle} ${lineColor}`,
+                  borderTop: `${thickness}px ${borderStyle} ${lineColor}`,
                   width: lineWidth,
                   margin: '0 auto',
                 }}

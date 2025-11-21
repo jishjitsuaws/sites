@@ -1,10 +1,10 @@
  'use client';
 
-import { Copy, Trash2, AlignLeft, AlignCenter, AlignRight, Settings, Link as LinkIcon, Image as ImageIcon, Video, Type, Plus, Upload } from 'lucide-react';
+import { Copy, Trash2, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Image as ImageIcon, Video, Plus, Upload } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import api from '@/lib/api';
-import { sanitizeText, sanitizeHtml, sanitizeUrl } from '@/lib/sanitize';
+import { sanitizeText } from '@/lib/sanitize';
 import { getImageUrl, getYouTubeEmbedUrl } from '@/lib/utils';
+import api from '@/lib/api';
 
 // Timer Component with real-time countdown
 function TimerComponent({ component, themeColors, themeFonts, isSelected, onUpdateComponent, onDeleteComponent }: any) {
@@ -221,6 +221,7 @@ interface ComponentRendererProps {
   onShowTextToolbar: (rect: DOMRect) => void;
   setSelectedComponent: (component: ComponentData) => void;
   onOpenCardGridModal?: () => void;
+  onInteractionStateChange?: (isInteracting: boolean) => void;
 }
 
 export default function ComponentRenderer({
@@ -236,6 +237,7 @@ export default function ComponentRenderer({
   onShowTextToolbar,
   setSelectedComponent,
   onOpenCardGridModal,
+  onInteractionStateChange,
 }: ComponentRendererProps) {
   
   const isFloating = component.type === 'image' && component.props.float && component.props.float !== 'none';
@@ -1249,6 +1251,7 @@ export default function ComponentRenderer({
         const heightValue = component.props.height ?? 32;
         const lineColor = component.props.lineColor || '#e5e7eb';
         const lineWidth = component.props.width || '60%';
+        const lineThickness = component.props.lineThickness ?? 2;
         const isBlank = lineStyle === 'blank';
         const styleOptions = [
           { value: 'solid', label: 'Solid' },
@@ -1256,6 +1259,8 @@ export default function ComponentRenderer({
           { value: 'dotted', label: 'Dotted' },
           { value: 'blank', label: 'Blank' },
         ];
+        const notifyInteractionStart = () => onInteractionStateChange?.(true);
+        const notifyInteractionEnd = () => onInteractionStateChange?.(false);
 
         return (
           <div style={{ clear: 'both', position: 'relative', width: '100%', display: 'block', padding: `${heightValue}px 0`, margin: 0 }}>
@@ -1272,25 +1277,36 @@ export default function ComponentRenderer({
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 min-w-[140px]">
                   <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Style</span>
-                  <div className="flex gap-1">
+                  <select
+                    value={lineStyle}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, lineStyle: e.target.value },
+                      });
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      notifyInteractionStart();
+                    }}
+                    onMouseUp={() => notifyInteractionEnd()}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      notifyInteractionStart();
+                    }}
+                    onTouchEnd={() => notifyInteractionEnd()}
+                    onBlur={() => notifyInteractionEnd()}
+                    className="px-2 py-1 text-xs border border-gray-300 rounded text-gray-900 bg-white"
+                  >
                     {styleOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, lineStyle: option.value },
-                          });
-                        }}
-                        className={`px-2 py-1 rounded text-xs font-medium border ${lineStyle === option.value ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 text-gray-900 border-gray-200 hover:bg-gray-100'}`}
-                      >
+                      <option key={option.value} value={option.value}>
                         {option.label}
-                      </button>
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </div>
 
                 <div className="w-px bg-gray-300 h-12"></div>
@@ -1310,27 +1326,114 @@ export default function ComponentRenderer({
                           props: { ...component.props, height: newHeight },
                         });
                       }}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onTouchStart={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        notifyInteractionStart();
+                      }}
+                      onMouseUp={() => notifyInteractionEnd()}
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        notifyInteractionStart();
+                      }}
+                      onPointerUp={() => notifyInteractionEnd()}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        notifyInteractionStart();
+                      }}
+                      onTouchEnd={() => notifyInteractionEnd()}
                       className="w-32"
                     />
+                    <span className="text-xs text-gray-600 min-w-[36px] text-right">{heightValue}px</span>
+                  </div>
+                </div>
+
+                <div className="w-px bg-gray-300 h-12"></div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Color</span>
+                  <div className="flex items-center gap-2">
                     <input
-                      type="number"
-                      min={0}
-                      max={200}
-                      value={heightValue}
+                      type="color"
+                      value={lineColor}
+                      disabled={isBlank}
                       onChange={(e) => {
-                        const newHeight = Math.max(0, Math.min(200, parseInt(e.target.value) || 0));
+                        e.stopPropagation();
                         onUpdateComponent(component.id, {
                           ...component,
-                          props: { ...component.props, height: newHeight },
+                          props: { ...component.props, lineColor: e.target.value },
                         });
                       }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        notifyInteractionStart();
+                      }}
+                      onMouseUp={() => notifyInteractionEnd()}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        notifyInteractionStart();
+                      }}
+                      onTouchEnd={() => notifyInteractionEnd()}
+                      onBlur={() => notifyInteractionEnd()}
+                      className={`w-8 h-8 border rounded cursor-pointer ${isBlank ? 'opacity-50 cursor-not-allowed border-gray-200' : 'border-gray-300'}`}
+                      title="Line Color"
                     />
-                    <span className="text-xs text-gray-600">px</span>
+                    <input
+                      type="text"
+                      value={lineColor}
+                      disabled={isBlank}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, lineColor: e.target.value },
+                        });
+                      }}
+                      onFocus={() => notifyInteractionStart()}
+                      onBlur={() => notifyInteractionEnd()}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="#000000"
+                      className={`w-20 px-2 py-1 text-xs border rounded ${isBlank ? 'border-gray-200 bg-gray-50 cursor-not-allowed' : 'border-gray-300 text-gray-900'}`}
+                      title="Hex Color"
+                    />
+                  </div>
+                </div>
+
+                <div className="w-px bg-gray-300 h-12"></div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Thickness</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min={1}
+                      max={12}
+                      value={lineThickness}
+                      disabled={isBlank}
+                      onChange={(e) => {
+                        const newThickness = parseInt(e.target.value) || 1;
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, lineThickness: newThickness },
+                        });
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        notifyInteractionStart();
+                      }}
+                      onMouseUp={() => notifyInteractionEnd()}
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        notifyInteractionStart();
+                      }}
+                      onPointerUp={() => notifyInteractionEnd()}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        notifyInteractionStart();
+                      }}
+                      onTouchEnd={() => notifyInteractionEnd()}
+                      className={`w-24 ${isBlank ? 'opacity-50' : ''}`}
+                    />
+                    <span className="text-xs text-gray-600 min-w-[28px] text-right">{lineThickness}px</span>
                   </div>
                 </div>
 
@@ -1366,7 +1469,7 @@ export default function ComponentRenderer({
             {!isBlank ? (
               <div 
                 style={{
-                  borderTop: `2px ${lineStyle === 'dotted' ? 'dotted' : lineStyle === 'dashed' ? 'dashed' : 'solid'} ${lineColor}`,
+                  borderTop: `${lineThickness}px ${lineStyle === 'dotted' ? 'dotted' : lineStyle === 'dashed' ? 'dashed' : 'solid'} ${lineColor}`,
                   width: lineWidth,
                   margin: '0 auto',
                 }}

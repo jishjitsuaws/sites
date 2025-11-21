@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GripVertical, Trash2, Settings, Plus, ChevronUp, ChevronDown } from 'lucide-react';
+import { Trash2, Settings, Plus, ChevronUp, ChevronDown } from 'lucide-react';
 import ComponentRenderer from './ComponentRenderer';
 
 interface Component {
@@ -144,7 +144,7 @@ export default function SectionWrapper({
   return (
     <div
       id={`section-${section.id}`}
-      draggable={!isInteractingWithSlider}
+  draggable={!isInteractingWithSlider}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onDragOver={onDragOver}
@@ -473,7 +473,7 @@ export default function SectionWrapper({
           return (
             <div
               key={component.id}
-              draggable
+              draggable={!isInteractingWithSlider}
               onDragStart={(e) => {
                 e.stopPropagation();
                 onComponentDragStart?.(component.id, section.id);
@@ -518,6 +518,7 @@ export default function SectionWrapper({
                 onShowTextToolbar={(rect) => onShowTextToolbar(component.id, rect)}
                 setSelectedComponent={setSelectedComponent}
                 onOpenCardGridModal={onOpenCardGridModal ? () => onOpenCardGridModal(section.id) : undefined}
+                onInteractionStateChange={setIsInteractingWithSlider}
               />
             </div>
           );

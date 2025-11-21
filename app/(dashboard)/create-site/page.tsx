@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Globe, ArrowLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -34,11 +34,23 @@ export default function CreateSitePage() {
   }, []);
 
   useEffect(() => {
-    if (subdomain.length >= 3) {
-      checkSubdomainAvailability();
-    } else {
-      setSubdomainAvailable(null);
-    }
+    const checkAvailability = async () => {
+      if (subdomain.length >= 3) {
+        setCheckingSubdomain(true);
+        try {
+          const isValid = /^[a-z0-9-]+$/.test(subdomain);
+          setSubdomainAvailable(isValid);
+        } catch {
+          setSubdomainAvailable(false);
+        } finally {
+          setCheckingSubdomain(false);
+        }
+      } else {
+        setSubdomainAvailable(null);
+      }
+    };
+    
+    checkAvailability();
   }, [subdomain]);
 
   const fetchThemes = async () => {
@@ -49,22 +61,9 @@ export default function CreateSitePage() {
       if (themesData.length > 0) {
         setSelectedTheme(themesData[0]._id);
       }
-    } catch (err) {
-      console.error('Failed to load themes:', err);
+    } catch {
+      console.error('Failed to load themes');
       toast.error('Failed to load themes');
-    }
-  };
-
-  const checkSubdomainAvailability = async () => {
-    setCheckingSubdomain(true);
-    try {
-      // For now, just validate the format since we don't have a check endpoint
-      const isValid = /^[a-z0-9-]+$/.test(subdomain);
-      setSubdomainAvailable(isValid);
-    } catch (err) {
-      setSubdomainAvailable(false);
-    } finally {
-      setCheckingSubdomain(false);
     }
   };
 
@@ -117,7 +116,8 @@ export default function CreateSitePage() {
 
       toast.success('Website created successfully!');
       router.push(`/editor/${response.data.data._id}`);
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
       toast.error(err.response?.data?.message || 'Failed to create website');
       setLoading(false);
     }

@@ -7,18 +7,17 @@ import {
   getUserDisplayName,
   exchangeCodeForToken,
   fetchUserInfo,
-  fetchUserProfile
 } from '@/lib/auth';
 import api from '@/lib/api';
 import Button from '@/components/ui/Button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Plus, Globe, Settings, Search, ExternalLink, MoreVertical, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import TemplatesModal from '@/components/modals/TemplatesModal';
 import LogoutButton from '@/components/LogoutButton';
 import { Suspense } from 'react';
 
-interface Site {
+interface _Site {
   _id: string;
   siteName: string;
   subdomain: string;
