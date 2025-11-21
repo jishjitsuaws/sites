@@ -92,6 +92,7 @@ export default function SectionWrapper({
   onOpenCardGridModal,
 }: SectionWrapperProps) {
   const [showSettings, setShowSettings] = useState(false);
+  const [isInteractingWithSlider, setIsInteractingWithSlider] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   
   // Auto-fix section layout when it has multiple cards
@@ -143,7 +144,7 @@ export default function SectionWrapper({
   return (
     <div
       id={`section-${section.id}`}
-      draggable
+      draggable={!isInteractingWithSlider}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onDragOver={onDragOver}
@@ -342,12 +343,24 @@ export default function SectionWrapper({
                   value={section.layout.gap}
                   onMouseDown={(e) => {
                     e.stopPropagation();
+                    setIsInteractingWithSlider(true);
+                  }}
+                  onMouseUp={() => {
+                    setIsInteractingWithSlider(false);
                   }}
                   onPointerDown={(e) => {
                     e.stopPropagation();
+                    setIsInteractingWithSlider(true);
+                  }}
+                  onPointerUp={() => {
+                    setIsInteractingWithSlider(false);
                   }}
                   onTouchStart={(e) => {
                     e.stopPropagation();
+                    setIsInteractingWithSlider(true);
+                  }}
+                  onTouchEnd={() => {
+                    setIsInteractingWithSlider(false);
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -374,12 +387,24 @@ export default function SectionWrapper({
                   value={section.layout.padding}
                   onMouseDown={(e) => {
                     e.stopPropagation();
+                    setIsInteractingWithSlider(true);
+                  }}
+                  onMouseUp={() => {
+                    setIsInteractingWithSlider(false);
                   }}
                   onPointerDown={(e) => {
                     e.stopPropagation();
+                    setIsInteractingWithSlider(true);
+                  }}
+                  onPointerUp={() => {
+                    setIsInteractingWithSlider(false);
                   }}
                   onTouchStart={(e) => {
                     e.stopPropagation();
+                    setIsInteractingWithSlider(true);
+                  }}
+                  onTouchEnd={() => {
+                    setIsInteractingWithSlider(false);
                   }}
                   onClick={(e) => {
                     e.stopPropagation();

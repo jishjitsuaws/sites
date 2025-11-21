@@ -2013,6 +2013,107 @@ export default function ComponentRenderer({
           >
             {component.props.description}
           </p>
+
+          {/* Card Button */}
+          {component.props.buttonText ? (
+            <div className="mt-4 text-center">
+              <button
+                contentEditable={false}
+                onClick={(e) => {
+                  if (isSelected) {
+                    e.stopPropagation();
+                    const url = prompt('Enter button link URL:', component.props.buttonLink || '');
+                    if (url !== null) {
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, buttonLink: url }
+                      });
+                    }
+                  }
+                }}
+                className="relative inline-block px-6 py-2 rounded-lg font-medium transition-all hover:opacity-90"
+                style={{
+                  backgroundColor: component.props.buttonColor || themeColors.primary,
+                  color: component.props.buttonTextColor || '#ffffff',
+                }}
+              >
+                <span
+                  contentEditable={isSelected}
+                  suppressContentEditableWarning
+                  onBlur={(e) => {
+                    const newText = e.currentTarget.textContent || '';
+                    if (newText !== component.props.buttonText) {
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { ...component.props, buttonText: newText }
+                      });
+                    }
+                  }}
+                  onMouseDown={(e) => {
+                    if (isSelected) {
+                      e.stopPropagation();
+                    }
+                  }}
+                  onClick={(e) => {
+                    if (isSelected) {
+                      e.stopPropagation();
+                    }
+                  }}
+                  className="outline-none"
+                  style={{
+                    cursor: isSelected ? 'text' : 'default',
+                  }}
+                >
+                  {component.props.buttonText}
+                </span>
+                {isSelected && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, {
+                        ...component,
+                        props: { 
+                          ...component.props, 
+                          buttonText: undefined,
+                          buttonLink: undefined,
+                          buttonColor: undefined,
+                          buttonTextColor: undefined
+                        }
+                      });
+                    }}
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs shadow-md"
+                    style={{ zIndex: 50 }}
+                    title="Remove button"
+                  >
+                    ×
+                  </button>
+                )}
+              </button>
+            </div>
+          ) : (
+            isSelected && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdateComponent(component.id, {
+                      ...component,
+                      props: { 
+                        ...component.props, 
+                        buttonText: 'Learn More',
+                        buttonLink: '#',
+                        buttonColor: themeColors.primary,
+                        buttonTextColor: '#ffffff'
+                      }
+                    });
+                  }}
+                  className="px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors text-sm"
+                >
+                  + Add Button
+                </button>
+              </div>
+            )
+          )}
         </div>
       )}
 
