@@ -241,7 +241,7 @@ export default function ComponentRenderer({
 }: ComponentRendererProps) {
   
   const isFloating = component.type === 'image' && component.props.float && component.props.float !== 'none';
-  const isBanner = component.type === 'banner';
+  const isBanner = component.type === 'banner' || component.type === 'text-banner';
   const isFooter = component.type === 'footer';
   // For carousel autoplay (safe to declare regardless of component type)
   const [carouselHover, setCarouselHover] = useState(false);
@@ -2710,14 +2710,18 @@ export default function ComponentRenderer({
               : listStyle === 'none'
                 ? 'list-none'
                 : 'list-disc';
-            const paddingClass = listStyle === 'none' ? 'pl-0' : 'pl-5';
+            
+            // Use list-inside for center/right so bullets move with text
+            const useInsidePosition = align === 'center' || align === 'right';
+            const positionClass = useInsidePosition ? 'list-inside' : 'list-outside';
+            const paddingClass = listStyle === 'none' ? 'pl-0' : (useInsidePosition ? 'pl-0' : 'pl-5');
+            const alignmentClass = align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left';
 
             return (
               <ul
-                className={`${listTypeClass} list-outside ${paddingClass} space-y-2`}
+                className={`${listTypeClass} ${positionClass} ${paddingClass} ${alignmentClass} space-y-2`}
                 style={{
                   lineHeight: 1.6,
-                  listStylePosition: 'outside',
                   fontFamily: `'${themeFonts.body}', sans-serif`,
                   color: themeColors.text,
                 }}
@@ -2733,7 +2737,7 @@ export default function ComponentRenderer({
                         onUpdateComponent(component.id, { ...component, props: { ...component.props, items } });
                       }}
                       onClick={(e) => { if (isSelected) e.stopPropagation(); }}
-                      className="outline-none px-1 rounded"
+                      className="outline-none px-1 rounded inline"
                     >
                       {item}
                     </div>
@@ -3047,6 +3051,243 @@ export default function ComponentRenderer({
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Text Banner Component */}
+      {component.type === 'text-banner' && (
+        <div 
+          className="relative w-full flex flex-col items-center justify-center text-center px-8"
+          style={{
+            backgroundColor: component.props.backgroundColor || themeColors.primary,
+            paddingTop: '80px',
+            paddingBottom: '80px',
+            color: component.props.textColor || '#ffffff',
+          }}
+        >
+          {/* Inline toolbar */}
+          {isSelected && (
+            <div 
+              className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
+              style={{ top: '-56px', left: '0', zIndex: 1000, minWidth: 'max-content' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-2 py-1.5 flex items-center gap-2">
+                <label className="text-xs text-gray-700 whitespace-nowrap">BG:</label>
+                <input
+                  type="color"
+                  value={component.props.backgroundColor || themeColors.primary}
+                  onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, backgroundColor: e.target.value } })}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-8 h-6 rounded cursor-pointer"
+                  title="Background Color"
+                />
+              </div>
+              <div className="w-px bg-gray-300"></div>
+              <div className="px-2 py-1.5 flex items-center gap-2">
+                <label className="text-xs text-gray-700 whitespace-nowrap">Text:</label>
+                <input
+                  type="color"
+                  value={component.props.textColor || '#ffffff'}
+                  onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, textColor: e.target.value } })}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-8 h-6 rounded cursor-pointer"
+                  title="Text Color"
+                />
+              </div>
+              <div className="w-px bg-gray-300"></div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteComponent();
+                }}
+                className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
+                title="Delete Text Banner"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
+            </div>
+          )}
+
+          <div className="w-full max-w-4xl space-y-6">
+            {/* Title */}
+            {component.props.title !== null && component.props.title !== undefined ? (
+              <div className="relative group">
+                {isSelected && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, { ...component, props: { ...component.props, title: null } });
+                    }}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-md"
+                    title="Remove Title"
+                  >
+                    ×
+                  </button>
+                )}
+                <h1
+                  contentEditable={isSelected}
+                  suppressContentEditableWarning
+                  onBlur={(e) => {
+                    const newTitle = e.currentTarget.textContent || '';
+                    if (newTitle.trim()) {
+                      onUpdateComponent(component.id, { ...component, props: { ...component.props, title: newTitle } });
+                    }
+                  }}
+                  onClick={(e) => { if (isSelected) e.stopPropagation(); }}
+                  className="text-5xl font-bold outline-none focus:ring-2 focus:ring-white rounded px-2 py-1"
+                  style={{ 
+                    fontFamily: `'${themeFonts.heading}', sans-serif`,
+                    color: component.props.textColor || '#ffffff',
+                    cursor: isSelected ? 'text' : 'default',
+                  }}
+                >
+                  {component.props.title || 'WELCOME TO OUR SITE'}
+                </h1>
+              </div>
+            ) : null}
+
+            {/* Description */}
+            {component.props.description !== null && component.props.description !== undefined ? (
+              <div className="relative group">
+                {isSelected && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, { ...component, props: { ...component.props, description: null } });
+                    }}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-md"
+                    title="Remove Description"
+                  >
+                    ×
+                  </button>
+                )}
+                <p
+                  contentEditable={isSelected}
+                  suppressContentEditableWarning
+                  onBlur={(e) => {
+                    const newDesc = e.currentTarget.textContent || '';
+                    if (newDesc.trim()) {
+                      onUpdateComponent(component.id, { ...component, props: { ...component.props, description: newDesc } });
+                    }
+                  }}
+                  onClick={(e) => { if (isSelected) e.stopPropagation(); }}
+                  className="text-xl outline-none focus:ring-2 focus:ring-white rounded px-2 py-1"
+                  style={{ 
+                    fontFamily: `'${themeFonts.body}', sans-serif`,
+                    color: component.props.textColor || '#ffffff',
+                    opacity: 0.9,
+                    cursor: isSelected ? 'text' : 'default',
+                  }}
+                >
+                  {component.props.description || 'Get started with websites now'}
+                </p>
+              </div>
+            ) : null}
+
+            {/* Button */}
+            {component.props.buttonText !== null && component.props.buttonText !== undefined ? (
+              <div className="relative group inline-block">
+                {isSelected && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdateComponent(component.id, { ...component, props: { ...component.props, buttonText: null } });
+                      }}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold z-10 shadow-md"
+                      title="Remove Button"
+                    >
+                      ×
+                    </button>
+                    {/* Button toolbar */}
+                    <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg border border-gray-300 p-2 flex gap-2 whitespace-nowrap z-20">
+                      <input
+                        type="text"
+                        value={component.props.buttonLink || ''}
+                        onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, buttonLink: e.target.value } })}
+                        onClick={(e) => e.stopPropagation()}
+                        placeholder="https://..."
+                        className="px-2 py-1 text-xs border border-gray-300 rounded w-32 text-gray-900"
+                        title="Button Link"
+                      />
+                      <input
+                        type="color"
+                        value={component.props.buttonColor || '#ffffff'}
+                        onChange={(e) => onUpdateComponent(component.id, { ...component, props: { ...component.props, buttonColor: e.target.value } })}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-6 h-6 rounded cursor-pointer"
+                        title="Button Color"
+                      />
+                    </div>
+                  </>
+                )}
+                <a
+                  href={component.props.buttonLink || '#'}
+                  onClick={(e) => { if (isSelected) e.preventDefault(); e.stopPropagation(); }}
+                  contentEditable={isSelected}
+                  suppressContentEditableWarning
+                  onBlur={(e) => {
+                    const newText = e.currentTarget.textContent || '';
+                    if (newText.trim()) {
+                      onUpdateComponent(component.id, { ...component, props: { ...component.props, buttonText: newText } });
+                    }
+                  }}
+                  className="inline-block px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:opacity-90 outline-none focus:ring-2 focus:ring-white"
+                  style={{
+                    backgroundColor: component.props.buttonColor || '#ffffff',
+                    color: component.props.backgroundColor || themeColors.primary,
+                    cursor: isSelected ? 'text' : 'pointer',
+                  }}
+                >
+                  {component.props.buttonText || 'click here'}
+                </a>
+              </div>
+            ) : null}
+
+            {/* Add back buttons */}
+            {isSelected && (
+              <div className="flex gap-3 justify-center flex-wrap mt-6">
+                {(component.props.title === null || component.props.title === undefined) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, { ...component, props: { ...component.props, title: 'WELCOME TO OUR SITE' } });
+                    }}
+                    className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg text-sm flex items-center gap-2 transition-colors border border-white/30"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Title
+                  </button>
+                )}
+                {(component.props.description === null || component.props.description === undefined) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, { ...component, props: { ...component.props, description: 'Get started with websites now' } });
+                    }}
+                    className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg text-sm flex items-center gap-2 transition-colors border border-white/30"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Description
+                  </button>
+                )}
+                {(component.props.buttonText === null || component.props.buttonText === undefined) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateComponent(component.id, { ...component, props: { ...component.props, buttonText: 'click here', buttonLink: '#', buttonColor: '#ffffff' } });
+                    }}
+                    className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg text-sm flex items-center gap-2 transition-colors border border-white/30"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Button
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

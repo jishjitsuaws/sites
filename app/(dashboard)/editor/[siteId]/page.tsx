@@ -819,6 +819,7 @@ export default function EditorPage() {
 
   const insertComponentTypes = [
     { id: 'banner-minimal', name: 'Image Banner', icon: ImageIcon, description: 'Banner - image only' },
+    { id: 'text-banner', name: 'Text Banner', icon: Type, description: 'Banner with title, description & button' },
     { id: 'heading', name: 'Heading', icon: Type, description: 'Add a title or heading' },
     { id: 'text', name: 'Text', icon: FileText, description: 'Add a paragraph of text' },
     { id: 'image', name: 'Image', icon: ImageIcon, description: 'Insert an image' },
@@ -852,7 +853,7 @@ export default function EditorPage() {
     };
 
     // Banner gets a full-width section
-    if (type === 'banner-minimal') {
+    if (type === 'banner-minimal' || type === 'text-banner') {
       const newSection = {
         id: `section-${Date.now()}`,
         components: [newComponent],
@@ -1547,6 +1548,16 @@ export default function EditorPage() {
 
   const getDefaultProps = (type: string) => {
     switch (type) {
+      case 'text-banner':
+        return {
+          title: 'WELCOME TO OUR SITE',
+          description: 'Get started with websites now',
+          buttonText: 'click here',
+          buttonLink: '#',
+          buttonColor: '#ffffff',
+          backgroundColor: getThemeColors().primary,
+          textColor: '#ffffff',
+        };
       case 'banner-minimal':
         return {
           heading: null,

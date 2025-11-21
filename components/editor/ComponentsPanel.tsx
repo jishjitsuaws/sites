@@ -41,6 +41,7 @@ export default function ComponentsPanel({
               'faqs': 'from-lime-500 to-green-600',
               'banner-full': 'from-purple-600 to-indigo-600',
               'banner-minimal': 'from-slate-600 to-gray-700',
+              'text-banner': 'from-purple-500 to-indigo-500',
               'footer': 'from-gray-700 to-slate-800',
               'card-grid': 'from-violet-500 to-purple-600',
               'break': 'from-gray-400 to-gray-500',

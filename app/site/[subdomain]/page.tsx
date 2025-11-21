@@ -888,77 +888,41 @@ export default function PublishedSitePage() {
         );
 
       case 'bullet-list':
-        return (
-          <div style={{ textAlign: component.props.align || 'left' }}>
-            {component.props.style === 'numbered' ? (
-              <div className="space-y-1" style={{ lineHeight: 1.6 }}>
-                {(component.props.items || []).map((item: string, idx: number) => {
-                  const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
-                                       component.props.textSize === 'title' ? 'text-2xl' :
-                                       component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
-                  return (
-                    <div key={idx} className="flex items-start mb-1">
-                      <span 
-                        className={`shrink-0 font-medium ${textSizeClass}`}
-                        style={{ color: themeColors.text, minWidth: '2rem', display: 'inline-block' }}
-                      >
-                        {idx + 1}.
-                      </span>
-                      <span
-                        className={`flex-1 ${textSizeClass}`}
-                        style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
-                      >
-                        {item}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : component.props.style === 'none' ? (
-              <div className="space-y-1">
-                {(component.props.items || []).map((item: string, idx: number) => {
-                  const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
-                                       component.props.textSize === 'title' ? 'text-2xl' :
-                                       component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
-                  return (
-                    <div key={idx}>
-                      <span
-                        className={textSizeClass}
-                        style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
-                      >
-                        {item}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="space-y-1" style={{ lineHeight: 1.6 }}>
-                {(component.props.items || []).map((item: string, idx: number) => {
-                  const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
-                                       component.props.textSize === 'title' ? 'text-2xl' :
-                                       component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
-                  return (
-                    <div key={idx} className="flex items-start mb-1">
-                      <span 
-                        className={`shrink-0 ${textSizeClass}`}
-                        style={{ color: themeColors.text, minWidth: '1.5rem', display: 'inline-block', textAlign: 'center' }}
-                      >
-                        •
-                      </span>
-                      <span
-                        className={`flex-1 ${textSizeClass}`}
-                        style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
-                      >
-                        {item}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
+        return (() => {
+          const listStyle = component.props.style || 'bulleted';
+          const align = component.props.align || 'left';
+          const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
+                               component.props.textSize === 'title' ? 'text-2xl' :
+                               component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
+          const listTypeClass = listStyle === 'numbered'
+            ? 'list-decimal'
+            : listStyle === 'none'
+              ? 'list-none'
+              : 'list-disc';
+          
+          // Use list-inside for center/right so bullets move with text
+          const useInsidePosition = align === 'center' || align === 'right';
+          const positionClass = useInsidePosition ? 'list-inside' : 'list-outside';
+          const paddingClass = listStyle === 'none' ? 'pl-0' : (useInsidePosition ? 'pl-0' : 'pl-5');
+          const alignmentClass = align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left';
+
+          return (
+            <ul
+              className={`${listTypeClass} ${positionClass} ${paddingClass} ${alignmentClass} space-y-2`}
+              style={{
+                lineHeight: 1.6,
+                fontFamily: `'${themeFonts.body}', sans-serif`,
+                color: themeColors.text,
+              }}
+            >
+              {(component.props.items || []).map((item: string, idx: number) => (
+                <li key={idx} className={`${textSizeClass} break-words`}>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          );
+        })();
 
       case 'collapsible-list':
         return <PublishedCollapsibleList component={component} themeColors={themeColors} themeFonts={themeFonts} />;
@@ -1153,6 +1117,57 @@ export default function PublishedSitePage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        );
+
+      case 'text-banner':
+        return (
+          <div 
+            className="w-full flex flex-col items-center justify-center text-center px-8"
+            style={{
+              backgroundColor: component.props.backgroundColor || themeColors.primary,
+              paddingTop: '80px',
+              paddingBottom: '80px',
+              color: component.props.textColor || '#ffffff',
+            }}
+          >
+            <div className="w-full max-w-4xl space-y-6">
+              {component.props.title && (
+                <h1
+                  className="text-5xl font-bold"
+                  style={{ 
+                    fontFamily: `'${themeFonts.heading}', sans-serif`,
+                    color: component.props.textColor || '#ffffff',
+                  }}
+                >
+                  {component.props.title}
+                </h1>
+              )}
+              {component.props.description && (
+                <p
+                  className="text-xl"
+                  style={{ 
+                    fontFamily: `'${themeFonts.body}', sans-serif`,
+                    color: component.props.textColor || '#ffffff',
+                    opacity: 0.9,
+                  }}
+                >
+                  {component.props.description}
+                </p>
+              )}
+              {component.props.buttonText && (
+                <a
+                  href={component.props.buttonLink || '#'}
+                  className="inline-block px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:opacity-90"
+                  style={{
+                    backgroundColor: component.props.buttonColor || '#ffffff',
+                    color: component.props.backgroundColor || themeColors.primary,
+                  }}
+                >
+                  {component.props.buttonText}
+                </a>
+              )}
             </div>
           </div>
         );

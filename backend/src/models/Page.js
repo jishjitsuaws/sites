@@ -21,6 +21,7 @@ const componentSchema = new mongoose.Schema({
       'code',
       'video',
       'banner',
+      'text-banner',
       'card',
       'footer',
       'timer',
