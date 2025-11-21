@@ -212,37 +212,17 @@ export default function TextEditorToolbar({
         <div className="w-px h-6 bg-gray-300"></div>
 
         {/* Text Color */}
-        <div className="flex items-center gap-2">
-          <input
-            type="color"
-            value={textColor}
-            onChange={(e) => {
-              const newColor = e.target.value;
-              setTextColor(newColor);
-              updateProps({ color: newColor });
-            }}
-            className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
-            title="Text Color"
-          />
-          <input
-            type="text"
-            value={textColor}
-            onChange={(e) => {
-              let newColor = e.target.value;
-              // Validate hex format
-              if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
-                setTextColor(newColor);
-                updateProps({ color: newColor });
-              } else if (newColor.match(/^#[0-9A-Fa-f]{0,5}$/)) {
-                // Allow typing but don't update
-                setTextColor(newColor);
-              }
-            }}
-            placeholder="#000000"
-            className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
-            title="Hex Color Code"
-          />
-        </div>
+        <input
+          type="color"
+          value={textColor}
+          onChange={(e) => {
+            const newColor = e.target.value;
+            setTextColor(newColor);
+            updateProps({ color: newColor });
+          }}
+          className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
+          title="Text Color"
+        />
 
         <div className="w-px h-6 bg-gray-300"></div>
 

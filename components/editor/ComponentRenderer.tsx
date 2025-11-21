@@ -879,94 +879,176 @@ export default function ComponentRenderer({
           textAlign: component.props.align || 'center',
           position: 'relative',
         }}>
-          <div className="inline-block relative">
-            {/* Compact toolbar fixed to component */}
-            {isSelected && onShowButtonModal && (
-              <div 
-                className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
-                style={{ top: '-56px', left: '0', zIndex: 1000, minWidth: 'max-content' }}
-                onClick={(e) => e.stopPropagation()}
+          {/* Toolbar - fixed position relative to container, not button */}
+          {isSelected && onShowButtonModal && (
+            <div 
+              className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
+              style={{ top: '-56px', left: '0', zIndex: 1000, minWidth: 'max-content' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShowButtonModal();
+                }}
+                className="px-3 py-1 hover:bg-gray-100 rounded text-sm text-gray-900"
+                title="Edit Text & Link"
               >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShowButtonModal();
-                  }}
-                  className="px-3 py-1 hover:bg-gray-100 rounded text-sm text-gray-900"
-                  title="Edit Button"
-                >
-                  Edit
-                </button>
-                <div className="w-px bg-gray-300"></div>
-                <button
-                  onClick={(e) => {
+                Edit
+              </button>
+              <div className="w-px bg-gray-300"></div>
+              
+              {/* Size */}
+              <select
+                value={component.props.size || 'medium'}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  onUpdateComponent(component.id, {
+                    ...component,
+                    props: { ...component.props, size: e.target.value }
+                  });
+                }}
+                className="px-2 py-1 text-xs border border-gray-300 rounded text-gray-900"
+                onClick={(e) => e.stopPropagation()}
+                title="Button Size"
+              >
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+              <div className="w-px bg-gray-300"></div>
+              
+              {/* Alignment */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateComponent(component.id, {
+                    ...component,
+                    props: { ...component.props, align: 'left' }
+                  });
+                }}
+                className={`px-2 py-1 rounded text-sm ${component.props.align === 'left' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
+                title="Align Left"
+              >
+                <svg className="h-4 w-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h10M4 18h16" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateComponent(component.id, {
+                    ...component,
+                    props: { ...component.props, align: 'center' }
+                  });
+                }}
+                className={`px-2 py-1 rounded text-sm ${component.props.align === 'center' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
+                title="Align Center"
+              >
+                <svg className="h-4 w-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M7 12h10M4 18h16" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateComponent(component.id, {
+                    ...component,
+                    props: { ...component.props, align: 'right' }
+                  });
+                }}
+                className={`px-2 py-1 rounded text-sm ${component.props.align === 'right' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
+                title="Align Right"
+              >
+                <svg className="h-4 w-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M10 12h10M4 18h16" />
+                </svg>
+              </button>
+              <div className="w-px bg-gray-300"></div>
+              
+              {/* Colors */}
+              <div className="flex items-center gap-1">
+                <label className="text-xs text-gray-700">Text:</label>
+                <input
+                  type="color"
+                  value={component.props.textColor || '#ffffff'}
+                  onChange={(e) => {
                     e.stopPropagation();
                     onUpdateComponent(component.id, {
                       ...component,
-                      props: { ...component.props, align: 'left' }
+                      props: { ...component.props, textColor: e.target.value }
                     });
                   }}
-                  className={`px-2 py-1 rounded text-sm ${component.props.align === 'left' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
-                  title="Align Left"
-                >
-                  <svg className="h-4 w-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h10M4 18h16" />
-                  </svg>
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, align: 'center' }
-                    });
-                  }}
-                  className={`px-2 py-1 rounded text-sm ${component.props.align === 'center' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
-                  title="Align Center"
-                >
-                  <svg className="h-4 w-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M7 12h10M4 18h16" />
-                  </svg>
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, align: 'right' }
-                    });
-                  }}
-                  className={`px-2 py-1 rounded text-sm ${component.props.align === 'right' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
-                  title="Align Right"
-                >
-                  <svg className="h-4 w-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M10 12h10M4 18h16" />
-                  </svg>
-                </button>
-                <div className="w-px bg-gray-300"></div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCopyComponent();
-                  }}
-                  className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-gray-900"
-                  title="Duplicate"
-                >
-                  <Copy className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteComponent();
-                  }}
-                  className="px-2 py-1 hover:bg-red-100 rounded text-sm text-red-600"
-                  title="Delete"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                  className="w-7 h-7 border border-gray-300 rounded cursor-pointer"
+                  title="Text Color"
+                  onClick={(e) => e.stopPropagation()}
+                />
               </div>
-            )}
-            
+              <div className="flex items-center gap-1">
+                <label className="text-xs text-gray-700">BG:</label>
+                <input
+                  type="color"
+                  value={component.props.buttonColor || themeColors.primary}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onUpdateComponent(component.id, {
+                      ...component,
+                      props: { ...component.props, buttonColor: e.target.value }
+                    });
+                  }}
+                  className="w-7 h-7 border border-gray-300 rounded cursor-pointer"
+                  title="Button Color"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              <div className="w-px bg-gray-300"></div>
+              
+              {/* Border Radius */}
+              <div className="flex items-center gap-1">
+                <label className="text-xs text-gray-700">Round:</label>
+                <input
+                  type="number"
+                  value={component.props.borderRadius || 8}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onUpdateComponent(component.id, {
+                      ...component,
+                      props: { ...component.props, borderRadius: parseInt(e.target.value) || 0 }
+                    });
+                  }}
+                  min="0"
+                  max="50"
+                  className="w-12 px-1 py-1 text-xs border border-gray-300 rounded text-gray-900"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Border Radius (px)"
+                />
+              </div>
+              <div className="w-px bg-gray-300"></div>
+              
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCopyComponent();
+                }}
+                className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-gray-900"
+                title="Duplicate"
+              >
+                <Copy className="h-4 w-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteComponent();
+                }}
+                className="px-2 py-1 hover:bg-red-100 rounded text-sm text-red-600"
+                title="Delete"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+          
+          <div className="inline-block relative">
             <button 
               className={`font-medium transition-colors ${
                 (component.props.size || 'medium') === 'small' ? 'px-3 py-1 text-sm' :
@@ -2798,13 +2880,13 @@ export default function ComponentRenderer({
       {/* Text Banner Component */}
       {component.type === 'text-banner' && (
         <div 
-          className="relative w-full flex flex-col items-center justify-center text-center px-8"
+          className="relative w-full flex flex-col items-center justify-center text-center"
           style={{
             backgroundColor: component.props.backgroundColor || themeColors.primary,
-            minHeight: '400px',
-            paddingTop: '120px',
-            paddingBottom: '120px',
+            minHeight: '600px',
+            height: component.props.height || '600px',
             color: component.props.textColor || '#ffffff',
+            padding: '60px 40px',
           }}
         >
           {/* Main Banner toolbar */}
@@ -2880,15 +2962,13 @@ export default function ComponentRenderer({
                   onFocus={(e) => {
                     if (isSelected) {
                       e.stopPropagation();
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      onShowTextToolbar(rect as DOMRect);
                     }
                   }}
                   onClick={(e) => { if (isSelected) e.stopPropagation(); }}
                   className="text-5xl font-bold outline-none focus:ring-2 focus:ring-white rounded px-2 py-1"
                   style={{ 
                     fontFamily: `'${themeFonts.heading}', sans-serif`,
-                    color: component.props.textColor || '#ffffff',
+                    color: 'inherit',
                     cursor: isSelected ? 'text' : 'default',
                   }}
                 >
@@ -2924,15 +3004,13 @@ export default function ComponentRenderer({
                   onFocus={(e) => {
                     if (isSelected) {
                       e.stopPropagation();
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      onShowTextToolbar(rect as DOMRect);
                     }
                   }}
                   onClick={(e) => { if (isSelected) e.stopPropagation(); }}
                   className="text-xl outline-none focus:ring-2 focus:ring-white rounded px-2 py-1"
                   style={{ 
                     fontFamily: `'${themeFonts.body}', sans-serif`,
-                    color: component.props.textColor || '#ffffff',
+                    color: 'inherit',
                     opacity: 0.9,
                     cursor: isSelected ? 'text' : 'default',
                   }}

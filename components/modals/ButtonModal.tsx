@@ -18,9 +18,6 @@ interface ButtonModalProps {
 export default function ButtonModal({ isOpen, onClose, onSave, initialProps, onDelete, onCopy, themeColors }: ButtonModalProps) {
   const [text, setText] = useState(initialProps?.text || 'Click me');
   const [link, setLink] = useState(initialProps?.href || '#');
-  const [variant, setVariant] = useState(initialProps?.variant || 'primary');
-  const [alignment, setAlignment] = useState(initialProps?.align || 'left');
-  const [borderRadius, setBorderRadius] = useState(initialProps?.borderRadius || 8);
 
   if (!isOpen) return null;
 
@@ -33,9 +30,6 @@ export default function ButtonModal({ isOpen, onClose, onSave, initialProps, onD
     onSave({
       text,
       href: link,
-      variant,
-      align: alignment,
-      borderRadius,
     });
     onClose();
   };
@@ -78,91 +72,6 @@ export default function ButtonModal({ isOpen, onClose, onSave, initialProps, onD
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <p className="text-xs text-gray-500 mt-1">Link to another page or external URL</p>
-          </div>
-
-          {/* Button Style */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Button Style</label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setVariant('primary')}
-                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
-                  variant === 'primary'
-                    ? 'ring-2 ring-blue-600 ring-offset-2'
-                    : ''
-                }`}
-                style={{
-                  backgroundColor: themeColors?.primary || '#3b82f6',
-                  color: '#ffffff'
-                }}
-              >
-                Primary
-              </button>
-              <button
-                onClick={() => setVariant('secondary')}
-                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
-                  variant === 'secondary'
-                    ? 'ring-2 ring-blue-600 ring-offset-2'
-                    : ''
-                }`}
-                style={{
-                  backgroundColor: themeColors?.secondary || '#8b5cf6',
-                  color: '#ffffff'
-                }}
-              >
-                Secondary
-              </button>
-            </div>
-          </div>
-
-          {/* Alignment */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Alignment</label>
-            <select
-              value={alignment}
-              onChange={(e) => setAlignment(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="left">Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-            </select>
-          </div>
-
-          {/* Border Radius */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Border Radius</label>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="0"
-                max="50"
-                value={borderRadius}
-                onChange={(e) => setBorderRadius(parseInt(e.target.value))}
-                className="flex-1"
-              />
-              <input
-                type="number"
-                min="0"
-                max="50"
-                value={borderRadius}
-                onChange={(e) => setBorderRadius(parseInt(e.target.value) || 0)}
-                className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
-              />
-              <span className="text-sm text-gray-600">px</span>
-            </div>
-            <div className="mt-2 p-3 border border-gray-200 rounded-lg flex justify-center">
-              <button
-                className="px-6 py-2 font-medium transition-colors"
-                style={{
-                  backgroundColor: variant === 'primary' ? (themeColors?.primary || '#3b82f6') : (themeColors?.secondary || '#8b5cf6'),
-                  color: '#ffffff',
-                  borderRadius: `${borderRadius}px`
-                }}
-              >
-                Preview
-              </button>
-            </div>
           </div>
         </div>
 
