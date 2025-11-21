@@ -43,6 +43,7 @@ export default function ComponentsPanel({
               'banner-minimal': 'from-slate-600 to-gray-700',
               'footer': 'from-gray-700 to-slate-800',
               'card-grid': 'from-violet-500 to-purple-600',
+              'break': 'from-gray-400 to-gray-500',
             };
             
             const gradient = gradients[component.id] || 'from-blue-500 to-cyan-500';
@@ -54,10 +55,10 @@ export default function ComponentsPanel({
                 className="group relative flex flex-col items-center gap-2 p-3 rounded-xl border border-gray-200 hover:border-transparent hover:shadow-lg transition-all duration-200 bg-white overflow-hidden"
               >
                 {/* Gradient Background on Hover */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-200`}></div>
+                <div className={`absolute inset-0 bg-linear-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-200`}></div>
                 
                 {/* Icon with Gradient Background */}
-                <div className={`relative h-10 w-10 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-sm`}>
+                <div className={`relative h-10 w-10 rounded-lg bg-linear-to-br ${gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-sm`}>
                   <component.icon className="h-5 w-5 text-white" />
                 </div>
                 

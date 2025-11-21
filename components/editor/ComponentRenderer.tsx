@@ -1243,57 +1243,140 @@ export default function ComponentRenderer({
         </div>
       )}
 
-      {/* Break Component */}
-      {component.type === 'break' && (
-        <div style={{ clear: 'both', position: 'relative', width: '100%', display: 'block', padding: 0, margin: 0 }}>
-          {/* Inline toolbar for breaks */}
-          {isSelected && (
-            <div 
-              className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
-              style={{
-                top: '-56px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 1000,
-                minWidth: 'max-content',
-              }}
-            >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCopyComponent();
+      {/* Page Break Component */}
+      {component.type === 'break' && (() => {
+        const lineStyle = component.props.lineStyle || 'solid';
+        const heightValue = component.props.height ?? 32;
+        const lineColor = component.props.lineColor || '#e5e7eb';
+        const lineWidth = component.props.width || '60%';
+        const isBlank = lineStyle === 'blank';
+        const styleOptions = [
+          { value: 'solid', label: 'Solid' },
+          { value: 'dashed', label: 'Dashed' },
+          { value: 'dotted', label: 'Dotted' },
+          { value: 'blank', label: 'Blank' },
+        ];
+
+        return (
+          <div style={{ clear: 'both', position: 'relative', width: '100%', display: 'block', padding: `${heightValue}px 0`, margin: 0 }}>
+            {/* Inline toolbar for breaks */}
+            {isSelected && (
+              <div 
+                className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex items-center gap-3 whitespace-nowrap"
+                style={{
+                  top: '-80px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: 1000,
+                  minWidth: 'max-content',
                 }}
-                className="px-3 py-1.5 hover:bg-gray-100 rounded text-sm flex items-center gap-1.5 transition-colors text-gray-900"
-                title="Duplicate"
+                onClick={(e) => e.stopPropagation()}
               >
-                <Copy className="h-4 w-4" />
-                Duplicate
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteComponent();
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Style</span>
+                  <div className="flex gap-1">
+                    {styleOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateComponent(component.id, {
+                            ...component,
+                            props: { ...component.props, lineStyle: option.value },
+                          });
+                        }}
+                        className={`px-2 py-1 rounded text-xs font-medium border ${lineStyle === option.value ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 text-gray-900 border-gray-200 hover:bg-gray-100'}`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="w-px bg-gray-300 h-12"></div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Height</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min={0}
+                      max={160}
+                      value={heightValue}
+                      onChange={(e) => {
+                        const newHeight = parseInt(e.target.value) || 0;
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, height: newHeight },
+                        });
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      className="w-32"
+                    />
+                    <input
+                      type="number"
+                      min={0}
+                      max={200}
+                      value={heightValue}
+                      onChange={(e) => {
+                        const newHeight = Math.max(0, Math.min(200, parseInt(e.target.value) || 0));
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, height: newHeight },
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-16 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
+                    />
+                    <span className="text-xs text-gray-600">px</span>
+                  </div>
+                </div>
+
+                <div className="w-px bg-gray-300 h-12"></div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCopyComponent();
+                    }}
+                    className="px-3 py-1.5 hover:bg-gray-100 rounded text-sm flex items-center gap-1.5 transition-colors text-gray-900"
+                    title="Duplicate"
+                  >
+                    <Copy className="h-4 w-4" />
+                    Duplicate
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteComponent();
+                    }}
+                    className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {!isBlank ? (
+              <div 
+                style={{
+                  borderTop: `2px ${lineStyle === 'dotted' ? 'dotted' : lineStyle === 'dashed' ? 'dashed' : 'solid'} ${lineColor}`,
+                  width: lineWidth,
+                  margin: '0 auto',
                 }}
-                className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
-                title="Delete"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
-            </div>
-          )}
-          
-          <hr 
-            style={{
-              border: 'none',
-              borderTop: '1px solid #e5e7eb',
-              width: '100%',
-              margin: '0',
-              display: 'block'
-            }}
-          />
-        </div>
-      )}
+              />
+            ) : (
+              <div style={{ height: '1px' }} />
+            )}
+          </div>
+        );
+      })()}
 
       {/* Social Media Component */}
       {component.type === 'social' && (
@@ -2016,19 +2099,57 @@ export default function ComponentRenderer({
 
           {/* Card Button */}
           {component.props.buttonText ? (
-            <div className="mt-4 text-center">
+            <div className="mt-4 text-center relative">
+              {/* Button Toolbar */}
+              {isSelected && (
+                <div 
+                  className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-2 flex gap-1 whitespace-nowrap"
+                  style={{ top: '-56px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, minWidth: 'max-content' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-gray-900 flex items-center gap-1"
+                    title="Set button link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const url = prompt('Enter button link URL:', component.props.buttonLink || '');
+                      if (url !== null) {
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, buttonLink: url }
+                        });
+                      }
+                    }}
+                  >
+                    <LinkIcon className="h-4 w-4" />
+                    Link
+                  </button>
+                  <div className="w-px bg-gray-300"></div>
+                  <button
+                    className="px-2 py-1 hover:bg-gray-100 rounded text-sm text-gray-900 flex items-center gap-1"
+                    title="Change button color"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const color = prompt('Enter button background color (hex):', component.props.buttonColor || themeColors.primary);
+                      if (color !== null) {
+                        onUpdateComponent(component.id, {
+                          ...component,
+                          props: { ...component.props, buttonColor: color }
+                        });
+                      }
+                    }}
+                  >
+                    <div className="h-4 w-4 rounded border border-gray-300" style={{ backgroundColor: component.props.buttonColor || themeColors.primary }}></div>
+                    Color
+                  </button>
+                </div>
+              )}
+              
               <button
                 contentEditable={false}
                 onClick={(e) => {
                   if (isSelected) {
                     e.stopPropagation();
-                    const url = prompt('Enter button link URL:', component.props.buttonLink || '');
-                    if (url !== null) {
-                      onUpdateComponent(component.id, {
-                        ...component,
-                        props: { ...component.props, buttonLink: url }
-                      });
-                    }
                   }
                 }}
                 className="relative inline-block px-6 py-2 rounded-lg font-medium transition-all hover:opacity-90"

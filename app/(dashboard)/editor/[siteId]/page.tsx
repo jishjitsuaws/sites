@@ -15,6 +15,7 @@ import ComponentsPanel from '@/components/editor/ComponentsPanel';
 import ThemesPanel from '@/components/editor/ThemesPanel';
 import PagesPanel from '@/components/editor/PagesPanel';
 import LogoHandler from '@/components/editor/LogoHandler';
+import LogoutButton from '@/components/LogoutButton';
 import {
   Save,
   Eye,
@@ -1617,7 +1618,12 @@ export default function EditorPage() {
       case 'video':
         return { url: '', autoplay: false, height: 400 };
       case 'break':
-        return {};
+        return {
+          lineStyle: 'solid',
+          height: 32,
+          lineColor: '#e5e7eb',
+          width: '100%',
+        };
       case 'social':
         return {
           instagramUrl: '',
@@ -1885,6 +1891,7 @@ export default function EditorPage() {
               Publish
             </Button>
           )}
+          <LogoutButton variant="icon" />
         </div>
       </header>
 
