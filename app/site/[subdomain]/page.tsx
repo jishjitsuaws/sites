@@ -1217,10 +1217,6 @@ export default function PublishedSitePage() {
         );
 
       case 'banner':
-        const hasTextContent = component.props.heading || component.props.subheading || component.props.buttonText;
-        const inferredSubType = component.subType || (hasTextContent ? 'banner-full' : 'banner-minimal');
-        const isTextBanner = inferredSubType === 'banner-full';
-        
         return (
           <div 
             className="relative w-full flex flex-col items-center justify-center"
@@ -1245,100 +1241,6 @@ export default function PublishedSitePage() {
                   zIndex: 0,
                 }}
               />
-            )}
-            
-            {/* Content overlay when there's an image - for text banners */}
-            {isTextBanner && component.props.backgroundImage && (
-              <div 
-                className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 md:px-8"
-                style={{ 
-                  padding: '40px 20px',
-                  zIndex: 1,
-                }}
-              >
-                {component.props.heading && (
-                  <h1 
-                    className="text-3xl md:text-5xl font-bold mb-4"
-                    style={{ 
-                      fontFamily: `'${themeFonts.heading}', sans-serif`,
-                      color: component.props.textColor || '#ffffff',
-                    }}
-                  >
-                    {component.props.heading}
-                  </h1>
-                )}
-                
-                {component.props.subheading && (
-                  <p 
-                    className="text-lg md:text-xl mb-6 max-w-2xl mx-auto text-center"
-                    style={{ 
-                      fontFamily: `'${themeFonts.body}', sans-serif`,
-                      color: component.props.textColor || '#ffffff',
-                      opacity: 0.9,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {component.props.subheading}
-                  </p>
-                )}
-                
-                {component.props.buttonText && (
-                  <a
-                    href={component.props.buttonLink || '#'}
-                    className="inline-block px-6 py-3 rounded-lg font-medium transition-all hover:opacity-90"
-                    style={{
-                      backgroundColor: '#ffffff',
-                      color: component.props.backgroundColor || themeColors.primary,
-                    }}
-                  >
-                    {component.props.buttonText}
-                  </a>
-                )}
-              </div>
-            )}
-            
-            {/* Content when there's NO image OR for minimal banners */}
-            {(!component.props.backgroundImage || !isTextBanner) && isTextBanner && (
-              <div className="w-full max-w-4xl text-center px-4 md:px-8">
-                {component.props.heading && (
-                  <h1 
-                    className="text-3xl md:text-5xl font-bold mb-4"
-                    style={{ 
-                      fontFamily: `'${themeFonts.heading}', sans-serif`,
-                      color: component.props.textColor || '#ffffff',
-                    }}
-                  >
-                    {component.props.heading}
-                  </h1>
-                )}
-                
-                {component.props.subheading && (
-                  <p 
-                    className="text-lg md:text-xl mb-6 mx-auto text-center"
-                    style={{ 
-                      fontFamily: `'${themeFonts.body}', sans-serif`,
-                      color: component.props.textColor || '#ffffff',
-                      opacity: 0.9,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {component.props.subheading}
-                  </p>
-                )}
-                
-                {component.props.buttonText && (
-                  <a
-                    href={component.props.buttonLink || '#'}
-                    className="inline-block px-6 py-3 rounded-lg font-medium transition-all hover:opacity-90"
-                    style={{
-                      backgroundColor: '#ffffff',
-                      color: component.props.backgroundColor || themeColors.primary,
-                    }}
-                  >
-                    {component.props.buttonText}
-                  </a>
-                )}
-              </div>
             )}
           </div>
         );
@@ -1371,29 +1273,27 @@ export default function PublishedSitePage() {
         return (
           <div style={{ textAlign: component.props.align || 'left' }}>
             {component.props.style === 'numbered' ? (
-              <div className="space-y-1" style={{ lineHeight: 1.6 }}>
+              <ol 
+                className="list-decimal list-outside space-y-1" 
+                style={{ 
+                  lineHeight: 1.6, 
+                  color: themeColors.text,
+                  paddingLeft: '1.5rem'
+                }}
+              >
                 {(component.props.items || []).map((item: string, idx: number) => {
                   const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
                                        component.props.textSize === 'title' ? 'text-2xl' :
                                        component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
                   return (
-                    <div key={idx} className="flex items-start mb-1">
-                      <span 
-                        className={`shrink-0 font-medium ${textSizeClass}`}
-                        style={{ color: themeColors.text, minWidth: '2rem', display: 'inline-block' }}
-                      >
-                        {idx + 1}.
-                      </span>
-                      <span
-                        className={`flex-1 ${textSizeClass}`}
-                        style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
-                      >
+                    <li key={idx} className={`${textSizeClass} mb-1`}>
+                      <span style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>
                         {item}
                       </span>
-                    </div>
+                    </li>
                   );
                 })}
-              </div>
+              </ol>
             ) : component.props.style === 'none' ? (
               <div className="space-y-1">
                 {(component.props.items || []).map((item: string, idx: number) => {
@@ -1413,29 +1313,27 @@ export default function PublishedSitePage() {
                 })}
               </div>
             ) : (
-              <div className="space-y-1" style={{ lineHeight: 1.6 }}>
+              <ul 
+                className="list-disc list-outside space-y-1" 
+                style={{ 
+                  lineHeight: 1.6, 
+                  color: themeColors.text,
+                  paddingLeft: '1.5rem'
+                }}
+              >
                 {(component.props.items || []).map((item: string, idx: number) => {
                   const textSizeClass = component.props.textSize === 'heading' ? 'text-3xl' : 
                                        component.props.textSize === 'title' ? 'text-2xl' :
                                        component.props.textSize === 'subheading' ? 'text-xl' : 'text-base';
                   return (
-                    <div key={idx} className="flex items-start mb-1">
-                      <span 
-                        className={`shrink-0 ${textSizeClass}`}
-                        style={{ color: themeColors.text, minWidth: '1.5rem', display: 'inline-block', textAlign: 'center' }}
-                      >
-                        •
-                      </span>
-                      <span
-                        className={`flex-1 ${textSizeClass}`}
-                        style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}
-                      >
+                    <li key={idx} className={`${textSizeClass} mb-1`}>
+                      <span style={{ fontFamily: `'${themeFonts.body}', sans-serif`, color: themeColors.text }}>
                         {item}
                       </span>
-                    </div>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             )}
           </div>
         );

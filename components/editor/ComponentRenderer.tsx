@@ -2710,15 +2710,14 @@ export default function ComponentRenderer({
               : listStyle === 'none'
                 ? 'list-none'
                 : 'list-disc';
-            const useInsideBullets = align !== 'left' || listStyle === 'none';
-            const paddingClass = listStyle === 'none' ? 'pl-0' : (align === 'left' ? 'pl-5' : 'pl-0');
+            const paddingClass = listStyle === 'none' ? 'pl-0' : 'pl-5';
 
             return (
               <ul
-                className={`${listTypeClass} ${useInsideBullets ? 'list-inside' : 'list-outside'} ${paddingClass} space-y-2`}
+                className={`${listTypeClass} list-outside ${paddingClass} space-y-2`}
                 style={{
                   lineHeight: 1.6,
-                  listStylePosition: useInsideBullets ? 'inside' : 'outside',
+                  listStylePosition: 'outside',
                   fontFamily: `'${themeFonts.body}', sans-serif`,
                   color: themeColors.text,
                 }}
@@ -2906,15 +2905,8 @@ export default function ComponentRenderer({
         </div>
       )}
 
-      {/* Banner Component */}
-      {component.type === 'banner' && (() => {
-        // Infer banner type from props if subType is missing (for backwards compatibility after reload)
-        const hasTextContent = component.props.heading || component.props.subheading || component.props.buttonText;
-        const inferredSubType = component.subType || (hasTextContent ? 'banner-full' : 'banner-minimal');
-        const isTextBanner = inferredSubType === 'banner-full';
-        const isImageBanner = inferredSubType === 'banner-minimal';
-        
-        return (
+      {/* Banner Component - Image Only */}
+      {component.type === 'banner' && (
         <div 
           className="relative w-full flex flex-col items-center justify-center text-center"
           style={{
@@ -2934,492 +2926,30 @@ export default function ComponentRenderer({
                 display: 'block',
                 width: '100%',
                 height: 'auto',
-                pointerEvents: 'none', // Don't capture clicks
-                zIndex: 0, // Behind content
+                pointerEvents: 'none',
+                zIndex: 0,
               }}
             />
           )}
           
-          {/* Content overlay when there's an image - for text banners */}
-          {isTextBanner && component.props.backgroundImage && (component.props.heading !== null || component.props.subheading !== null || component.props.buttonText !== null) && (
-            <div 
-              className="absolute inset-0 flex flex-col items-center justify-center text-center"
-              style={{ 
-                padding: '60px 40px',
-                zIndex: 1,
-              }}
-            >
-              {/* Heading with inline controls */}
-              {(component.props.heading !== null && component.props.heading !== undefined) && (
-                <div className="relative group/heading" style={{ zIndex: 2, width: '100%', maxWidth: '1200px' }}>
-                  {isSelected && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, heading: null }
-                        });
-                      }}
-                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-100 transition-all shadow-lg"
-                      title="Delete Heading"
-                      style={{ zIndex: 10 }}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  )}
-                  <h1 
-                    contentEditable={true}
-                    suppressContentEditableWarning
-                    onBlur={(e) => {
-                      const newHeading = e.currentTarget.textContent || '';
-                      if (newHeading !== component.props.heading && newHeading.trim() !== '') {
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, heading: newHeading }
-                        });
-                      } else if (newHeading.trim() === '') {
-                        // If empty, set to null to show placeholder
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, heading: null }
-                        });
-                      }
-                    }}
-                    onFocus={(e) => {
-                      // Clear placeholder text on focus if it's the placeholder
-                      const element = e.currentTarget as HTMLElement;
-                      if (element.textContent === 'Add heading...' || !component.props.heading) {
-                        element.textContent = '';
-                      }
-                      
-                      // Show text toolbar for banner text editing
-                      const rect = element.getBoundingClientRect();
-                      
-                      // Use absolute screen coordinates for text toolbar positioning
-                      const absoluteRect = {
-                        x: rect.left,
-                        y: rect.top,
-                        left: rect.left,
-                        top: rect.top,
-                        right: rect.right,
-                        bottom: rect.bottom,
-                        width: rect.width,
-                        height: rect.height,
-                        toJSON: () => ({})
-                      } as DOMRect;
-                      onShowTextToolbar(absoluteRect);
-                    }}
-                    className="text-5xl font-bold mb-4 outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
-                    style={{ 
-                      fontFamily: `'${themeFonts.heading}', sans-serif`,
-                      color: component.props.textColor || '#ffffff',
-                      cursor: 'text',
-                      opacity: (!component.props.heading && isSelected) ? 0.6 : 1,
-                    }}
-                    data-placeholder={!component.props.heading && isSelected ? 'Add heading...' : ''}
-                  >
-                    {component.props.heading || (isSelected ? 'Add heading...' : '')}
-                  </h1>
-                </div>
-              )}
-              
-              {/* Subheading with inline controls */}
-              {(component.props.subheading !== null && component.props.subheading !== undefined) && (
-                <div className="relative group/subheading" style={{ zIndex: 2, width: '100%', maxWidth: '800px' }}>
-                  {isSelected && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, subheading: null }
-                        });
-                      }}
-                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-100 transition-all shadow-lg"
-                      title="Delete Subheading"
-                      style={{ zIndex: 10 }}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  )}
-                  <p 
-                    contentEditable={true}
-                    suppressContentEditableWarning
-                    onBlur={(e) => {
-                      const newSubheading = e.currentTarget.textContent || '';
-                      if (newSubheading !== component.props.subheading && newSubheading.trim() !== '') {
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, subheading: newSubheading }
-                        });
-                      } else if (newSubheading.trim() === '') {
-                        // If empty, set to null to show placeholder
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, subheading: null }
-                        });
-                      }
-                    }}
-                    onFocus={(e) => {
-                      // Clear placeholder text on focus if it's the placeholder
-                      const element = e.currentTarget as HTMLElement;
-                      if (element.textContent === 'Add subheading...' || !component.props.subheading) {
-                        element.textContent = '';
-                      }
-                      
-                      // Show text toolbar for banner subheading editing
-                      const rect = element.getBoundingClientRect();
-                      
-                      // Use absolute screen coordinates for text toolbar positioning
-                      const absoluteRect = {
-                        x: rect.left,
-                        y: rect.top,
-                        left: rect.left,
-                        top: rect.top,
-                        right: rect.right,
-                        bottom: rect.bottom,
-                        width: rect.width,
-                        height: rect.height,
-                        toJSON: () => ({})
-                      } as DOMRect;
-                      onShowTextToolbar(absoluteRect);
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Don't auto-select component when clicking text elements
-                    }}
-                    className="text-xl mb-8 max-w-2xl outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
-                    style={{ 
-                      fontFamily: `'${themeFonts.body}', sans-serif`,
-                      color: component.props.textColor || '#ffffff',
-                      opacity: (!component.props.subheading && isSelected) ? 0.6 : 0.9,
-                      cursor: 'text',
-                    }}
-                  >
-                    {component.props.subheading || (isSelected ? 'Add subheading...' : '')}
-                  </p>
-                </div>
-              )}
-              
-              {/* Button with inline toolbar - like regular button component */}
-              {(component.props.buttonText !== null && component.props.buttonText !== undefined) && (
-                <div className="relative group/button inline-block" style={{ zIndex: 2, minHeight: isSelected ? '100px' : 'auto' }}>
-                  {/* Banner Button Inline Toolbar */}
-                  {isSelected && (
-                    <div 
-                      className="absolute bg-white rounded-lg shadow-xl border-2 border-gray-300 p-3 flex gap-3 items-center flex-wrap"
-                      style={{
-                        bottom: '100%',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        zIndex: 1000,
-                        minWidth: '800px',
-                        maxWidth: '90vw',
-                        marginBottom: '8px',
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      onMouseDown={(e) => e.stopPropagation()}
-                    >
-                      {/* Button Text Input */}
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-semibold text-gray-600">Button Text</label>
-                        <input
-                          type="text"
-                          value={component.props.buttonText || ''}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            onUpdateComponent(component.id, {
-                              ...component,
-                              props: { ...component.props, buttonText: e.target.value }
-                            });
-                          }}
-                          onFocus={(e) => e.stopPropagation()}
-                          onBlur={(e) => e.stopPropagation()}
-                          placeholder="Button text"
-                          className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-32"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </div>
-                      
-                      {/* Link Input */}
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-semibold text-gray-600">Link To</label>
-                        <input
-                          type="text"
-                          value={component.props.buttonLink || ''}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            onUpdateComponent(component.id, {
-                              ...component,
-                              props: { ...component.props, buttonLink: e.target.value }
-                            });
-                          }}
-                          onFocus={(e) => e.stopPropagation()}
-                          onBlur={(e) => e.stopPropagation()}
-                          placeholder="https://example.com"
-                          className="px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 w-48"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </div>
-                      
-                      <div className="w-px bg-gray-300 h-8"></div>
-                      
-                      {/* Delete Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, buttonText: null, buttonLink: null }
-                          });
-                        }}
-                        className="px-3 py-1.5 hover:bg-red-100 rounded text-sm flex items-center gap-1.5 text-red-600 transition-colors"
-                        title="Delete Button"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                  
-                  {/* Button Element - Always show if button exists, even without text */}
-                  {component.props.buttonLink && !isSelected && component.props.buttonText ? (
-                    <a
-                      href={component.props.buttonLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105 inline-block"
-                      style={{
-                        backgroundColor: '#ffffff',
-                        color: component.props.backgroundColor || themeColors.primary,
-                        textDecoration: 'none',
-                      }}
-                    >
-                      {component.props.buttonText || 'Get Started'}
-                    </a>
-                  ) : (
-                    <button
-                      className="px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105 inline-block"
-                      style={{
-                        backgroundColor: '#ffffff',
-                        color: component.props.backgroundColor || themeColors.primary,
-                        cursor: 'pointer',
-                        border: 'none',
-                        opacity: (!component.props.buttonText && isSelected) ? 0.6 : 1,
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Select this button for editing
-                        if (!isSelected) {
-                          onComponentClick(component, e as any);
-                        }
-                      }}
-                    >
-                      {component.props.buttonText || (isSelected ? 'Add button text...' : 'Get Started')}
-                    </button>
-                  )}
-                </div>
-              )}
-              
-              {/* Add component buttons when selected and elements are deleted - for text banners */}
-              {isSelected && isTextBanner && (
-                <div className="mt-6 flex gap-2 flex-wrap justify-center" style={{ zIndex: 2 }}>
-                  {(component.props.heading === null || component.props.heading === undefined) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, heading: 'Welcome to our site' }
-                        });
-                      }}
-                      className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg text-sm flex items-center gap-2 transition-colors border border-white/30"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Heading
-                    </button>
-                  )}
-                  {(component.props.subheading === null || component.props.subheading === undefined) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, subheading: 'Discover amazing features' }
-                        });
-                      }}
-                      className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg text-sm flex items-center gap-2 transition-colors border border-white/30"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Subheading
-                    </button>
-                  )}
-                  {(component.props.buttonText === null || component.props.buttonText === undefined) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onUpdateComponent(component.id, {
-                          ...component,
-                          props: { ...component.props, buttonText: 'Get Started' }
-                        });
-                      }}
-                      className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg text-sm flex items-center gap-2 transition-colors border border-white/30"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Button
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          
           {/* Content when there's NO image */}
           {!component.props.backgroundImage && (
-            <div style={{ 
-              padding: isTextBanner ? '60px 0' : '60px 40px', 
-              width: '100%' 
-            }}>
-              {/* Image Banner - show upload prompt */}
-              {isImageBanner && (
-                <div className="text-center">
-                  <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg mb-4 opacity-75">Click "Image" to upload a background image</p>
-                  {isSelected && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onShowImageModal();
-                      }}
-                      className="px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg font-semibold transition-colors border border-white/30"
-                    >
-                      Upload Image
-                    </button>
-                  )}
-                </div>
-              )}
-              
-              {/* Text Banner - show text/button editing */}
-              {isTextBanner && (
-                <div className="text-center" style={{ padding: '0 40px' }}>
-                  {component.props.heading && (
-                    <h1 
-                      contentEditable={true}
-                      suppressContentEditableWarning
-                      onInput={(e) => {
-                        const newHeading = e.currentTarget.textContent || '';
-                        if (newHeading !== component.props.heading) {
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, heading: newHeading }
-                          });
-                        }
-                      }}
-                      onFocus={(e) => {
-                        if (!isSelected) {
-                          onComponentClick(component, e as any);
-                        }
-                        setSelectedComponent(component);
-                        const element = e.currentTarget as HTMLElement;
-                        const rect = element.getBoundingClientRect();
-                        const absoluteRect = {
-                          x: rect.left,
-                          y: rect.top,
-                          left: rect.left,
-                          top: rect.top,
-                          right: rect.right,
-                          bottom: rect.bottom,
-                          width: rect.width,
-                          height: rect.height,
-                          toJSON: () => ({})
-                        } as DOMRect;
-                        onShowTextToolbar(absoluteRect);
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-5xl font-bold mb-4 outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
-                      style={{ 
-                        fontFamily: `'${themeFonts.heading}', sans-serif`,
-                        color: component.props.textColor || '#ffffff',
-                        cursor: 'text',
-                      }}
-                    >
-                      {component.props.heading}
-                    </h1>
-                  )}
-                  
-                  {component.props.subheading && (
-                    <p 
-                      contentEditable={true}
-                      suppressContentEditableWarning
-                      onInput={(e) => {
-                        const newSubheading = e.currentTarget.textContent || '';
-                        if (newSubheading !== component.props.subheading) {
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, subheading: newSubheading }
-                          });
-                        }
-                      }}
-                      onFocus={(e) => {
-                        if (!isSelected) {
-                          onComponentClick(component, e as any);
-                        }
-                        setSelectedComponent(component);
-                        const element = e.currentTarget as HTMLElement;
-                        const rect = element.getBoundingClientRect();
-                        const absoluteRect = {
-                          x: rect.left,
-                          y: rect.top,
-                          left: rect.left,
-                          top: rect.top,
-                          right: rect.right,
-                          bottom: rect.bottom,
-                          width: rect.width,
-                          height: rect.height,
-                          toJSON: () => ({})
-                        } as DOMRect;
-                        onShowTextToolbar(absoluteRect);
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-xl mb-8 max-w-2xl mx-auto outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 rounded px-4 py-2"
-                      style={{ 
-                        fontFamily: `'${themeFonts.body}', sans-serif`,
-                        color: component.props.textColor || '#ffffff',
-                        opacity: 0.9,
-                        cursor: 'text',
-                      }}
-                    >
-                      {component.props.subheading}
-                    </p>
-                  )}
-                  
-                  {component.props.buttonText && (
-                    <div
-                      contentEditable={true}
-                      suppressContentEditableWarning
-                      onInput={(e) => {
-                        const newButtonText = e.currentTarget.textContent || '';
-                        if (newButtonText !== component.props.buttonText) {
-                          onUpdateComponent(component.id, {
-                            ...component,
-                            props: { ...component.props, buttonText: newButtonText }
-                          });
-                        }
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="px-8 py-3 rounded-lg font-semibold text-lg transition-all inline-block outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-                      style={{
-                        backgroundColor: '#ffffff',
-                        color: component.props.backgroundColor || themeColors.primary,
-                        cursor: 'text',
-                      }}
-                    >
-                      {component.props.buttonText}
-                    </div>
-                  )}
-                </div>
-              )}
+            <div style={{ padding: '60px 40px', width: '100%' }}>
+              <div className="text-center">
+                <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-4 opacity-75">Click "Image" to upload a background image</p>
+                {isSelected && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShowImageModal();
+                    }}
+                    className="px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg font-semibold transition-colors border border-white/30"
+                  >
+                    Upload Image
+                  </button>
+                )}
+              </div>
             </div>
           )}
           
@@ -3479,58 +3009,6 @@ export default function ComponentRenderer({
                   title="Hex Color Code"
                 />
               </div>
-              <div className="w-px bg-gray-300"></div>
-              <div className="px-2 py-1.5 flex items-center gap-1.5">
-                <input
-                  type="color"
-                  value={component.props.textColor || '#ffffff'}
-                  onChange={(e) => {
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, textColor: e.target.value }
-                    });
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-6 h-6 rounded cursor-pointer border-none"
-                  title="Text Color"
-                />
-                <input
-                  type="text"
-                  value={component.props.textColor || '#ffffff'}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    const newColor = e.target.value;
-                    if (newColor.match(/^#[0-9A-Fa-f]{6}$/)) {
-                      onUpdateComponent(component.id, {
-                        ...component,
-                        props: { ...component.props, textColor: newColor }
-                      });
-                    }
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  placeholder="#ffffff"
-                  className="w-20 px-2 py-1 text-xs border border-gray-300 rounded"
-                  title="Hex Color Code"
-                />
-              </div>
-              <div className="w-px bg-gray-300"></div>
-              <div className="px-2 py-1.5 flex items-center gap-2">
-                <label className="text-xs text-gray-700 whitespace-nowrap">Link:</label>
-                <input
-                  type="text"
-                  value={component.props.buttonLink || ''}
-                  onChange={(e) => {
-                    onUpdateComponent(component.id, {
-                      ...component,
-                      props: { ...component.props, buttonLink: e.target.value }
-                    });
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  placeholder="https://..."
-                  className="w-24 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
-                  title="Button Link URL"
-                />
-              </div>
               {!component.props.backgroundImage && (
                 <>
                   <div className="w-px bg-gray-300"></div>
@@ -3570,8 +3048,7 @@ export default function ComponentRenderer({
             </div>
           )}
         </div>
-        );
-      })()}
+      )}
 
       {/* Footer Component (Immutable - matches C-DAC design) */}
       {component.type === 'footer' && (
